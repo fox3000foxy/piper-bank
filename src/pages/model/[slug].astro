@@ -95,6 +95,9 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
             <div class="pbody">
               <div class="prow">
                 <button class="pname" title={v.name}>{v.name}</button>
+                <span class="ex-sw">
+                  <button class="ex on" data-n="0" title="sample 1">1</button><button class="ex" data-n="1" title="sample 2">2</button>
+                </span>
                 <span class="ptime">0:00</span>
               </div>
               <div class="pbar"><div class="pfill"></div></div>
@@ -156,6 +159,11 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
         text-overflow:ellipsis; text-align:left; }
       .pname:hover { color:hsl(var(--vc) 85% 72%); }
       .pname.sel { color:hsl(var(--vc) 85% 72%); text-decoration:underline; text-underline-offset:3px; }
+      .ex-sw { display:flex; gap:.2rem; margin-left:.1rem; }
+      .ex { font-family:inherit; font-size:.66rem; width:20px; height:20px; border-radius:6px; cursor:pointer;
+        background:transparent; border:1px solid var(--border); color:var(--dim); padding:0; line-height:1; }
+      .ex:hover { color:var(--text); border-color:#3f3f46; }
+      .ex.on { background:hsl(var(--vc) 70% 50% / .25); border-color:hsl(var(--vc) 70% 55%); color:hsl(var(--vc) 85% 75%); }
       .ptime { margin-left:auto; color:var(--dim); font-size:.72rem; font-variant-numeric:tabular-nums; white-space:nowrap; }
       .pbar { height:4px; border-radius:99px; background:#ffffff12; cursor:pointer; }
       .pfill { height:100%; width:0%; border-radius:99px; background:hsl(var(--vc) 75% 58%); transition:width .1s linear; }
@@ -198,47 +206,52 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
         const fill = card.querySelector('.pfill');
         const time = card.querySelector('.ptime');
         const audios = [...card.querySelectorAll('audio')];
+        const exBtns = [...card.querySelectorAll('.ex')];
         audios.forEach((a, n) => { a.src = sampleUrl(sid, n); });
         let idx = 0;
-        const audio = audios[0];
+        const audio = () => audios[idx];
         const paint = () => {
-          const d = audio.duration || 0, c = audio.currentTime || 0;
+          const a = audio(), d = a.duration || 0, c = a.currentTime || 0;
           fill.style.width = (d ? (c / d) * 100 : 0) + '%';
           time.textContent = fmt(c) + (d ? ' / ' + fmt(d) : '');
         };
-        audio.addEventListener('timeupdate', paint);
-        audio.addEventListener('loadedmetadata', paint);
-        audio.addEventListener('ended', () => {
-          if (idx < audios.length - 1 && audios[idx + 1].src) {
-            idx++;
-            // pre-check existence before playing
-            fetch(audios[idx].src, { method: 'HEAD' }).then((r) => {
-              if (r.ok) { audios[idx].play().catch(() => stop()); }
-              else stop();
-            }).catch(() => stop());
-          } else stop();
+        audios.forEach((a) => {
+          a.addEventListener('timeupdate', () => { if (a === audio()) paint(); });
+          a.addEventListener('loadedmetadata', () => { if (a === audio()) paint(); });
+          a.addEventListener('error', () => {
+            if (a === audios[0]) {
+              // no sample for this voice (generation running) -> hide player
+              card.style.display = 'none';
+            }
+          }, true);
         });
-        audio.addEventListener('error', () => {
-          if (idx === 0) {
-            // no sample for this voice (generation running) -> hide player
-            card.style.display = 'none';
-          } else stop();
-        }, true);
         const stop = () => {
-          audio.pause(); idx = 0;
+          audios.forEach((a) => a.pause()); idx = 0;
+          exBtns.forEach((x, n) => x.classList.toggle('on', n === 0));
           card.classList.remove('playing'); btn.textContent = '▶';
         };
+        exBtns.forEach((x, n) => x.addEventListener('click', (e) => {
+          e.stopPropagation();
+          stop();
+          idx = n;
+          exBtns.forEach((y, m) => y.classList.toggle('on', m === n));
+          if (currentAudio && currentAudio !== audios[idx]) { currentAudio.pause(); }
+          currentAudio = audios[idx]; currentCard = card;
+          audios[idx].play().then(() => { card.classList.add('playing'); btn.textContent = '⏸'; })
+            .catch(() => stop());
+        }));
         btn.addEventListener('click', () => {
-          if (currentAudio && currentAudio !== audio) {
+          const a = audio();
+          if (currentAudio && currentAudio !== a) {
             currentAudio.pause();
             if (currentCard) {
               currentCard.classList.remove('playing');
               currentCard.querySelector('.pp').textContent = '▶';
             }
           }
-          if (audio.paused) {
-            currentAudio = audio; currentCard = card;
-            audio.play().then(() => { card.classList.add('playing'); btn.textContent = '⏸'; })
+          if (a.paused) {
+            currentAudio = a; currentCard = card;
+            a.play().then(() => { card.classList.add('playing'); btn.textContent = '⏸'; })
               .catch(() => { card.style.display = 'none'; });
           } else {
             stop(); currentAudio = null; currentCard = null;
