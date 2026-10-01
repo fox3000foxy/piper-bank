@@ -108,7 +108,8 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 
     <link rel="stylesheet" href={`${base}site.css`} />
     <style is:global>
-      .model-cols { display:grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); gap:2rem; align-items:start; }
+      .model-cols { display:grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); gap:2rem; align-items:start; margin-top:1.8rem; }
+      .tags { margin-bottom:.4rem; }
       .model-side { display:flex; flex-direction:column; min-width:0; }
       .model-side .sec.first, .model-main .sec.first { margin-top:0; border-top:none; padding-top:0; }
       .voice-list { display:flex; flex-direction:column; gap:.55rem; }
