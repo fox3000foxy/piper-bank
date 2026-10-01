@@ -1,0 +1,102 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import data from '../../data/datasets.json';
+
+export async function getStaticPaths() {
+  return data.map((d) => ({ params: { slug: d.slug }, props: { ds: d } }));
+}
+
+const { ds: d } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const hasModel = !!(d.model && d.modelSlug);
+---
+
+<Layout title={d.name} active="datasets" subtitle={`${d.source || 'dataset'} · ${d.langName || d.lang.toUpperCase()}`}>
+  <a class="back" href={`${base}datasets/`}>← all datasets</a>
+
+  <div class="hero model-hero">
+    <span class="avatar big" style="--h:210">🗃️</span>
+    <div>
+      <h1>{d.name}</h1>
+      <p class="subtitle">{d.class} · {d.source}</p>
+    </div>
+  </div>
+
+  <section class="tags">
+    <span class="tag lang">{d.langName || d.lang.toUpperCase()}</span>
+    <span class="tag">{d.source || '—'}</span>
+    {hasModel
+      ? <a class="tag voices" href={`${base}model/${d.modelSlug}/`}>→ {d.model}</a>
+      : <span class="tag q-medium">to train</span>}
+  </section>
+
+  <div class="model-cols">
+    <div class="model-main">
+      <section class="sec first">
+        <h2>Details</h2>
+        <dl class="details">
+          <div><dt>class</dt><dd>{d.class || '—'}</dd></div>
+          <div><dt>source</dt><dd>{d.source || '—'}</dd></div>
+          <div><dt>language</dt><dd>{d.langName || d.lang.toUpperCase()}</dd></div>
+          <div><dt>repository</dt><dd>{d.repo
+            ? <a href={`https://huggingface.co/datasets/${d.repo}`}>{d.repo}</a>
+            : 'no repo'}</dd></div>
+          <div><dt>status</dt><dd>{d.status}</dd></div>
+        </dl>
+      </section>
+
+      <section class="sec">
+        <h2>Train a model</h2>
+        <p class="dim">
+          {hasModel
+            ? <>This dataset already has a model — listen to it on its page.</>
+            : <>No model yet. Format: LJSpeech (<code>metadata.csv</code> + <code>wavs/</code>).
+              Training takes 1–6h on the Kaggle notebook, output <code>model.onnx</code> + <code>model.onnx.json</code>.</>}
+        </p>
+      </section>
+    </div>
+    <aside class="model-side">
+      <section class="sec first">
+        <h2>Links</h2>
+        <div class="dl-row">
+          {d.repo && !d.repo.startsWith('↔') &&
+            <a class="btn-dl" href={`https://huggingface.co/datasets/${d.repo}`}>⬇ dataset (HF)</a>}
+          {d.thread &&
+            <a class="btn-dl ghost" href={`https://discord.com/channels/1523276835712929946/${d.thread}`}>thread</a>}
+        </div>
+      </section>
+
+      {hasModel && (
+        <section class="sec">
+          <h2>Model</h2>
+          <div class="dl-row">
+            <a class="btn-dl" href={`${base}model/${d.modelSlug}/`}>→ {d.model}</a>
+          </div>
+        </section>
+      )}
+    </aside>
+  </div>
+
+  <style is:global>
+    .model-cols { display:grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); gap:2rem; align-items:start; margin-top:1.8rem; }
+    .model-side { display:flex; flex-direction:column; min-width:0; }
+    .model-main .sec.first, .model-side .sec.first { margin-top:0; border-top:none; padding-top:0; }
+    .details { display:flex; flex-direction:column; margin:0; }
+    .details > div { display:flex; gap:.8rem; padding:.45rem 0; border-bottom:1px solid var(--border); font-size:.86rem; }
+    .details > div:last-child { border-bottom:none; }
+    .details dt { flex:0 0 110px; color:var(--dim); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; }
+    .details dd { margin:0; overflow-wrap:anywhere; }
+    .dl-row { display:flex; flex-wrap:wrap; gap:.5rem; }
+    .btn-dl { display:inline-flex; align-items:center; gap:.4rem; font-size:.84rem; font-weight:550;
+      padding:.5rem .95rem; border-radius:10px; color:var(--text);
+      background:linear-gradient(180deg,#a855f722,#a855f711); border:1px solid #a855f755; transition:all .12s; }
+    .btn-dl:hover { border-color:var(--accent); box-shadow:0 0 18px #a855f733; }
+    .btn-dl.ghost { background:none; border-color:var(--border); color:var(--dim); font-weight:400; }
+    .btn-dl.ghost:hover { color:var(--text); border-color:#3f3f46; box-shadow:none; }
+    .avatar.big { width:76px; height:76px; font-size:2.4rem; border-radius:20px; display:grid; place-items:center; flex:0 0 auto;
+      background:linear-gradient(135deg, hsl(var(--h) 65% 26%), hsl(calc(var(--h) + 40) 70% 12%));
+      border:1px solid hsl(var(--h) 60% 32% / .55); text-shadow:0 2px 8px #0009; }
+    .tags { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:1rem; margin-bottom:.4rem; }
+    @media (max-width: 900px) { .model-cols { grid-template-columns:1fr; } }
+  </style>
+</Layout>

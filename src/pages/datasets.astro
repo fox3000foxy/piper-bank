@@ -1,31 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import modelsData from  '../data/models.json';
 import datasetsData from  '../data/datasets.json';
 
-const models = modelsData.filter((m) => m.usable);
 const datasets = datasetsData;
-const withModel = datasets.filter((d) => d.status.includes('modèle') || d.status === '✅ files' && false);
 const base = import.meta.env.BASE_URL;
 
-// thread_id -> model slug lookup
-const threadToSlug = {};
-models.forEach((m) => { if (m.thread) threadToSlug[m.thread] = m.slug; });
-
-function datasetModel(d) {
-  // explicit link "➡️ modèle: <thread_id>" or repo ↔ model
-  const m = d.status.match(/modèle:\s*(\d+)/);
-  if (m && threadToSlug[m[1]]) return threadToSlug[m[1]];
-  // fallback: same class name inside a model name
-  const cls = (d.class || '').toLowerCase();
-  if (cls.length > 2) {
-    const hit = models.find((x) => x.name.toLowerCase().includes(cls));
-    if (hit) return hit.slug;
-  }
-  return null;
-}
-const noModel = datasets.filter((d) => !datasetModel(d));
-const hasModel = datasets.filter((d) => datasetModel(d));
+const noModel = datasets.filter((d) => !d.modelSlug);
+const hasModel = datasets.filter((d) => d.modelSlug);
 ---
 
 <Layout title="Datasets" active="datasets" subtitle="126 datasets · ljspeech">
@@ -43,27 +24,28 @@ const hasModel = datasets.filter((d) => datasetModel(d));
     </section>
 
     <main id="grid" class="grid">
-      {datasets.map((d) => {
-        const slug = datasetModel(d);
-        return (
-          <article class="card" data-has={slug ? '1' : '0'}
+      {datasets.map((d) => (
+          <a class="card ds" data-has={d.modelSlug ? '1' : '0'}
+            href={`${base}dataset/${d.slug}/`}
             data-search={`${d.name} ${d.class} ${d.source} ${d.repo}`.toLowerCase()}>
             <h2>{d.name}</h2>
             <div class="meta">
               <span class="badge">{d.source || '—'}</span>
-              <span class="badge">{d.lang.toUpperCase()}</span>
-              {slug
-                ? <a class="badge ok" href={`${base}model/${slug}/`}>→ model</a>
+              <span class="badge">{(d.langName || d.lang).toUpperCase?.() || d.lang}</span>
+              {d.modelSlug
+                ? <span class="badge ok">→ model</span>
                 : <span class="badge missing">to train</span>}
             </div>
-            <p class="author">{d.repo || 'pas de repo'}</p>
-          </article>
-        );
-      })}
+            <p class="author">{d.repo && !d.repo.startsWith('↔') ? d.repo : (d.model || 'no repo')}</p>
+          </a>
+      ))}
     </main>
 
     <link rel="stylesheet" href={`${base}site.css`} />
     <style is:global>
+      .card.ds { border-left:3px solid transparent; }
+      .card.ds[data-has="1"] { border-left-color:#4ade80; }
+      .card.ds[data-has="0"] { border-left-color:#facc15; }
       .filters { display:flex; flex-wrap:wrap; gap:.7rem; align-items:center; margin:1.2rem 0 1.5rem; }
       #search { flex:1 1 320px; padding:.6rem .9rem; border-radius:8px; background:var(--card);
         border:1px solid var(--border); color:var(--text); font-size:.92rem; outline:none; }

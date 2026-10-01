@@ -32,6 +32,9 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
       {m.voices > 1
         ? <span class="tag voices">{m.voices} voix</span>
         : <span class="tag">single voice</span>}
+      {m.dataset
+        ? <a class="tag voices" href={`${base}dataset/${m.dataset.slug || ''}/`} title={m.dataset.repo}>📦 dataset</a>
+        : <span class="tag q-medium">no dataset</span>}
       <span class="tag type">{m.phonemeType === 'text' ? 'phonemes: text' : `phonemes: ${((m.configs || {}).espeak || {}).voice || 'espeak'}`}</span>
       <span class="tag">{m.sampleRate} Hz</span>
     </section>

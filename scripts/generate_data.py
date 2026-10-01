@@ -1,5 +1,5 @@
 # Gen: data/models.json depuis models_mapping.csv + compteur de voix des configs multimodèles
-import csv, json, os, subprocess, urllib.request, urllib.parse, time
+import csv, json, os, re as _re, subprocess, urllib.request, urllib.parse, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'src', 'data')
@@ -33,16 +33,30 @@ if os.path.realpath(CACHE):
 lang_names = {'fr':'Français','en':'English','de':'Deutsch','es':'Español','ru':'Русский','it':'Italiano','zh':'中文',
               'ar':'العربية','tr':'Türkçe','pl':'Polski','sv':'Svenska','pt':'Português','hi':'हिन्दी','hu':'Magyar','fi':'Suomi','brx':'Bodo','si':'Sinhala','tet':'Tetun','kmr':'Kurmanci','ha':'Hausa'}
 
+_DS_SLUG = {}
 datasets = []
 for d in csv.DictReader(open('/home/lsannier/huggingface-crawler/datasets_mapping.csv', newline='')):
+    name = d['thread_name'].strip()
+    slug = _re.sub(r'[^a-z0-9]+', '-', name.lower().encode('ascii', 'ignore').decode()).strip('-')[:80] or 'dataset'
     datasets.append({
-        'name': d['thread_name'].strip(), 'repo': d['hf_repo'].strip(),
+        'name': name, 'slug': slug, 'repo': d['hf_repo'].strip(),
         'lang': (d['language'] or '').strip().lower() or 'xx',
+        'langName': lang_names.get((d['language'] or '').strip().lower(), (d['language'] or 'XX').upper()),
         'class': d['class_name'].strip(), 'source': d['source'].strip(),
         'status': d['status'].strip(), 'thread': d['thread_id'].strip(),
+        'model': None, 'modelSlug': None,
     })
+# slugs uniques + lien inverse modèle -> dataset (rempli après calcul des liens)
+_seen_ds = set()
+for dd in datasets:
+    s_, k = dd['slug'], 1
+    while s_ in _seen_ds:
+        s_ = f"{dd['slug']}-{k}"; k += 1
+    _seen_ds.add(s_)
+    dd['slug'] = s_
 json.dump(datasets, open(os.path.join(OUT, 'datasets.json'), 'w'), ensure_ascii=False)
 print(f"{len(datasets)} datasets")
+_DS_SLUG.update({dd['name']: dd['slug'] for dd in datasets})
 
 models = []
 for r in csv.DictReader(open('/home/lsannier/huggingface-crawler/models_mapping.csv', newline='')):
@@ -101,8 +115,6 @@ def get_speakers(m):
 
 with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_speakers, need))
-
-import re as _re
 
 # Classement par repo d'abord (exact), puis par mots entiers du NOM (pas le repo).
 REPO_UNIVERSE = [
@@ -179,20 +191,20 @@ def _dataset_link(repo, thread_id):
     tid2ds, repo_rules = _dataset_link.cache
     if thread_id in tid2ds:
         d = tid2ds[thread_id]
-        return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+        return {'name': d['thread_name'], 'slug': _DS_SLUG.get(d['thread_name']), 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
     rl = (repo or '').lower()
     for d in repo_rules:
         dr = d['hf_repo'].strip().lower()
         if 'glados_p1_fr-ljspeech' in dr and 'glados_p1_fr' in rl:
-            return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+            return {'name': d['thread_name'], 'slug': _DS_SLUG.get(d['thread_name']), 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
         if 'css-radio-french-ljspeech' in dr and 'css-announcer-fr' in rl:
-            return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+            return {'name': d['thread_name'], 'slug': _DS_SLUG.get(d['thread_name']), 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
         if 'valorant-ljspeech-piper' in dr and rl.startswith('fox3000foxy/piper-checkpoints-'):
             agent = rl.split('piper-checkpoints-')[-1]
             if agent and agent == (d['class_name'] or '').lower():
-                return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+                return {'name': d['thread_name'], 'slug': _DS_SLUG.get(d['thread_name']), 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
         if 'wheatley' in dr and 'wheatley' in rl:
-            return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+            return {'name': d['thread_name'], 'slug': _DS_SLUG.get(d['thread_name']), 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
     return None
 
 for mm in models:
@@ -204,6 +216,25 @@ for mm in models:
     mm['slug'] = s_
     mm['avatar'] = avatar_of(mm['name'], mm['repo'])
     mm['dataset'] = _dataset_link(mm['repo'], mm['thread'])
+# lien inverse : dataset -> modèle (pour les pages dataset)
+slug_by_thread = {m['thread']: m['slug'] for m in models if m.get('thread')}
+name_by_thread = {m['thread']: m['name'] for m in models if m.get('thread')}
+for dd in datasets:
+    t = None
+    mm_ = _re.search(r'modèle:\s*(\d+)', dd['status'])
+    if mm_ and mm_.group(1) in slug_by_thread:
+        t = mm_.group(1)
+    else:
+        # match via _dataset_link inverse : modèle pointant vers ce dataset (nom exact)
+        for m in models:
+            ds = m.get('dataset')
+            if ds and ds.get('name') == dd['name'] and ds.get('repo') == dd['repo']:
+                t = m['thread']
+                break
+    if t and t in slug_by_thread:
+        dd['model'] = name_by_thread[t]
+        dd['modelSlug'] = slug_by_thread[t]
+json.dump(datasets, open(os.path.join(OUT, 'datasets.json'), 'w'), ensure_ascii=False)
 json.dump(cache, open(CACHE,'w'), ensure_ascii=False)
 json.dump(models, open(os.path.join(OUT,'models.json'),'w'), ensure_ascii=False)
 usable_voices = sum(m['voices'] for m in models if m['usable'])
