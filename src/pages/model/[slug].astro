@@ -20,7 +20,11 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{m.name} · Piper TTS Explorer</title>
   </head>
-  <body>
+  <body class="narrow">
+    <nav class="topnav">
+      <a href={base}>Voix</a>
+      <a href={base + "datasets/"}>Datasets</a>
+    </nav>
     <a class="back" href={`${base}`}>← tous les modèles</a>
 
     <header class="hero">
@@ -76,11 +80,6 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
     </section>
 
     <section class="sec">
-      <h2>Exemples du thread</h2>
-      <div id="samples"><p class="dim">chargement…</p></div>
-    </section>
-
-    <section class="sec">
       <h2>Synthétiser</h2>
       <p class="dim" id="sel-voice-line">voix : <b id="sel-voice">défaut</b></p>
       <textarea id="text" rows="2" placeholder="Texte à synthétiser…"></textarea>
@@ -98,30 +97,11 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
       <div id="dataset-link"><p class="dim">recherche…</p></div>
     </section>
 
+    <link rel="stylesheet" href={`${base}site.css`} />
     <style is:global>
-      :root { --bg:#000; --card:#0a0a0a; --border:#17171a; --text:#e4e4e7; --dim:#71717a;
-        --accent:#a855f7; --accent-2:#d8b4fe; --q-high:#4ade80; --q-medium:#facc15; --q-low:#ef4444; }
-      * { box-sizing: border-box; }
-      body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif;
-        padding:2rem 1rem 4rem; max-width:760px; margin-inline:auto; }
-      a { color:var(--accent); text-decoration:none; }
-      .back { color:var(--dim); font-size:.85rem; }
-      .back:hover { color:var(--accent-2); }
-      .hero { display:flex; gap:1rem; align-items:center; margin-top:.6rem; }
       .avatar.big { width:76px; height:76px; font-size:2.4rem; border-radius:20px; display:grid; place-items:center; flex:0 0 auto;
         background:linear-gradient(135deg, hsl(var(--h) 65% 26%), hsl(calc(var(--h) + 40) 70% 12%));
         border:1px solid hsl(var(--h) 60% 32% / .55); text-shadow:0 2px 8px #0009; }
-      .hero h1 { margin:0; font-size:1.45rem; font-weight:600; letter-spacing:-.01em; }
-      .subtitle { color:var(--dim); font-size:.88rem; margin:.3rem 0 0; overflow-wrap:anywhere; }
-      .tags { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:1rem; }
-      .tag { font-size:.75rem; padding:.18rem .6rem; border-radius:999px; background:#141414;
-        border:1px solid var(--border); color:var(--text); }
-      .tag.lang { color:var(--accent-2); }
-      .tag.q-high { color:var(--q-high); } .tag.q-medium { color:var(--q-medium); } .tag.q-low { color:var(--q-low); }
-      .tag.voices { color:#7dd3fc; }
-      .sec { margin-top:1.6rem; border-top:1px solid var(--border); padding-top:1rem; }
-      .sec h2 { margin:0 0 .7rem; font-size:.78rem; font-weight:500; color:#52525b; text-transform:uppercase; letter-spacing:.06em; }
-      .dim { color:var(--dim); font-size:.82rem; }
 
       .dl-row { display:flex; flex-wrap:wrap; gap:.5rem; }
       .btn-dl { display:inline-flex; align-items:center; gap:.4rem; font-size:.84rem; font-weight:550;
@@ -155,7 +135,6 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
       .sample audio { width:100%; margin-top:.25rem; }
       .sample p { margin:0 0 .2rem; font-size:.82rem; color:var(--dim); }
 
-      .chips { display:flex; flex-wrap:wrap; gap:.35rem; }
       #text { width:100%; background:#0a0a0a; border:1px solid var(--border); border-radius:9px;
         color:var(--text); padding:.6rem .75rem; font-family:inherit; font-size:.92rem; resize:vertical; min-height:64px; }
       #text:focus { border-color:#3f3f46; outline:none; }
@@ -173,22 +152,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
     </style>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
-    <script define:vars={{ thread: m.thread, fallbackKey: m.repo + '|' + m.onnx, siteBase: base, modelName: m.name, modelRepo: m.repo }}>
-      (async () => {
-        const box = document.getElementById('samples');
-        try {
-          const s = await (await fetch(`${siteBase}data/samples.json`)).json();
-          const list = (s[thread] || s[fallbackKey] || []).slice(0, 4);
-          if (!list.length) { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; return; }
-          box.innerHTML = '';
-          list.forEach((u, i) => {
-            const d = document.createElement('div'); d.className = 'sample';
-            const p = document.createElement('p'); p.textContent = `exemple ${i + 1}`;
-            const a = document.createElement('audio'); a.controls = true; a.preload = 'none'; a.src = siteBase + u;
-            d.append(p, a); box.append(d);
-          });
-        } catch { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; }
-      })();
+    <script define:vars={{ siteBase: base, modelName: m.name, modelRepo: m.repo }}>
       // dataset lié (même classe / même repo source)
       (async () => {
         const box = document.getElementById('dataset-link');
@@ -214,6 +178,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
         } catch { box.innerHTML = '<p class="dim">aucun dataset référencé</p>'; }
       })();
     </script>
+    <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
     <script type="module">
       const model = JSON.parse(document.getElementById('model-data').textContent);
       const siteBase = window.__BASE__;

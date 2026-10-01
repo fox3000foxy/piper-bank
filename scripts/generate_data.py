@@ -15,10 +15,15 @@ def fetch_speakers(repo, jsonf):
             cfg = json.load(resp)
         sm = cfg.get('speaker_id_map') or {}
         n = len(sm) if sm else int(cfg.get('num_speakers') or 1)
-        names = sorted(sm.keys(), key=lambda k: sm[k] if isinstance(sm[k], int) else (sm[k][0] if isinstance(sm[k], list) else 0))
-        return {'n': n, 'names': names, 'cfg': cfg}
+        ordered = sorted(sm.items(), key=lambda kv: kv[1] if isinstance(kv[1], int) else (kv[1][0] if isinstance(kv[1], list) else 0))
+        names = [k for k, _ in ordered]
+        ids = [v if isinstance(v, int) else (v[0] if isinstance(v, list) else 0) for _, v in ordered]
+        if not names:
+            names = [f'voice-{i}' for i in range(max(n, 1))]
+            ids = list(range(max(n, 1)))
+        return {'n': n, 'names': names, 'ids': ids, 'cfg': cfg}
     except Exception:
-        return {'n': 1, 'names': [], 'cfg': {}}
+        return {'n': 1, 'names': [], 'ids': [0], 'cfg': {}}
 
 cache = {}
 if os.path.realpath(CACHE):
@@ -66,13 +71,24 @@ need = [m for m in models if m['usable']]
 def get_speakers(m):
     key = m['repo'] + '|' + m['json']
     ent = cache.get(key) or {}
-    if 'cfg' not in ent:
-        d = fetch_speakers(m['repo'], m['json'])
-        n, names = d['n'], d['names']
-        cfg = d.get('cfg') or {}
-        ent = {'n': n, 'names': names, 'cfg': cfg}
-        cache[key] = ent
+    if 'cfg' not in ent or 'ids' not in ent:
+        # backfill ids depuis le cfg en cache si possible (évite un refetch)
+        old_cfg = ent.get('cfg') or {}
+        old_sm = old_cfg.get('speaker_id_map') or {}
+        if old_sm and 'ids' not in ent:
+            ordered = sorted(old_sm.items(), key=lambda kv: kv[1] if isinstance(kv[1], int) else 0)
+            ent['ids'] = [v if isinstance(v, int) else (v[0] if isinstance(v, list) else 0) for _, v in ordered]
+            ent['names'] = [k for k, _ in ordered]
+            ent['n'] = len(ordered)
+            cache[key] = ent
+        if 'cfg' not in ent or 'ids' not in ent:
+            d = fetch_speakers(m['repo'], m['json'])
+            n, names = d['n'], d['names']
+            cfg = d.get('cfg') or {}
+            ent = {'n': n, 'names': names, 'ids': d.get('ids') or list(range(n)), 'cfg': cfg}
+            cache[key] = ent
     m['voices'], m['voiceNames'] = ent.get('n', 1), ent.get('names', [])
+    m['voiceIds'] = ent.get('ids') or list(range(ent.get('n', 1)))
     cfg = ent.get('cfg') or {}
     # lightweight config for browser inference (text phoneme voices)
     m['phonemeType'] = cfg.get('phoneme_type') or ('text' if not cfg.get('espeak') else 'espeak')

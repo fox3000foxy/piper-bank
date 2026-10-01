@@ -1,0 +1,48 @@
+/* Piper TTS Explorer — thème AMOLED partagé */
+:root {
+  --bg: #000; --card: #0b0b0e; --border: #1b1b21; --text: #ececf1; --dim: #8b8b96;
+  --accent: #a855f7; --accent-2: #d8b4fe;
+  --q-high: #4ade80; --q-medium: #facc15; --q-low: #f87171;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(1200px 500px at 50% -10%, #12081f 0%, var(--bg) 60%) fixed, var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: 2rem 1.25rem 4rem;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+body.narrow { max-width: 760px; }
+a { color: var(--accent); text-decoration: none; }
+
+.hero { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.6rem; }
+.logo { width: 58px; height: 58px; border-radius: 14px; box-shadow: 0 0 32px #a855f733; }
+.hero-text { flex: 1; min-width: 0; }
+h1 { font-size: 1.55rem; margin: 0; font-weight: 650; letter-spacing: -.02em; }
+.accent { background: linear-gradient(90deg, #c084fc, #f0abfc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.subtitle { color: var(--dim); margin: .25rem 0 0; font-size: .9rem; }
+.back { color: var(--dim); font-size: .85rem; }
+.back:hover { color: var(--accent-2); }
+
+.topnav { display: flex; gap: .4rem; }
+.topnav a { padding: .45rem .9rem; border-radius: 999px; font-size: .84rem; color: var(--dim);
+  border: 1px solid var(--border); background: var(--card); }
+.topnav a:hover { color: var(--text); }
+.topnav .nav-on { color: #000; background: var(--accent-2); border-color: var(--accent-2); font-weight: 600; }
+
+.sec { margin-top: 1.6rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.sec h2 { margin: 0 0 .7rem; font-size: .78rem; font-weight: 500; color: #52525b;
+  text-transform: uppercase; letter-spacing: .06em; }
+.dim { color: var(--dim); font-size: .82rem; }
+
+.tag { font-size: .75rem; padding: .18rem .6rem; border-radius: 999px; background: #ffffff0d;
+  border: 1px solid var(--border); color: var(--text); }
+.tag.lang { color: var(--accent-2); }
+.tag.q-high { color: var(--q-high); }
+.tag.q-medium { color: var(--q-medium); }
+.tag.q-low { color: var(--q-low); }
+.tag.voices { color: #7dd3fc; }
+
+footer { margin-top: 3rem; text-align: center; color: #52525b; font-size: .78rem; }

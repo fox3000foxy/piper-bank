@@ -36,6 +36,10 @@ const hasModel = datasets.filter((d) => datasetModel(d));
   <body>
     <a class="back" href={`${base}`}>← modèles</a>
     <header class="hero">
+      <nav class="topnav">
+        <a href={base}>Voix</a>
+        <a class="nav-on" href={base + "datasets/"}>Datasets</a>
+      </nav>
       <div>
         <h1>Datasets <span class="accent">({datasets.length})</span></h1>
         <p class="subtitle">{hasModel.length} avec modèle · {noModel.length} à entraîner</p>
@@ -72,25 +76,11 @@ const hasModel = datasets.filter((d) => datasetModel(d));
       })}
     </main>
 
+    <link rel="stylesheet" href={`${base}site.css`} />
     <style is:global>
-      :root { --bg:#000; --card:#0a0a0a; --border:#17171a; --text:#e4e4e7; --dim:#71717a;
-        --accent:#a855f7; --accent-2:#d8b4fe; }
-      * { box-sizing:border-box; }
-      body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif;
-        padding:2rem 1rem 4rem; max-width:1200px; margin-inline:auto; }
-      a { color:var(--accent); text-decoration:none; }
-      .back { color:var(--dim); font-size:.85rem; }
-      .hero h1 { font-size:1.5rem; margin:.6rem 0 0; }
-      .accent { color:var(--accent-2); }
-      .subtitle { color:var(--dim); font-size:.9rem; }
       .filters { display:flex; flex-wrap:wrap; gap:.7rem; align-items:center; margin:1.2rem 0 1.5rem; }
       #search { flex:1 1 320px; padding:.6rem .9rem; border-radius:8px; background:var(--card);
         border:1px solid var(--border); color:var(--text); font-size:.92rem; outline:none; }
-      .chips { display:flex; gap:.35rem; }
-      .chip { padding:.3rem .7rem; border-radius:999px; font-size:.78rem; cursor:pointer;
-        background:var(--card); border:1px solid var(--border); color:var(--dim); font-family:inherit; }
-      .chip.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
-      .count { color:var(--dim); font-size:.85rem; margin-left:auto; }
       .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:.9rem; }
       .card { background:var(--card); border:1px solid var(--border); border-radius:12px;
         padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.55rem; }
