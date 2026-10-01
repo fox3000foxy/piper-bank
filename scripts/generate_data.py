@@ -66,13 +66,24 @@ def get_speakers(m):
     # lightweight config for browser inference (text phoneme voices)
     m['phonemeType'] = cfg.get('phoneme_type') or ('text' if not cfg.get('espeak') else 'espeak')
     m['sampleRate'] = (cfg.get('audio') or {}).get('sample_rate') or 22050
-    if m['phonemeType'] == 'text' and cfg.get('phoneme_id_map'):
+    m['configs'] = {'inference': cfg.get('inference') or {}, 'audio': {'sample_rate': m['sampleRate']},
+                    'espeak': cfg.get('espeak') or {}}
+    if cfg.get('phoneme_id_map'):
         m['phonemeIdMap'] = cfg['phoneme_id_map']
         m['inference'] = cfg.get('inference') or {}
 
 with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_speakers, need))
 
+import re as _re
+seen_slugs = set()
+for mm in models:
+    base = _re.sub(r'[^a-z0-9]+', '-', mm['name'].lower().encode('ascii', 'ignore').decode()).strip('-')[:80] or 'model'
+    s_ = base; k = 1
+    while s_ in seen_slugs:
+        s_ = f"{base}-{k}"; k += 1
+    seen_slugs.add(s_)
+    mm['slug'] = s_
 json.dump(cache, open(CACHE,'w'), ensure_ascii=False)
 json.dump(models, open(os.path.join(OUT,'models.json'),'w'), ensure_ascii=False)
 usable_voices = sum(m['voices'] for m in models if m['usable'])

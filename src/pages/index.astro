@@ -5,6 +5,11 @@ const models = data.filter((m) => m.usable);
 const languages = [...new Set(models.map((m) => m.langName))].sort();
 const qualities = [...new Set(models.map((m) => m.quality))];
 const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
+const base = import.meta.env.BASE_URL;
+
+function slugOf(m, i) {
+  return m.slug || ('model-' + i);
+}
 ---
 
 <html lang="fr">
@@ -15,7 +20,7 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
   </head>
   <body>
     <header class="hero">
-      <img src="/logo.png" alt="PiperBot" class="logo" />
+      <img src={`${base}logo.png`} alt="PiperBot" class="logo" />
       <div>
         <h1>Piper <span class="accent">TTS Explorer</span></h1>
         <p class="subtitle">{models.length} modèles · {totalVoices.toLocaleString('fr-FR')} voix · 100 % local</p>
@@ -37,9 +42,9 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
 
     <main id="grid" class="grid">
       {models.map((m, i) => (
-        <article
+        <a
           class="card"
-          tabindex="0"
+          href={`${base}model/${slugOf(m, i)}/`}
           data-name={m.name}
           data-lang={m.langName}
           data-quality={m.quality}
@@ -53,128 +58,54 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
             {m.voices > 1 && <span class="voices">{m.voices} voix</span>}
           </div>
           <p class="author">{m.author}</p>
-        </article>
+        </a>
       ))}
     </main>
 
-    <footer>PiperBot · data: rhasspy/piper-voices + communauté · modèle natif: <b>pipertts</b></footer>
-
-    <!-- Modal détail -->
-    <div id="modal" hidden>
-      <div id="modal-bg"></div>
-      <div id="modal-card">
-        <button id="modal-close" aria-label="Fermer">✕</button>
-        <h2 id="md-name"></h2>
-        <div id="md-meta" class="meta"></div>
-        <p id="md-author" class="author"></p>
-
-        <section class="md-sec">
-          <h3>Voices</h3>
-          <div id="md-voices" class="chip-wrap"></div>
-        </section>
-
-        <section class="md-sec">
-          <h3>Inférence (onnxruntime natif)</h3>
-          <textarea id="md-text" rows="3" placeholder="Tape le texte à synthétiser…"></textarea>
-          <div class="infer-opts">
-            <label>len <input id="md-len" type="number" step="0.05" min="0.2" max="3" /></label>
-            <label>noise <input id="md-noise" type="number" step="0.05" min="0" max="1.5" /></label>
-            <label>noiseW <input id="md-noiseW" type="number" step="0.05" min="0" max="1.5" /></label>
-            <button id="md-go">Générer</button>
-          </div>
-          <audio id="md-audio" controls hidden></audio>
-          <div id="md-status"></div>
-        </section>
-
-        <section class="md-sec">
-          <h3>Liens</h3>
-          <div id="md-links"></div>
-        </section>
-      </div>
-    </div>
+    <footer>PiperBot · data: rhasspy/piper-voices + communauté</footer>
 
     <style is:global>
-      :root {
-        --bg: #000; --card: #0a0a0a; --border: #17171a; --text: #e4e4e7; --dim: #71717a;
-        --accent: #a855f7; --accent-2: #d8b4fe;
-        --q-high: #4ade80; --q-medium: #facc15; --q-low: #ef4444; --q-unknown: #71717a;
-      }
+      :root { --bg:#000; --card:#0a0a0a; --border:#17171a; --text:#e4e4e7; --dim:#71717a;
+        --accent:#a855f7; --accent-2:#d8b4fe; --q-high:#4ade80; --q-medium:#facc15; --q-low:#ef4444; }
       * { box-sizing: border-box; }
-      body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif;
-        padding: 2rem 1rem 4rem; max-width: 1200px; margin-inline: auto; }
-      a { color: var(--accent); text-decoration: none; }
-      .hero { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
-      .logo { width: 56px; height: 56px; border-radius: 10px; }
-      h1 { font-size: 1.5rem; margin: 0; font-weight: 600; }
-      .accent { color: var(--accent-2); }
-      .subtitle { color: var(--dim); margin: 0.25rem 0 0; font-size: 0.92rem; }
-
-      .filters { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; margin-bottom: 1.5rem; }
-      #search { flex: 1 1 320px; padding: 0.6rem 0.9rem; border-radius: 8px; background: var(--card);
-        border: 1px solid var(--border); color: var(--text); font-size: 0.92rem; outline: none; }
-      #search:focus { border-color: #3f3f46; }
-      .chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-      .chip { padding: 0.3rem 0.7rem; border-radius: 999px; font-size: 0.78rem; cursor: pointer;
-        background: var(--card); border: 1px solid var(--border); color: var(--dim); font-family: inherit; }
-      .chip.on { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
-      .chip-wrap { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-      .count { color: var(--dim); font-size: 0.85rem; margin-left: auto; }
-      .multiselect { display: flex; gap: 0.4rem; align-items: center; color: var(--dim); font-size: 0.84rem; }
-      #sort { padding: 0.35rem 0.55rem; border-radius: 8px; background: var(--card); border: 1px solid var(--border);
-        color: var(--text); font-size: 0.8rem; }
-
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.9rem; }
-      .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-        padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.55rem; cursor: pointer;
-        transition: border-color .12s, background .12s; outline: none; }
-      .card:hover, .card:focus { border-color: #2e2e3a; background: #0d0d0f; }
-      .card h2 { margin: 0; font-size: 1rem; line-height: 1.35; font-weight: 500; }
-      .meta { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
-      .badge { font-size: 0.72rem; padding: 0.12rem 0.5rem; border-radius: 999px;
-        background: #141414; border: 1px solid var(--border); color: var(--accent-2); }
-      .spec { font-size: 0.72rem; color: var(--dim); }
-      .spec.q-high { color: var(--q-high); } .spec.q-medium { color: var(--q-medium); }
-      .spec.q-low { color: var(--q-low); }
-      .voices { color: #7dd3fc; font-size: 0.75rem; }
-      .author { margin: 0; color: var(--dim); font-size: 0.8rem; }
-
-      footer { margin-top: 3rem; text-align: center; color: #52525b; font-size: 0.78rem; }
-
-      #modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-      #modal-bg { position: absolute; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(3px); }
-      #modal-card { position: relative; background: #060606; border: 1px solid var(--border); border-radius: 14px;
-        width: min(640px, 100%); max-height: 88vh; overflow-y: auto; padding: 1.4rem 1.6rem; }
-      #modal-card h2 { margin: 0 2.2rem 0 0; font-size: 1.15rem; font-weight: 550; }
-      #modal-close { position: absolute; top: .9rem; right: .9rem; background: none; border: 1px solid var(--border);
-        color: var(--dim); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; font-family: inherit; }
-      #modal-close:hover { color: var(--text); }
-      #modal .meta { margin-top: .7rem; }
-      .md-sec { margin-top: 1.3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
-      .md-sec h3 { margin: 0 0 .6rem; font-size: 0.78rem; font-weight: 500; color: #52525b; text-transform: uppercase; letter-spacing: .06em; }
-      .voice-btn { font-family: inherit; font-size: .78rem; padding: .28rem .6rem; border-radius: 7px; cursor: pointer;
-        background: var(--card); border: 1px solid var(--border); color: var(--dim); }
-      .voice-btn.on { background: var(--accent); color: #000; border-color: var(--accent); }
-      #md-text { width: 100%; background: #0a0a0a; border: 1px solid var(--border); border-radius: 9px;
-        color: var(--text); padding: .6rem .75rem; font-family: inherit; font-size: .92rem; resize: vertical; min-height: 74px; }
-      #md-text:focus { border-color: #3f3f46; }
-      .infer-opts { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-top: .6rem; }
-      .infer-opts label { color: var(--dim); font-size: .78rem; display: flex; gap: .3rem; align-items: center; }
-      .infer-opts input { width: 64px; background: #0a0a0a; border: 1px solid var(--border); border-radius: 6px;
-        color: var(--text); padding: .22rem .35rem; font-size: .8rem; }
-      #md-go { margin-left: auto; background: var(--accent); color: #000; border: none; border-radius: 8px;
-        padding: .45rem 1rem; cursor: pointer; font-weight: 600; font-size: .88rem; font-family: inherit; }
-      #md-go:disabled { opacity: .5; cursor: wait; }
-      #md-audio { width: 100%; margin-top: .7rem; }
-      #md-status { color: var(--dim); font-size: .78rem; margin-top: .4rem; }
-      #md-links a { font-size: .88rem; margin-right: 1rem; }
+      body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif;
+        padding:2rem 1rem 4rem; max-width:1200px; margin-inline:auto; }
+      a { color:var(--accent); text-decoration:none; }
+      .hero { display:flex; align-items:center; gap:1rem; margin-bottom:2rem; }
+      .logo { width:56px; height:56px; border-radius:10px; }
+      h1 { font-size:1.5rem; margin:0; font-weight:600; }
+      .accent { color:var(--accent-2); }
+      .subtitle { color:var(--dim); margin:.25rem 0 0; font-size:.92rem; }
+      .filters { display:flex; flex-wrap:wrap; gap:.7rem; align-items:center; margin-bottom:1.5rem; }
+      #search { flex:1 1 320px; padding:.6rem .9rem; border-radius:8px; background:var(--card);
+        border:1px solid var(--border); color:var(--text); font-size:.92rem; outline:none; }
+      #search:focus { border-color:#3f3f46; }
+      .chips { display:flex; gap:.35rem; flex-wrap:wrap; }
+      .chip { padding:.3rem .7rem; border-radius:999px; font-size:.78rem; cursor:pointer;
+        background:var(--card); border:1px solid var(--border); color:var(--dim); font-family:inherit; }
+      .chip.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
+      .count { color:var(--dim); font-size:.85rem; margin-left:auto; }
+      .multiselect { display:flex; gap:.4rem; align-items:center; color:var(--dim); font-size:.84rem; }
+      #sort { padding:.35rem .55rem; border-radius:8px; background:var(--card); border:1px solid var(--border);
+        color:var(--text); font-size:.8rem; }
+      .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:.9rem; }
+      .card { background:var(--card); border:1px solid var(--border); border-radius:12px;
+        padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.55rem;
+        transition:border-color .12s, background .12s; color:var(--text); }
+      .card:hover { border-color:#2e2e3a; background:#0d0d0f; }
+      .card h2 { margin:0; font-size:1rem; line-height:1.35; font-weight:500; }
+      .meta { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+      .badge { font-size:.72rem; padding:.12rem .5rem; border-radius:999px;
+        background:#141414; border:1px solid var(--border); color:var(--accent-2); }
+      .spec { font-size:.72rem; color:var(--dim); }
+      .spec.q-high { color:var(--q-high); } .spec.q-medium { color:var(--q-medium); }
+      .spec.q-low { color:var(--q-low); }
+      .voices { color:#7dd3fc; font-size:.75rem; }
+      .author { margin:0; color:var(--dim); font-size:.8rem; }
+      footer { margin-top:3rem; text-align:center; color:#52525b; font-size:.78rem; }
     </style>
 
     <script>
-      (async () => {
-      const data = await (await fetch('/data/models.json')).json();
-      let samples = {};
-      try { samples = await (await fetch('/data/samples.json')).json(); } catch {}
-      const models = data.filter((m) => m.usable);
       const search = document.getElementById('search');
       const langChips = [...document.querySelectorAll('#lang-chips .chip')];
       const qualityChips = [...document.querySelectorAll('#quality-chips .chip')];
@@ -183,13 +114,11 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       const grid = document.getElementById('grid');
       const sort = document.getElementById('sort');
       const cards = [...grid.querySelectorAll('.card')];
-
       const state = { search: '', lang: '', quality: '', multivoice: false };
 
       function apply() {
         let visible = 0;
         for (const card of cards) {
-          const m = modelByCard.get(card);
           const ok = (!state.search || card.dataset.search.includes(state.search))
             && (!state.lang || card.dataset.lang === state.lang)
             && (!state.quality || card.dataset.quality === state.quality)
@@ -199,11 +128,9 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
         }
         count.textContent = `${visible} / ${cards.length}`;
       }
-
       function bindChips(chips, key) {
-        const on = (c) => c.classList.contains('on');
         chips.forEach((chip) => chip.addEventListener('click', () => {
-          const already = on(chip);
+          const already = chip.classList.contains('on');
           chips.forEach((c) => c.classList.remove('on'));
           chip.classList.toggle('on', !already);
           state[key] = already ? '' : chip.dataset[key];
@@ -212,10 +139,8 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       }
       bindChips(langChips, 'lang');
       bindChips(qualityChips, 'quality');
-
       search.addEventListener('input', () => { state.search = search.value.toLowerCase().trim(); apply(); });
       multivoiceOnly.addEventListener('change', () => { state.multivoice = multivoiceOnly.checked; apply(); });
-
       sort.addEventListener('change', () => {
         const arr = [...grid.children];
         const byName = (a, b) => a.dataset.name.localeCompare(b.dataset.name);
@@ -224,170 +149,7 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
           : sort.value === 'voices-desc' ? (a, b) => voicesOf(b) - voicesOf(a) || byName(a, b)
           : (a, b) => voicesOf(a) - voicesOf(b) || byName(a, b)).forEach((c) => grid.appendChild(c));
       });
-
-      // Modal
-      const modal = document.getElementById('modal');
-      const modelByCard = new Map();
-      let current = null;
-      let selectedVoice = null;
-
-      function openModal(model) {
-        current = model;
-        selectedVoice = null;
-        isTextPhoneme = model.phonemeType === 'text';
-        textMap = model.phonemeIdMap || null;
-        document.getElementById('md-name').textContent = model.name;
-        document.getElementById('md-author').textContent = 'par ' + model.author + ' · ' + model.repo;
-        const meta = document.getElementById('md-meta');
-        meta.innerHTML = '';
-        const badge = (txt, cls) => { const s = document.createElement('span'); s.className = 'badge ' + (cls || ''); s.textContent = txt; return s; };
-        meta.append(badge(model.langName, 'lang'), badge(model.quality, 'spec'));
-        if (model.voices > 1) meta.append(badge(model.voices + ' voix', 'voices'));
-
-        const voicesEl = document.getElementById('md-voices');
-        voicesEl.innerHTML = '';
-        if (model.voices > 1) {
-          model.voiceNames.slice(0, 40).forEach((vn) => {
-            const b = document.createElement('button');
-            b.className = 'voice-btn'; b.textContent = vn;
-            b.addEventListener('click', () => {
-              voicesEl.querySelectorAll('.voice-btn').forEach((x) => x.classList.remove('on'));
-              b.classList.add('on');
-              selectedVoice = model.voiceNames[model.voiceNames.indexOf(vn)];
-            });
-            voicesEl.append(b);
-          });
-          if (model.voiceNames.length > 40) {
-            const more = document.createElement('span');
-            more.className = 'spec'; more.textContent = `… +${model.voiceNames.length - 40}`;
-            voicesEl.append(more);
-          }
-        } else {
-          const s = document.createElement('span');
-          s.className = 'spec'; s.textContent = 'voix simple';
-          voicesEl.append(s);
-        }
-
-        const links = document.getElementById('md-links');
-        links.innerHTML = '';
-        const a = (href, txt) => { const el = document.createElement('a'); el.href = href; el.target = '_blank'; el.rel = 'noopener'; el.textContent = txt; return el; };
-        links.append(a('https://huggingface.co/' + model.repo, 'HuggingFace'));
-        if (model.thread) links.append(a('https://discord.com/channels/1523276835712929946/' + model.thread, 'Thread Discord'));
-
-        const audio = document.getElementById('md-audio');
-        audio.hidden = true; audio.removeAttribute('src');
-        document.getElementById('md-status').textContent = '';
-        document.getElementById('md-text').value = '';
-        hidden_inputs_reset();
-        modal.hidden = false;
-      }
-
-      function hidden_inputs_reset() {
-        document.getElementById('md-len').value = '';
-        document.getElementById('md-noise').value = '';
-        document.getElementById('md-noiseW').value = '';
-      }
-
-      cards.forEach((card) => {
-        const model = models.find((m) => m.name === card.dataset.name);
-        modelByCard.set(card, model);
-        card.addEventListener('click', () => openModal(model));
-        card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(model); });
-      });
-
-      document.getElementById('modal-close').addEventListener('click', () => { modal.hidden = true; });
-      document.getElementById('modal-bg').addEventListener('click', () => { modal.hidden = true; });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') modal.hidden = true; });
-
-      // --- helpers inférence navigateur (phoneme_type=text uniquement) ---
-      let ortWeb = null, ortSession = null, ortSessionKey = '';
-      async function loadOrtWeb() {
-        if (ortWeb) return ortWeb;
-        ortWeb = await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.mjs');
-        return ortWeb;
-      }
-      async function ensureModel(m) {
-        const key = m.repo + '|' + m.onnx;
-        if (ortSessionKey === key) return ortSession;
-        const url = `https://huggingface.co/${m.repo}/resolve/main/${encodeURIComponent(m.onnx, '/')}`;
-        const ort = await loadOrtWeb();
-        ortSession = await ort.InferenceSession.create(url, {executionProviders: ['wasm'], graphOptimizationLevel: 'all'});
-        ortSessionKey = key;
-        return ortSession;
-      }
-      function textPhonemize(txt, idMap) {
-        const pad = idMap._?.[0] ?? 0, bos = idMap['^']?.[0] ?? 1, eos = idMap['$']?.[0] ?? 2;
-        const ids = [pad, bos];
-        for (const ch of txt.toLowerCase()) {
-          const v = idMap[ch]; if (v) ids.push(...v);
-          ids.push(...(idMap[' '] || [3]));
-        }
-        ids.push(eos, pad);
-        return ids;
-      }
-      function ortSynth(session, ids, m) {
-        const cfg = m.configs || {};
-        const inf = cfg.inference || {noise_scale:.667, length_scale:1.0, noise_w:.8};
-        const scales = new Float32Array([inf.noise_scale, inf.length_scale, inf.noise_w]);
-        const input = new BigInt64Array(ids).slice(); // Big array
-        const lenArr = new BigInt64Array([BigInt(ids.length)]);
-        return session.run({ input: new ort.Tensor('int64', BigInt64Array.from(ids.map(BigInt)), [1, ids.length]),
-                             input_lengths: new ort.Tensor('int64', BigInt64Array.from([BigInt(ids.length)]), [1]),
-                             scales: new ort.Tensor('float32', scales, [3]) })
-          .then(out => {
-            const audio = Object.values(out)[0].data;
-            return toWav(audio, (cfg.audio || {}).sample_rate || 22050);
-          });
-      }
-      function toWav(floats, sampleRate) {
-        const bpe = 2, n = floats.length, buf = new ArrayBuffer(44 + n * bpe), w = new DataView(buf);
-        const wr = (o, s) => { for (let i = 0; i < s.length; i++) w.setUint8(o + i, s.charCodeAt(i)); };
-        wr(0, 'RIFF'); w.setUint32(4, 36 + n * bpe, true); wr(8, 'WAVE'); wr(12, 'fmt ');
-        w.setUint32(16, 16, true); w.setUint16(20, 1, true); w.setUint16(22, 1, true);
-        w.setUint32(24, sampleRate, true); w.setUint32(28, sampleRate * bpe, true);
-        w.setUint16(32, bpe, true); w.setUint16(34, 16, true); wr(36, 'data'); w.setUint32(40, n * bpe, true);
-        for (let i = 0; i < n; i++) {
-          const x = Math.max(-1, Math.min(1, floats[i]));
-          w.setInt16(44 + i * bpe, x < 0 ? x * 0x8000 : x * 0x7fff, true);
-        }
-        return new Blob([buf], { type: 'audio/wav' });
-      }
-      let isTextPhoneme = false, textMap = null;
-
-      const go = document.getElementById('md-go');
-      const phonetextEl = document.getElementById('md-text');
-      go.addEventListener('click', async () => {
-        const text = phonetextEl.value.trim();
-        const status = document.getElementById('md-status');
-        if (!current) return;
-        if (!text) { status.textContent = 'Entrez du texte.'; return; }
-        const sk = samples[current.repo + '|' + current.onnx];
-        if (sk) {
-          status.textContent = '⏳ Lecture de l\'échantillon…';
-          const audio = document.getElementById('md-audio');
-          audio.src = sk; audio.hidden = false; audio.play();
-          status.textContent = '▶ Échantillon pré-généré';
-          return;
-        }
-        if (!isTextPhoneme) { status.textContent = 'Modèle espeak : inférence dispo via thread Discord (/infer).'; return; }
-        // text-phoneme inference in browser (onnxruntime-web)
-        try {
-          status.textContent = '⏳ Chargement ONNX…';
-          const [ort, nHope] = await Promise.all([loadOrtWeb(), Promise.resolve()]);
-          const model = await ensureModel(current);
-          status.textContent = '⏳ Phonemisation…';
-          const ids = textPhonemize(text, textMap);
-          audio = null;
-          status.textContent = '⏳ Synthèse…';
-          const wav = await ortSynth(model, ids, ort);
-          const audio2 = document.getElementById('md-audio');
-          audio2.src = URL.createObjectURL(wav); audio2.hidden = false; audio2.play();
-          status.textContent = '✅ (navigateur)';
-        } catch (e) { status.textContent = '❌ ' + (e.message || e); }
-      });
-
       apply();
-      })();
     </script>
   </body>
 </html>

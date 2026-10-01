@@ -1,0 +1,170 @@
+---
+import data from '../../data/models.json';
+
+export async function getStaticPaths() {
+  const models = data.filter((m) => m.usable);
+  return models.map((m) => ({ params: { slug: m.slug }, props: { model: m } }));
+}
+
+const { model: m } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{m.name} · Piper TTS Explorer</title>
+  </head>
+  <body>
+    <a class="back" href={`${base}`}>← tous les modèles</a>
+
+    <header class="hero">
+      <div>
+        <h1>{m.name}</h1>
+        <p class="subtitle">par {m.author} · {m.repo}</p>
+      </div>
+    </header>
+
+    <section class="tags">
+      <span class="tag lang">{m.langName}</span>
+      <span class={`tag q-${m.quality}`}>{m.quality}</span>
+      {m.voices > 1
+        ? <span class="tag voices">{m.voices} voix</span>
+        : <span class="tag">voix simple</span>}
+      <span class="tag type">{m.phonemeType === 'text' ? 'phonèmes: texte' : `phonèmes: ${((m.configs || {}).espeak || {}).voice || 'espeak'}`}</span>
+      <span class="tag">{m.sampleRate} Hz</span>
+    </section>
+
+    {m.voices > 1 && (
+      <section class="sec">
+        <h2>Voix ({m.voices})</h2>
+        <div id="voices" class="chips">
+          {m.voiceNames.slice(0, 60).map((vn) => <button class="chip" data-voice={vn}>{vn}</button>)}
+          {m.voiceNames.length > 60 && <span class="dim">… +{m.voiceNames.length - 60}</span>}
+        </div>
+      </section>
+    )}
+
+    <section class="sec">
+      <h2>Écouter un exemple</h2>
+      <div id="samples"><p class="dim">chargement…</p></div>
+    </section>
+
+    <section class="sec">
+      <h2>Synthétiser</h2>
+      <textarea id="text" rows="2" placeholder="Texte à synthétiser…"></textarea>
+      <div class="opts">
+        <label>vitesse <input id="len" type="number" step="0.05" min="0.2" max="3" placeholder="1.0" /></label>
+        <label>bruit <input id="noise" type="number" step="0.05" min="0" max="1.5" placeholder="0.667" /></label>
+        <button id="go">Générer</button>
+      </div>
+      <audio id="player" controls hidden></audio>
+      <p id="status" class="dim"></p>
+    </section>
+
+    <section class="sec">
+      <h2>Fichiers</h2>
+      <ul class="files">
+        <li><a id="dl-onnx" href={`https://huggingface.co/${m.repo}/resolve/main/${m.onnx}`}>model.onnx</a></li>
+        <li><a href={`https://huggingface.co/${m.repo}/resolve/main/${m.json}`}>model.onnx.json</a></li>
+        <li><a href={`https://huggingface.co/${m.repo}`}>repo HuggingFace</a></li>
+        {m.thread && <li><a href={`https://discord.com/channels/1523276835712929946/${m.thread}`}>thread Discord</a></li>}
+      </ul>
+    </section>
+
+    <style is:global>
+      :root { --bg:#000; --card:#0a0a0a; --border:#17171a; --text:#e4e4e7; --dim:#71717a;
+        --accent:#a855f7; --accent-2:#d8b4fe; --q-high:#4ade80; --q-medium:#facc15; --q-low:#ef4444; }
+      * { box-sizing: border-box; }
+      body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif;
+        padding:2rem 1rem 4rem; max-width:760px; margin-inline:auto; }
+      a { color:var(--accent); text-decoration:none; }
+      .back { color:var(--dim); font-size:.85rem; }
+      .back:hover { color:var(--accent-2); }
+      .hero h1 { margin:.6rem 0 0; font-size:1.5rem; font-weight:600; letter-spacing:-.01em; }
+      .subtitle { color:var(--dim); font-size:.9rem; margin:.3rem 0 0; overflow-wrap:anywhere; }
+      .tags { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:1rem; }
+      .tag { font-size:.75rem; padding:.18rem .6rem; border-radius:999px; background:#141414;
+        border:1px solid var(--border); color:var(--text); }
+      .tag.lang { color:var(--accent-2); }
+      .tag.q-high { color:var(--q-high); } .tag.q-medium { color:var(--q-medium); } .tag.q-low { color:var(--q-low); }
+      .tag.voices { color:#7dd3fc; }
+      .sec { margin-top:1.6rem; border-top:1px solid var(--border); padding-top:1rem; }
+      .sec h2 { margin:0 0 .7rem; font-size:.78rem; font-weight:500; color:#52525b; text-transform:uppercase; letter-spacing:.06em; }
+      .chips { display:flex; flex-wrap:wrap; gap:.35rem; }
+      .chip { padding:.28rem .65rem; border-radius:999px; font-size:.78rem; cursor:pointer; font-family:inherit;
+        background:var(--card); border:1px solid var(--border); color:var(--dim); }
+      .chip.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
+      .dim { color:var(--dim); font-size:.82rem; }
+      #text { width:100%; background:#0a0a0a; border:1px solid var(--border); border-radius:9px;
+        color:var(--text); padding:.6rem .75rem; font-family:inherit; font-size:.92rem; resize:vertical; min-height:64px; }
+      #text:focus { border-color:#3f3f46; outline:none; }
+      .opts { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-top:.6rem; }
+      .opts label { color:var(--dim); font-size:.78rem; display:flex; gap:.3rem; align-items:center; }
+      .opts input { width:64px; background:#0a0a0a; border:1px solid var(--border); border-radius:6px;
+        color:var(--text); padding:.22rem .35rem; font-size:.8rem; }
+      #go { margin-left:auto; background:var(--accent); color:#000; border:none; border-radius:8px;
+        padding:.45rem 1rem; cursor:pointer; font-weight:600; font-size:.88rem; font-family:inherit; }
+      #go:disabled { opacity:.5; cursor:wait; }
+      #player { width:100%; margin-top:.7rem; }
+      #status { font-size:.78rem; margin-top:.4rem; min-height:1.2em; }
+      .files { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.3rem; }
+      .files a { font-size:.88rem; }
+      .sample { margin-bottom:.7rem; }
+      .sample audio { width:100%; margin-top:.25rem; }
+      .sample p { margin:0 0 .2rem; font-size:.82rem; color:var(--dim); }
+    </style>
+
+    <script define:vars={{ model: m, siteBase: base }}>
+      import { synthesize } from '../../lib/piper-infer.js';
+      const voicesEl = document.getElementById('voices');
+      let selectedVoice = null, selectedSid = null;
+      voicesEl?.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
+        voicesEl.querySelectorAll('.chip').forEach((x) => x.classList.remove('on'));
+        b.classList.add('on');
+        selectedVoice = b.dataset.voice;
+        selectedSid = model.voiceNames.indexOf(selectedVoice);
+      }));
+
+      // échantillons du thread Discord
+      (async () => {
+        const box = document.getElementById('samples');
+        try {
+          const s = await (await fetch(`${siteBase}data/samples.json`)).json();
+          const list = (s[model.thread] || []).slice(0, 4);
+          if (!list.length) { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; return; }
+          box.innerHTML = '';
+          list.forEach((u, i) => {
+            const d = document.createElement('div'); d.className = 'sample';
+            const p = document.createElement('p'); p.textContent = `exemple ${i + 1}`;
+            const a = document.createElement('audio'); a.controls = true; a.src = u;
+            d.append(p, a); box.append(d);
+          });
+        } catch { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; }
+      })();
+
+      const go = document.getElementById('go');
+      go.addEventListener('click', async () => {
+        const text = document.getElementById('text').value.trim();
+        const status = document.getElementById('status');
+        if (!text) { status.textContent = 'Entrez du texte.'; return; }
+        go.disabled = true;
+        try {
+          const blob = await synthesize({
+            repo: model.repo, onnx: model.onnx, configs: model.configs,
+            phonemeType: model.phonemeType, phonemeIdMap: model.phonemeIdMap,
+            sampleRate: model.sampleRate, text,
+            speakerId: selectedSid,
+            lengthScale: parseFloat(document.getElementById('len').value) || undefined,
+            noiseScale: parseFloat(document.getElementById('noise').value) || undefined,
+          }, (s) => { status.textContent = '⏳ ' + s; });
+          const player = document.getElementById('player');
+          player.src = URL.createObjectURL(blob); player.hidden = false; player.play();
+          status.textContent = '✅ synthèse locale (navigateur)';
+        } catch (e) { status.textContent = '❌ ' + (e.message || e); }
+        finally { go.disabled = false; }
+      });
+    </script>
+  </body>
+</html>
