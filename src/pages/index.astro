@@ -1,4 +1,5 @@
 ---
+import Layout from '../layouts/Layout.astro';
 import data from '../data/models.json';
 
 const models = data.filter((m) => m.usable);
@@ -8,24 +9,8 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
 const base = import.meta.env.BASE_URL;
 ---
 
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Piper TTS Explorer — banque de voix</title>
-  </head>
-  <body>
-    <header class="hero">
-      <img src={`${base}logo.png`} alt="PiperBot" class="logo" />
-      <div class="hero-text">
-        <h1>Piper <span class="accent">TTS Explorer</span></h1>
-        <p class="subtitle">{models.length} modèles · {totalVoices.toLocaleString('fr-FR')} voix · 100 % local</p>
-      </div>
-      <nav class="topnav">
-        <a class="nav-on" href={`${base}`}>Voix</a>
-        <a href={`${base}datasets/`}>Datasets</a>
-      </nav>
-    </header>
+<Layout title="banque de voix" active="voices" subtitle={`${models.length} modèles · ${totalVoices.toLocaleString("fr-FR")} voix · 100 % local`}>
+
 
     <section class="filters">
       <input id="search" type="search" placeholder="Rechercher une voix, un personnage, un auteur…" autocomplete="off" />
@@ -65,7 +50,6 @@ const base = import.meta.env.BASE_URL;
       ))}
     </main>
 
-    <footer>PiperBot · data: rhasspy/piper-voices + communauté · <a href={`${base}datasets/`}>voir les datasets</a></footer>
 
     <link rel="stylesheet" href={`${base}site.css`} />
     <style is:global>
@@ -153,5 +137,4 @@ const base = import.meta.env.BASE_URL;
       });
       apply();
     </script>
-  </body>
-</html>
+</Layout>

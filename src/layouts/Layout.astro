@@ -1,0 +1,30 @@
+---
+const { title, active } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Piper TTS Explorer</title>
+    <link rel="stylesheet" href={`${base}site.css`} />
+  </head>
+  <body class={Astro.props.narrow ? 'narrow' : ''}>
+    <header class="hero">
+      <img src={`${base}logo.png`} alt="PiperBot" class="logo" />
+      <div class="hero-text">
+        <h1>Piper <span class="accent">TTS Explorer</span></h1>
+        <p class="subtitle">{Astro.props.subtitle || 'banque de voix · 100 % local'}</p>
+      </div>
+      <nav class="topnav">
+        <a class={active === 'voices' ? 'nav-on' : ''} href={`${base}`}>Voix</a>
+        <a class={active === 'datasets' ? 'nav-on' : ''} href={`${base}datasets/`}>Datasets</a>
+      </nav>
+    </header>
+
+    <slot />
+
+    <footer>PiperBot · data: rhasspy/piper-voices + communauté · <a href="https://discord.gg">Discord</a> · <a href="https://huggingface.co/fox3000foxy/piper-voices-collection">collection HF</a></footer>
+  </body>
+</html>

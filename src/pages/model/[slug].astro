@@ -1,4 +1,5 @@
 ---
+import Layout from '../../layouts/Layout.astro';
 import data from '../../data/models.json';
 
 export async function getStaticPaths() {
@@ -14,20 +15,10 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 }));
 ---
 
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{m.name} · Piper TTS Explorer</title>
-  </head>
-  <body class="narrow">
-    <nav class="topnav">
-      <a href={base}>Voix</a>
-      <a href={base + "datasets/"}>Datasets</a>
-    </nav>
-    <a class="back" href={`${base}`}>← tous les modèles</a>
+<Layout title={m.name} active="voices" narrow subtitle={`par ${m.author}`}>
 
-    <header class="hero">
+    <a class="back" href={`${base}`}>← tous les modèles</a>
+    <header class="hero model-hero">
       <span class="avatar big" style={`--h:${avatar.hue}`}>{avatar.emoji}</span>
       <div>
         <h1>{m.name}</h1>
@@ -278,5 +269,4 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
         finally { go.disabled = false; }
       });
     </script>
-  </body>
-</html>
+</Layout>

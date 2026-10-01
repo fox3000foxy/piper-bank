@@ -1,4 +1,5 @@
 ---
+import Layout from '../layouts/Layout.astro';
 import modelsData from  '../data/models.json';
 import datasetsData from  '../data/datasets.json';
 
@@ -27,24 +28,9 @@ const noModel = datasets.filter((d) => !datasetModel(d));
 const hasModel = datasets.filter((d) => datasetModel(d));
 ---
 
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Datasets · Piper TTS Explorer</title>
-  </head>
-  <body>
-    <a class="back" href={`${base}`}>← modèles</a>
-    <header class="hero">
-      <nav class="topnav">
-        <a href={base}>Voix</a>
-        <a class="nav-on" href={base + "datasets/"}>Datasets</a>
-      </nav>
-      <div>
-        <h1>Datasets <span class="accent">({datasets.length})</span></h1>
-        <p class="subtitle">{hasModel.length} avec modèle · {noModel.length} à entraîner</p>
-      </div>
-    </header>
+<Layout title="Datasets" active="datasets" subtitle="126 datasets · ljspeech">
+    <h1 class="page-title">Datasets <span class="accent">({datasets.length})</span></h1>
+    <p class="subtitle">{hasModel.length} avec modèle · {noModel.length} à entraîner</p>
 
     <section class="filters">
       <input id="search" type="search" placeholder="Rechercher un dataset…" autocomplete="off" />
@@ -116,5 +102,4 @@ const hasModel = datasets.filter((d) => datasetModel(d));
       search.addEventListener('input', () => { q = search.value.toLowerCase().trim(); apply(); });
       apply();
     </script>
-  </body>
-</html>
+</Layout>
