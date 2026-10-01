@@ -118,6 +118,23 @@ const base = import.meta.env.BASE_URL;
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
+    <script define:vars={{ thread: m.thread, fallbackKey: m.repo + '|' + m.onnx, siteBase: base }}>
+      (async () => {
+        const box = document.getElementById('samples');
+        try {
+          const s = await (await fetch(`${siteBase}data/samples.json`)).json();
+          const list = (s[thread] || s[fallbackKey] || []).slice(0, 4);
+          if (!list.length) { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; return; }
+          box.innerHTML = '';
+          list.forEach((u, i) => {
+            const d = document.createElement('div'); d.className = 'sample';
+            const p = document.createElement('p'); p.textContent = `exemple ${i + 1}`;
+            const a = document.createElement('audio'); a.controls = true; a.preload = 'none'; a.src = siteBase + u;
+            d.append(p, a); box.append(d);
+          });
+        } catch { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; }
+      })();
+    </script>
     <script type="module">
       const { synthesize } = await new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
       const model = JSON.parse(document.getElementById('model-data').textContent);
@@ -131,22 +148,7 @@ const base = import.meta.env.BASE_URL;
         selectedSid = model.voiceNames.indexOf(selectedVoice);
       }));
 
-      // échantillons du thread Discord
-      (async () => {
-        const box = document.getElementById('samples');
-        try {
-          const s = await (await fetch(`${siteBase}data/samples.json`)).json();
-          const list = (s[model.thread] || s[model.repo + '|' + model.onnx] || []).slice(0, 4);
-          if (!list.length) { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; return; }
-          box.innerHTML = '';
-          list.forEach((u, i) => {
-            const d = document.createElement('div'); d.className = 'sample';
-            const p = document.createElement('p'); p.textContent = `exemple ${i + 1}`;
-            const a = document.createElement('audio'); a.controls = true; a.src = o + u;
-            d.append(p, a); box.append(d);
-          });
-        } catch { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; }
-      })();
+      // échantillons du thread Discord (script séparé, indépendant du module d'inférence)
 
       const go = document.getElementById('go');
       go.addEventListener('click', async () => {
