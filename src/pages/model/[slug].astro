@@ -18,13 +18,13 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 <Layout title={m.name} active="voices" narrow subtitle={`par ${m.author}`}>
 
     <a class="back" href={`${base}`}>← tous les modèles</a>
-    <header class="hero model-hero">
+    <div class="hero model-hero">
       <span class="avatar big" style={`--h:${avatar.hue}`}>{avatar.emoji}</span>
       <div>
         <h1>{m.name}</h1>
         <p class="subtitle">par {m.author} · {m.repo}</p>
       </div>
-    </header>
+    </div>
 
     <section class="tags">
       <span class="tag lang">{m.langName}</span>
