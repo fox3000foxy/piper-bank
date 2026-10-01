@@ -24,7 +24,7 @@ const hasModel = !!(d.model && d.modelSlug);
 
   <section class="tags">
     <span class="tag lang">{d.langName || d.lang.toUpperCase()}</span>
-    <span class="tag">{d.source || '—'}</span>
+    <span class="tag">{d.source || '-'}</span>
     {hasModel
       ? <a class="tag voices" href={`${base}model/${d.modelSlug}/`}>→ {d.model}</a>
       : <span class="tag q-medium">to train</span>}
@@ -35,8 +35,8 @@ const hasModel = !!(d.model && d.modelSlug);
       <section class="sec first">
         <h2>Details</h2>
         <dl class="details">
-          <div><dt>class</dt><dd>{d.class || '—'}</dd></div>
-          <div><dt>source</dt><dd>{d.source || '—'}</dd></div>
+          <div><dt>class</dt><dd>{d.class || '-'}</dd></div>
+          <div><dt>source</dt><dd>{d.source || '-'}</dd></div>
           <div><dt>language</dt><dd>{d.langName || d.lang.toUpperCase()}</dd></div>
           <div><dt>repository</dt><dd>{d.repo
             ? <a href={`https://huggingface.co/datasets/${d.repo}`}>{d.repo}</a>

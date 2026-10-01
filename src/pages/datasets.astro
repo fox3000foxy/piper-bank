@@ -30,7 +30,7 @@ const hasModel = datasets.filter((d) => d.modelSlug);
             data-search={`${d.name} ${d.class} ${d.source} ${d.repo}`.toLowerCase()}>
             <h2>{d.name}</h2>
             <div class="meta">
-              <span class="badge">{d.source || '—'}</span>
+              <span class="badge">{d.source || '-'}</span>
               <span class="badge">{(d.langName || d.lang).toUpperCase?.() || d.lang}</span>
               {d.modelSlug
                 ? <span class="badge ok">→ model</span>
