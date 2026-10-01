@@ -41,20 +41,23 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       <span id="count" class="count"></span>
     </section>
 
-    <main id="grid" class="grid">
+    <main id="grid" class="list">
       {models.map((m, i) => (
         <article
-          class="card"
+          class="row"
           data-lang={m.langName}
           data-quality={m.quality}
           data-multivoice={m.voices > 1 ? '1' : '0'}
           data-search={`${m.name} ${m.author} ${m.langName} ${m.repo}`.toLowerCase()}
         >
-          <h2>{m.name}</h2>
-          <div class="meta">
-            <span class="badge lang">{m.langName}</span>
-            <span class={`badge q-${m.quality}`}>{m.quality}</span>
-            {m.voices > 1 && <button class="badge voices btn-voices" data-idx={i}>{m.voices} voix ▾</button>}
+          <div class="row-main" data-idx={i}>
+            <h2>{m.name}</h2>
+            {m.voices > 1 && <span class="voices-count">{m.voices} voix</span>}
+          </div>
+          <div class="row-side">
+            <span class="spec">{m.langName}</span>
+            <span class={`spec q-${m.quality}`}>{m.quality}</span>
+            <span class="spec author">{m.author}</span>
           </div>
           {m.voices > 1 && (
             <ul class="voice-list" id={`vl-${i}`} hidden>
@@ -62,10 +65,9 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
               {m.voiceNames.length > 24 && <li class="dim">… + {m.voiceNames.length - 24} autres</li>}
             </ul>
           )}
-          <p class="author">par {m.author}</p>
-          <div class="links">
-            <a href={`https://huggingface.co/${m.repo}`} target="_blank" rel="noopener">HF ↗</a>
-            {m.thread && <a href={`https://discord.com/channels/1523276835712929946/${m.thread}`} target="_blank" rel="noopener">Discord ↗</a>}
+          <div class="row-links">
+            <a href={`https://huggingface.co/${m.repo}`} target="_blank" rel="noopener">HF</a>
+            {m.thread && <a href={`https://discord.com/channels/1523276835712929946/${m.thread}`} target="_blank" rel="noopener">thread</a>}
           </div>
         </article>
       ))}
@@ -99,48 +101,60 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       a { color: var(--accent); text-decoration: none; }
       a:hover { text-decoration: underline; }
 
-      .hero { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; }
-      .logo { width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--border); }
-      h1 { margin: 0; font-size: 1.75rem; letter-spacing: -0.02em; }
-      .accent { color: var(--accent); }
-      .subtitle { color: var(--dim); margin: 0.25rem 0 0; font-size: 0.95rem; }
+      .hero { display: flex; align-items: center; gap: 1rem; margin-bottom: 2.5rem; }
+      .logo { width: 52px; height: 52px; border-radius: 8px; }
+      h1 { margin: 0; font-size: 1.4rem; font-weight: 500; letter-spacing: -0.02em; }
+      .accent { color: var(--accent-2); }
+      .subtitle { color: var(--dim); margin: 0.2rem 0 0; font-size: 0.9rem; }
 
-      .filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 1.5rem; }
+      .filters { display: flex; flex-wrap: wrap; gap: 0.9rem; align-items: center; margin-bottom: 1.8rem; }
       #search {
-        flex: 1 1 320px; padding: 0.7rem 1rem; border-radius: 10px;
+        flex: 1 1 340px; padding: 0.55rem 0.75rem; border-radius: 6px;
         background: var(--card); border: 1px solid var(--border); color: var(--text);
-        font-size: 0.95rem; outline: none;
+        font-size: 0.9rem; outline: none; transition: border-color .15s;
       }
-      #search:focus { border-color: var(--accent); }
-      .chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+      #search:focus { border-color: #3f3f46; }
+      #search::placeholder { color: #52525b; }
+      .chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
       .chip {
-        padding: 0.3rem 0.75rem; border-radius: 999px; font-size: 0.8rem; cursor: pointer;
-        background: var(--card); border: 1px solid var(--border); color: var(--dim);
+        padding: 0.25rem 0.55rem; font-size: 0.78rem; cursor: pointer;
+        background: none; border: none; color: var(--dim);
+        border-bottom: 1px solid transparent; font-family: inherit;
       }
-      .chip.on { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
-      .count { color: var(--dim); font-size: 0.85rem; margin-left: auto; }
-      .multiselect { display: flex; gap: 0.4rem; align-items: center; color: var(--dim); font-size: 0.85rem; }
+      .chip.on { color: var(--accent-2); border-bottom: 1px solid var(--accent-2); }
+      .count { color: #52525b; font-size: 0.82rem; margin-left: auto; }
+      .multiselect { display: flex; gap: 0.4rem; align-items: center; color: var(--dim); font-size: 0.82rem; }
+      .sort-select {
+        background: none; border: none; border-bottom: 1px solid var(--border); color: var(--dim);
+        font-size: 0.78rem; padding: 0.25rem 0.1rem; cursor: pointer;
+      }
 
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
-      .card {
-        background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-        padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem;
+      .list { display: flex; flex-direction: column; max-width: 860px; margin-inline: auto; }
+      .row {
+        display: grid; grid-template-columns: 1fr auto; gap: .2rem .9rem;
+        padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border);
+        transition: background .12s;
       }
-      .card:hover { border-color: #2e2e3a; }
-      .card h2 { margin: 0; font-size: 1rem; line-height: 1.3; }
-      .meta { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-      .badge {
-        font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 999px;
-        background: #141414; border: 1px solid var(--border); color: var(--text);
+      .row:hover { background: #060606; }
+      .row .voice-list, .row .row-links { grid-column: 1 / -1; }
+      .row-main { display: flex; align-items: baseline; gap: 0.7rem; min-width: 0; }
+      .row-main h2 { margin: 0; font-size: 0.95rem; font-weight: 450; color: var(--text); cursor: pointer; text-overflow: ellipsis; }
+      .voices-count { color: #93c5fd; font-size: 0.75rem; white-space: nowrap; cursor: pointer; }
+      .row-side { display: flex; gap: 0.8rem; align-items: baseline; }
+      .spec { color: var(--dim); font-size: 0.78rem; white-space: nowrap; }
+      .spec.q-high { color: var(--q-high); }
+      .spec.q-medium { color: var(--q-medium); }
+      .spec.q-low { color: var(--q-low); }
+      .spec.author { opacity: .75; }
+      .voice-list {
+        margin: 0.3rem 0 0; padding: 0.4rem 0 0 0.8rem;
+        border-left: 2px solid var(--border); color: var(--dim); font-size: 0.78rem;
+        display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; list-style: none;
       }
-      .badge.lang { color: var(--accent-2); }
-      .badge.q-high { color: var(--q-high); }
-      .badge.q-medium { color: var(--q-medium); }
-      .badge.q-low { color: var(--q-low); }
-      .badge.q-unknown { color: var(--q-unknown); }
-      .badge.voices { color: #7dd3fc; }
-      .author { margin: 0; color: var(--dim); font-size: 0.8rem; }
-      .links { display: flex; gap: 0.8rem; font-size: 0.8rem; }
+      .voice-list .dim { opacity: .55; }
+      .row-links { display: flex; gap: 1rem; font-size: 0.75rem; }
+      .row-links a { color: #52525b; text-transform: lowercase; }
+      .row-links a:hover { color: var(--accent-2); text-decoration: none; }
       .sort-select {
         padding: 0.4rem 0.6rem; border-radius: 8px; background: var(--card);
         border: 1px solid var(--border); color: var(--text); font-size: 0.85rem;
@@ -161,7 +175,7 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       const qualityChips = [...document.querySelectorAll('.quality-chip')];
       const multivoiceOnly = document.getElementById('multivoice-only');
       const count = document.getElementById('count');
-      const cards = [...document.querySelectorAll('.card')];
+      const cards = [...document.querySelectorAll('.row')];
 
       const state = { search: '', lang: '', quality: '', multivoice: false };
 
@@ -187,18 +201,21 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       const grid = document.getElementById('grid');
       const sort = document.getElementById('sort');
       sort.addEventListener('change', () => {
-        const cards = [...grid.children];
+        const rows = [...grid.children];
         const byName = (a, b) => a.querySelector('h2').textContent.localeCompare(b.querySelector('h2').textContent);
         const byVoices = (a, b) => {
-          const va = parseInt((a.querySelector('.badge.voices')?.textContent || '0'), 10) || 0;
-          const vb = parseInt((b.querySelector('.badge.voices')?.textContent || '0'), 10) || 0;
+          const va = parseInt((a.querySelector('.voices-count')?.textContent || '0'), 10) || 0;
+          const vb = parseInt((b.querySelector('.voices-count')?.textContent || '0'), 10) || 0;
           return sort.value === 'voices-desc' ? vb - va || byName(a, b) : va - vb || byName(a, b);
         };
-        cards.sort(sort.value === 'name' ? byName : byVoices).forEach((c) => grid.appendChild(c));
+        rows.sort(sort.value === 'name' ? byName : byVoices).forEach((r) => grid.appendChild(r));
       });
 
-      document.querySelectorAll('.btn-voices').forEach((btn) => {
-        btn.addEventListener('click', () => { document.getElementById(`vl-${btn.dataset.idx}`).hidden ^= 1; });
+      document.querySelectorAll('.row-main[h2], .voices-count').forEach - 0;
+
+      document.querySelectorAll('.voices-count').forEach((el) => {
+        const idx = el.closest('.row')?.querySelector('.row-main')?.dataset.idx;
+        el.addEventListener('click', () => { document.getElementById(`vl-${el.closest('.row').querySelector('.row-main').dataset.idx}`).hidden ^= 1; });
       });
 
       function apply() {
