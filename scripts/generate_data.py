@@ -86,28 +86,64 @@ def get_speakers(m):
 with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_speakers, need))
 
-UNIVERSES = [
- ('portal', ['glados', 'wheatley', 'portal', 'turret', 'announcer', 'aperture', 'chell', 'cave johnson', 'caroline'], '🌀', 265),
- ('tf2', ['scout', 'soldier', 'pyro', 'demoman', 'heavy', 'engineer', 'medic', 'sniper', 'spy', 'tf2', 'team fortress'], '🔫', 8),
- ('valorant', ['valorant', 'jett', 'sage', 'reyna', 'omen', 'sova', 'raze', 'phoenix', 'astra', 'breach', 'brimstone', 'chamber', 'clove', 'cypher', 'deadlock', 'fade', 'gekko', 'harbor', 'iso', 'kayo', 'killjoy', 'neon', 'skye', 'tejo', 'viper', 'vyse', 'yoru'], '🎯', 350),
- ('hal', ['hal 9000', 'hal-9000'], '🔴', 0),
- ('starwars', ['ahsoka'], '⚔️', 210),
- ('fortune', ['fortune', 'itsrealfortune'], '🔮', 300),
- ('counter-strike', ['counter', 'css', 'annonceur', 'radio'], '💣', 35),
- ('kurmanci', ['kurmanci', 'kurd'], '🦚', 45),
+import re as _re
+
+# Classement par repo d'abord (exact), puis par mots entiers du NOM (pas le repo).
+REPO_UNIVERSE = [
+ ('fox3000foxy/piper-checkpoints-fortune', 'fortune', '🔮', 300),
+ ('fox3000foxy/piper-checkpoints-glados', 'portal', '🌀', 265),
+ ('fox3000foxy/piper-checkpoints-wheatley', 'portal', '🌀', 265),
+ ('fox3000foxy/piper-checkpoints-css', 'counter-strike', '💣', 35),
+ ('fox3000foxy/piper-checkpoints-', 'valorant', '🎯', 350),
+ ('RoxasYTB/css-radio', 'counter-strike', '💣', 35),
+ ('RoxasYTB/glados', 'portal', '🌀', 265),
+ ('RoxasYTB/wheatley', 'portal', '🌀', 265),
+ ('RoxasYTB/turret', 'portal', '🌀', 265),
+ ('RoxasYTB/announcer', 'portal', '🌀', 265),
+ ('RoxasYTB/apsap', 'portal', '🌀', 265),
+ ('RoxasYTB/caroline', 'portal', '🌀', 265),
+ ('RoxasYTB/cavejohnson', 'portal', '🌀', 265),
+ ('RoxasYTB/cores', 'portal', '🌀', 265),
+ ('RoxasYTB/deskjob', 'portal', '🌀', 265),
+ ('RoxasYTB/oracle', 'portal', '🌀', 265),
+ ('RoxasYTB/scout', 'tf2', '🔫', 8),
+ ('RoxasYTB/soldier', 'tf2', '🔫', 8),
+ ('RoxasYTB/pyro', 'tf2', '🔫', 8),
+ ('RoxasYTB/demoman', 'tf2', '🔫', 8),
+ ('RoxasYTB/heavy', 'tf2', '🔫', 8),
+ ('RoxasYTB/engineer', 'tf2', '🔫', 8),
+ ('RoxasYTB/medic', 'tf2', '🔫', 8),
+ ('RoxasYTB/sniper', 'tf2', '🔫', 8),
+ ('RoxasYTB/spy', 'tf2', '🔫', 8),
+ ('HAL-9000-Piper', 'hal', '🔴', 0),
+ ('hal-9000-piper', 'hal', '🔴', 0),
+ ('ahsoka-piper', 'starwars', '⚔️', 210),
+ ('kurmanci-tts', 'kurmanci', '🦚', 45),
+]
+NAME_UNIVERSE = [
+ ('portal', [r'glados', r'wheatley', r'\bportal\b', r'\bturrets?\b', r'\bannouncer\b', r'\baperture\b', r'\bchell\b', r'cave johnson', r'\bcaroline\b', r'\bcores\b', r'oracle turret', r'defective turret', r'desk job'], '🌀', 265),
+ ('tf2', [r'\bscout\b', r'\bsoldier\b', r'\bpyro\b', r'\bdemoman\b', r'\bheavy\b', r'\bengineer\b', r'\bmedic\b', r'\bsniper\b', r'\bspy\b', r'\btf2\b', r'team fortress'], '🔫', 8),
+ ('valorant', [r'\bvalorant\b', r'\bjett\b', r'\bsage\b', r'\breyna\b', r'\bomen\b', r'\bsova\b', r'\braze\b', r'\bphoenix\b', r'\bastra\b', r'\bbreach\b', r'\bbrimstone\b', r'\bchamber\b', r'\bclove\b', r'\bcypher\b', r'\bdeadlock\b', r'\bfade\b', r'\bgekko\b', r'\bharbor\b', r'^iso\b', r'\bkayo\b', r'\bkilljoy\b', r'\bneon\b', r'\bskye\b', r'\btejo\b', r'\bviper\b', r'\bvyse\b', r'\byoru\b'], '🎯', 350),
+ ('hal', [r'hal 9000'], '🔴', 0),
+ ('starwars', [r'\bahsoka\b'], '⚔️', 210),
+ ('fortune', [r'fortune', r'itsrealfortune'], '🔮', 300),
+ ('counter-strike', [r'counter.?strike', r'\bcss\b', r'\bannonceur\b', r'\bradio\b'], '💣', 35),
+ ('kurmanci', [r'kurmanci', r'kurdish \(kmr\)'], '🦚', 45),
 ]
 
 def avatar_of(name, repo):
-    hay = (name + ' ' + repo).lower()
-    for uni, keys, emoji, hue in UNIVERSES:
-        if any(k in hay for k in keys):
+    rl = repo.lower()
+    for prefix, uni, emoji, hue in REPO_UNIVERSE:
+        if rl.startswith(prefix.lower()):
             return {'emoji': emoji, 'hue': hue, 'universe': uni}
-    # défaut: initiale + teinte dérivée du nom
+    nl = name.lower()
+    for uni, patterns, emoji, hue in NAME_UNIVERSE:
+        if any(_re.search(p, nl) for p in patterns):
+            return {'emoji': emoji, 'hue': hue, 'universe': uni}
     initial = next((c.upper() for c in name if c.isalnum()), '?')
     hue = sum(ord(c) for c in name) % 360
     return {'emoji': initial, 'hue': hue, 'universe': 'default'}
 
-import re as _re
 seen_slugs = set()
 for mm in models:
     base = _re.sub(r'[^a-z0-9]+', '-', mm['name'].lower().encode('ascii', 'ignore').decode()).strip('-')[:80] or 'model'
