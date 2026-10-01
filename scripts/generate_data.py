@@ -161,6 +161,40 @@ def avatar_of(name, repo):
     return {'emoji': initial, 'hue': hue, 'universe': 'default'}
 
 seen_slugs = set()
+
+def _dataset_link(repo, thread_id):
+    """Lien strict modèle -> dataset, ou None. Règles explicites uniquement."""
+    import csv as _csv
+    if not hasattr(_dataset_link, 'cache'):
+        ds = list(_csv.DictReader(open('/home/lsannier/huggingface-crawler/datasets_mapping.csv', newline='')))
+        tid2ds, repo_rules = {}, []
+        for d in ds:
+            mm = _re.search(r'modèle:\s*(\d+)', d['status'])
+            if mm:
+                tid2ds[mm.group(1)] = d
+            dr = d['hf_repo'].strip().lower()
+            if dr and '↔' not in dr:
+                repo_rules.append(d)
+        _dataset_link.cache = (tid2ds, repo_rules)
+    tid2ds, repo_rules = _dataset_link.cache
+    if thread_id in tid2ds:
+        d = tid2ds[thread_id]
+        return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+    rl = (repo or '').lower()
+    for d in repo_rules:
+        dr = d['hf_repo'].strip().lower()
+        if 'glados_p1_fr-ljspeech' in dr and 'glados_p1_fr' in rl:
+            return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+        if 'css-radio-french-ljspeech' in dr and 'css-announcer-fr' in rl:
+            return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+        if 'valorant-ljspeech-piper' in dr and rl.startswith('fox3000foxy/piper-checkpoints-'):
+            agent = rl.split('piper-checkpoints-')[-1]
+            if agent and agent == (d['class_name'] or '').lower():
+                return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+        if 'wheatley' in dr and 'wheatley' in rl:
+            return {'name': d['thread_name'], 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+    return None
+
 for mm in models:
     base = _re.sub(r'[^a-z0-9]+', '-', mm['name'].lower().encode('ascii', 'ignore').decode()).strip('-')[:80] or 'model'
     s_ = base; k = 1
@@ -169,6 +203,7 @@ for mm in models:
     seen_slugs.add(s_)
     mm['slug'] = s_
     mm['avatar'] = avatar_of(mm['name'], mm['repo'])
+    mm['dataset'] = _dataset_link(mm['repo'], mm['thread'])
 json.dump(cache, open(CACHE,'w'), ensure_ascii=False)
 json.dump(models, open(os.path.join(OUT,'models.json'),'w'), ensure_ascii=False)
 usable_voices = sum(m['voices'] for m in models if m['usable'])

@@ -53,7 +53,9 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 
     <section class="sec">
       <h2>Linked dataset</h2>
-      <div id="dataset-link"><p class="dim">loading…</p></div>
+      {m.dataset
+        ? <div><a href={`${base}datasets/`}>{m.dataset.name}</a> <span class="dim">· {m.dataset.source} · {m.dataset.repo}</span></div>
+        : <div><p class="dim">no linked dataset</p></div>}
     </section>
 
     <section class="sec">
@@ -175,32 +177,6 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
     </style>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
-    <script define:vars={{ siteBase: base, modelName: m.name, modelRepo: m.repo }}>
-      // linked dataset (same class / same source repo)
-      (async () => {
-        const box = document.getElementById('dataset-link');
-        try {
-          const ds = await (await fetch(`${siteBase}data/datasets.json`)).json();
-          const hay = (modelName + ' ' + modelRepo).toLowerCase();
-          const hit = ds.find((d) => {
-            const cls = (d.class || '').toLowerCase();
-            if (cls.length > 2 && hay.includes(cls)) return true;
-            const dr = (d.repo || '').toLowerCase();
-            if (dr && modelRepo.toLowerCase().split('/')[0] === dr.split('/')[0]) {
-              const a = dr.replace(/[-_]ljspeech.*$/, ''), b = modelRepo.toLowerCase();
-              const aa = a.split('/')[1] || '', bb = b.split('/')[1] || '';
-              if (aa && bb && (aa.includes(bb.split('-')[0]) || bb.includes(aa.split('-')[0]))) return true;
-            }
-            return false;
-          });
-          if (hit) {
-            box.innerHTML = `<a href="${siteBase}datasets/">${hit.name}</a> <span class="dim">· ${hit.source || ''} · ${hit.repo || ''}</span>`;
-          } else {
-            box.innerHTML = '<p class="dim">no linked dataset</p>';
-          }
-        } catch { box.innerHTML = '<p class="dim">no linked dataset</p>'; }
-      })();
-    </script>
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
     <script type="module">
       const model = JSON.parse(document.getElementById('model-data').textContent);
