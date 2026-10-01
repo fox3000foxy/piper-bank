@@ -9,7 +9,7 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
 const base = import.meta.env.BASE_URL;
 ---
 
-<Layout title="voice bank" active="voices" subtitle={`${models.length} models · ${totalVoices.toLocaleString("fr-FR")} voices · 100% local`}>
+<Layout title="Voice bank" active="voices" pageUrl="/" subtitle={`${models.length} models · ${totalVoices.toLocaleString("fr-FR")} voices · 100% local`}>
 
 
     <section class="filters">

@@ -15,7 +15,8 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 }));
 ---
 
-<Layout title={m.name} active="voices" subtitle={`par ${m.author}`}>
+<Layout title={m.name} active="voices" pageUrl={`/model/${m.slug}/`}
+  description={`${m.voices}-voice ${m.langName} Piper TTS model by ${m.author} (${m.quality} quality). Listen to samples and synthesize in your browser.`} subtitle={`par ${m.author}`}>
 
     <a class="back" href={`${base}`}>← all models</a>
     <div class="hero model-hero">

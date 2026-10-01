@@ -1,6 +1,10 @@
 ---
-const { title, active } = Astro.props;
+const { title, active, description, pageUrl, image } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const site = 'https://piper-bank.fox3000foxy.com';
+const desc = description || 'Explore 300 Piper TTS models and 2900+ voices. Listen to samples, compare voices, synthesize in your browser.';
+const url = pageUrl ? site + pageUrl : site + '/';
+const img = image ? site + image : site + base + 'logo.png';
 ---
 
 <html lang="en">
@@ -8,8 +12,19 @@ const base = import.meta.env.BASE_URL;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title} · Piper TTS Explorer</title>
+    <meta name="description" content={desc} />
     <link rel="icon" type="image/png" href={`${base}logo.png`} />
     <link rel="stylesheet" href={`${base}site.css`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Piper TTS Explorer" />
+    <meta property="og:title" content={`${title} · Piper TTS Explorer`} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={img} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={`${title} · Piper TTS Explorer`} />
+    <meta name="twitter:description" content={desc} />
+    <meta name="twitter:image" content={img} />
   </head>
   <body class={Astro.props.narrow ? 'narrow' : ''}>
     <header class="hero">
