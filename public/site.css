@@ -44,5 +44,31 @@ h1 { font-size: 1.55rem; margin: 0; font-weight: 650; letter-spacing: -.02em; }
 .tag.q-medium { color: var(--q-medium); }
 .tag.q-low { color: var(--q-low); }
 .tag.voices { color: #7dd3fc; }
+.badge { font-size: .7rem; padding: .12rem .5rem; border-radius: 999px;
+  background: #ffffff0d; border: 1px solid var(--border); color: var(--accent-2); }
+a.badge.ok { color: var(--q-high); }
+span.badge.ok { color: var(--q-high); }
+.badge.missing { color: var(--q-medium); }
+
+.filters { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: .65rem;
+  align-items: center; margin-bottom: 1.4rem; background: #000000d9; backdrop-filter: blur(10px); padding: .7rem 0; }
+.filters input[type="search"] { flex: 1 1 300px; padding: .62rem .95rem; border-radius: 10px;
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  font-size: .92rem; outline: none; font-family: inherit; }
+.filters input[type="search"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #a855f722; }
+.chips { display: flex; gap: .32rem; flex-wrap: wrap; }
+.chip { padding: .3rem .68rem; border-radius: 999px; font-size: .76rem; cursor: pointer;
+  background: var(--card); border: 1px solid var(--border); color: var(--dim);
+  font-family: inherit; transition: all .12s; }
+.chip:hover { color: var(--text); border-color: #33333d; }
+.chip.on { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+.count { color: var(--dim); font-size: .82rem; margin-left: auto; font-variant-numeric: tabular-nums; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: .85rem; }
+.card { display: flex; gap: .85rem; align-items: flex-start;
+  background: linear-gradient(180deg, #0d0d11, #0a0a0d);
+  border: 1px solid var(--border); border-radius: 14px; padding: .95rem 1rem; color: var(--text); }
+a.card { transition: transform .14s, border-color .14s, box-shadow .14s; }
+a.card:hover { transform: translateY(-2px); border-color: #a855f744;
+  box-shadow: 0 8px 28px #00000088, 0 0 0 1px #a855f722; }
 
 footer { margin-top: 3rem; text-align: center; color: #52525b; font-size: .78rem; }
