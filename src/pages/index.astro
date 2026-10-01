@@ -171,7 +171,10 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
 
     <script>
       (async () => {
-      const models = (await (await fetch('/data/models.json')).json()).filter(m => m.usable);
+      const data = await (await fetch('/data/models.json')).json();
+      let samples = {};
+      try { samples = await (await fetch('/data/samples.json')).json(); } catch {}
+      const models = data.filter((m) => m.usable);
       const search = document.getElementById('search');
       const langChips = [...document.querySelectorAll('#lang-chips .chip')];
       const qualityChips = [...document.querySelectorAll('#quality-chips .chip')];
@@ -231,6 +234,8 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       function openModal(model) {
         current = model;
         selectedVoice = null;
+        isTextPhoneme = model.phonemeType === 'text';
+        textMap = model.phonemeIdMap || null;
         document.getElementById('md-name').textContent = model.name;
         document.getElementById('md-author').textContent = 'par ' + model.author + ' · ' + model.repo;
         const meta = document.getElementById('md-meta');
@@ -294,32 +299,91 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       document.getElementById('modal-bg').addEventListener('click', () => { modal.hidden = true; });
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') modal.hidden = true; });
 
+      // --- helpers inférence navigateur (phoneme_type=text uniquement) ---
+      let ortWeb = null, ortSession = null, ortSessionKey = '';
+      async function loadOrtWeb() {
+        if (ortWeb) return ortWeb;
+        ortWeb = await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.mjs');
+        return ortWeb;
+      }
+      async function ensureModel(m) {
+        const key = m.repo + '|' + m.onnx;
+        if (ortSessionKey === key) return ortSession;
+        const url = `https://huggingface.co/${m.repo}/resolve/main/${encodeURIComponent(m.onnx, '/')}`;
+        const ort = await loadOrtWeb();
+        ortSession = await ort.InferenceSession.create(url, {executionProviders: ['wasm'], graphOptimizationLevel: 'all'});
+        ortSessionKey = key;
+        return ortSession;
+      }
+      function textPhonemize(txt, idMap) {
+        const pad = idMap._?.[0] ?? 0, bos = idMap['^']?.[0] ?? 1, eos = idMap['$']?.[0] ?? 2;
+        const ids = [pad, bos];
+        for (const ch of txt.toLowerCase()) {
+          const v = idMap[ch]; if (v) ids.push(...v);
+          ids.push(...(idMap[' '] || [3]));
+        }
+        ids.push(eos, pad);
+        return ids;
+      }
+      function ortSynth(session, ids, m) {
+        const cfg = m.configs || {};
+        const inf = cfg.inference || {noise_scale:.667, length_scale:1.0, noise_w:.8};
+        const scales = new Float32Array([inf.noise_scale, inf.length_scale, inf.noise_w]);
+        const input = new BigInt64Array(ids).slice(); // Big array
+        const lenArr = new BigInt64Array([BigInt(ids.length)]);
+        return session.run({ input: new ort.Tensor('int64', BigInt64Array.from(ids.map(BigInt)), [1, ids.length]),
+                             input_lengths: new ort.Tensor('int64', BigInt64Array.from([BigInt(ids.length)]), [1]),
+                             scales: new ort.Tensor('float32', scales, [3]) })
+          .then(out => {
+            const audio = Object.values(out)[0].data;
+            return toWav(audio, (cfg.audio || {}).sample_rate || 22050);
+          });
+      }
+      function toWav(floats, sampleRate) {
+        const bpe = 2, n = floats.length, buf = new ArrayBuffer(44 + n * bpe), w = new DataView(buf);
+        const wr = (o, s) => { for (let i = 0; i < s.length; i++) w.setUint8(o + i, s.charCodeAt(i)); };
+        wr(0, 'RIFF'); w.setUint32(4, 36 + n * bpe, true); wr(8, 'WAVE'); wr(12, 'fmt ');
+        w.setUint32(16, 16, true); w.setUint16(20, 1, true); w.setUint16(22, 1, true);
+        w.setUint32(24, sampleRate, true); w.setUint32(28, sampleRate * bpe, true);
+        w.setUint16(32, bpe, true); w.setUint16(34, 16, true); wr(36, 'data'); w.setUint32(40, n * bpe, true);
+        for (let i = 0; i < n; i++) {
+          const x = Math.max(-1, Math.min(1, floats[i]));
+          w.setInt16(44 + i * bpe, x < 0 ? x * 0x8000 : x * 0x7fff, true);
+        }
+        return new Blob([buf], { type: 'audio/wav' });
+      }
+      let isTextPhoneme = false, textMap = null;
+
       const go = document.getElementById('md-go');
+      const phonetextEl = document.getElementById('md-text');
       go.addEventListener('click', async () => {
-        const text = document.getElementById('md-text').value.trim();
+        const text = phonetextEl.value.trim();
         const status = document.getElementById('md-status');
         if (!current) return;
         if (!text) { status.textContent = 'Entrez du texte.'; return; }
-        const body = { model: current.name, text };
-        const sel = document.getElementById('md-len').value; if (sel) body.lengthScale = sel;
-        const n1 = document.getElementById('md-noise').value; if (n1) body.noiseScale = n1;
-        const n2 = document.getElementById('md-noiseW').value; if (n2) body.noiseW = n2;
-        if (selectedVoice) body.voice = selectedVoice;
-        go.disabled = true; status.textContent = '⏳ Synthèse…';
-        try {
-          const resp = await fetch('/api/infer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-          if (!resp.ok) throw new Error((await resp.json()).error || 'Error ' + resp.status);
-          const blob = await resp.blob();
-          const url = URL.createObjectURL(blob);
+        const sk = samples[current.repo + '|' + current.onnx];
+        if (sk) {
+          status.textContent = '⏳ Lecture de l\'échantillon…';
           const audio = document.getElementById('md-audio');
-          audio.src = url; audio.hidden = false; audio.play();
-          const dur = resp.headers.get('x-duration-ms');
-          status.textContent = `✅ ${dur} ms`;
-        } catch (e) {
-          status.textContent = '❌ ' + e.message;
-        } finally {
-          go.disabled = false;
+          audio.src = sk; audio.hidden = false; audio.play();
+          status.textContent = '▶ Échantillon pré-généré';
+          return;
         }
+        if (!isTextPhoneme) { status.textContent = 'Modèle espeak : inférence dispo via thread Discord (/infer).'; return; }
+        // text-phoneme inference in browser (onnxruntime-web)
+        try {
+          status.textContent = '⏳ Chargement ONNX…';
+          const [ort, nHope] = await Promise.all([loadOrtWeb(), Promise.resolve()]);
+          const model = await ensureModel(current);
+          status.textContent = '⏳ Phonemisation…';
+          const ids = textPhonemize(text, textMap);
+          audio = null;
+          status.textContent = '⏳ Synthèse…';
+          const wav = await ortSynth(model, ids, ort);
+          const audio2 = document.getElementById('md-audio');
+          audio2.src = URL.createObjectURL(wav); audio2.hidden = false; audio2.play();
+          status.textContent = '✅ (navigateur)';
+        } catch (e) { status.textContent = '❌ ' + (e.message || e); }
       });
 
       apply();

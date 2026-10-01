@@ -16,9 +16,9 @@ def fetch_speakers(repo, jsonf):
         sm = cfg.get('speaker_id_map') or {}
         n = len(sm) if sm else int(cfg.get('num_speakers') or 1)
         names = sorted(sm.keys(), key=lambda k: sm[k] if isinstance(sm[k], int) else (sm[k][0] if isinstance(sm[k], list) else 0))
-        return n, names
+        return {'n': n, 'names': names, 'cfg': cfg}
     except Exception:
-        return 1, []
+        return {'n': 1, 'names': [], 'cfg': {}}
 
 cache = {}
 if os.path.realpath(CACHE):
@@ -54,13 +54,21 @@ import concurrent.futures
 need = [m for m in models if m['usable']]
 def get_speakers(m):
     key = m['repo'] + '|' + m['json']
-    if key in cache:
-        v = cache[key]
-        m['voices'], m['voiceNames'] = v.get('n',1), v.get('names',[])
-        return
-    n, names = fetch_speakers(m['repo'], m['json'])
-    m['voices'], m['voiceNames'] = n, names
-    cache[key] = {'n': n, 'names': names}
+    ent = cache.get(key) or {}
+    if 'cfg' not in ent:
+        d = fetch_speakers(m['repo'], m['json'])
+        n, names = d['n'], d['names']
+        cfg = d.get('cfg') or {}
+        ent = {'n': n, 'names': names, 'cfg': cfg}
+        cache[key] = ent
+    m['voices'], m['voiceNames'] = ent.get('n', 1), ent.get('names', [])
+    cfg = ent.get('cfg') or {}
+    # lightweight config for browser inference (text phoneme voices)
+    m['phonemeType'] = cfg.get('phoneme_type') or ('text' if not cfg.get('espeak') else 'espeak')
+    m['sampleRate'] = (cfg.get('audio') or {}).get('sample_rate') or 22050
+    if m['phonemeType'] == 'text' and cfg.get('phoneme_id_map'):
+        m['phonemeIdMap'] = cfg['phoneme_id_map']
+        m['inference'] = cfg.get('inference') or {}
 
 with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_speakers, need))
