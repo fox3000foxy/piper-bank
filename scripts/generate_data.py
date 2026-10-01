@@ -5,7 +5,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'src', 'data')
 os.makedirs(OUT, exist_ok=True)
 CACHE = os.path.join(OUT, 'speakers_cache.json')
-HF_TOKEN = open(os.path.expanduser('~/huggingface-crawler/.env')).read().split('HF_TOKEN=')[1].split('\n')[0]
+HF_TOKEN = os.environ.get('HF_TOKEN') or open(os.path.expanduser('~/huggingface-crawler/.env')).read().split('HF_TOKEN=')[1].split('\n')[0]
+CSV_MODELS = os.environ.get('CSV_MODELS', '/home/lsannier/huggingface-crawler/models_mapping.csv')
+CSV_DATASETS = os.environ.get('CSV_DATASETS', '/home/lsannier/huggingface-crawler/datasets_mapping.csv')
 
 def fetch_speakers(repo, jsonf):
     url = f"https://huggingface.co/{repo}/resolve/main/{urllib.parse.quote(jsonf, safe='/')}"
@@ -35,7 +37,7 @@ lang_names = {'fr':'Français','en':'English','de':'Deutsch','es':'Español','ru
 
 _DS_SLUG = {}
 datasets = []
-for d in csv.DictReader(open('/home/lsannier/huggingface-crawler/datasets_mapping.csv', newline='')):
+for d in csv.DictReader(open(CSV_DATASETS, newline='')):
     name = d['thread_name'].strip()
     slug = _re.sub(r'[^a-z0-9]+', '-', name.lower().encode('ascii', 'ignore').decode()).strip('-')[:80] or 'dataset'
     datasets.append({
@@ -59,7 +61,7 @@ print(f"{len(datasets)} datasets")
 _DS_SLUG.update({dd['name']: dd['slug'] for dd in datasets})
 
 models = []
-for r in csv.DictReader(open('/home/lsannier/huggingface-crawler/models_mapping.csv', newline='')):
+for r in csv.DictReader(open(CSV_MODELS, newline='')):
     status = r['status'].strip()
     ok = status == '✅ files'
     lang = r['language'].strip().lower() or 'zz'
@@ -190,7 +192,7 @@ def _dataset_link(repo, thread_id):
     """Lien strict modèle -> dataset, ou None. Règles explicites uniquement."""
     import csv as _csv
     if not hasattr(_dataset_link, 'cache'):
-        ds = list(_csv.DictReader(open('/home/lsannier/huggingface-crawler/datasets_mapping.csv', newline='')))
+        ds = list(_csv.DictReader(open(CSV_DATASETS, newline='')))
         tid2ds, repo_rules = {}, []
         for d in ds:
             mm = _re.search(r'modèle:\s*(\d+)', d['status'])

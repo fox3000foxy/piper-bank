@@ -1,0 +1,61 @@
+name: Deploy Piper Bank to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'public/**', 'scripts/**', 'package.json', 'astro.config.mjs']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build data JSON from CSV
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          curl -sL -o /tmp/models_mapping.csv https://raw.githubusercontent.com/fox3000foxy/huggingface-crawler/main/models_mapping.csv
+          curl -sL -o /tmp/datasets_mapping.csv https://raw.githubusercontent.com/fox3000foxy/huggingface-crawler/main/datasets_mapping.csv
+          CSV_MODELS=/tmp/models_mapping.csv CSV_DATASETS=/tmp/datasets_mapping.csv python3 scripts/generate_data.py
+          # samples: assets locaux versionnés (public/samples/), pas de régénération Discord en CI
+
+      - name: Build site
+        run: |
+          npm ci
+          SITE_BASE=/piper-bank/ npx astro build
+          mkdir -p dist/data
+          cp src/data/models.json dist/data/models.json
+          cp src/data/samples.json dist/data/samples.json
+          cp src/data/datasets.json dist/data/datasets.json
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
