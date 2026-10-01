@@ -38,7 +38,7 @@ jobs:
       - name: Build site
         run: |
           npm ci
-          SITE_BASE=/piper-bank/ npx astro build
+          SITE_BASE=/ npx astro build
           mkdir -p dist/data
           cp src/data/models.json dist/data/models.json
           cp src/data/samples.json dist/data/samples.json
