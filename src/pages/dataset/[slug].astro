@@ -11,7 +11,8 @@ const base = import.meta.env.BASE_URL;
 const hasModel = !!(d.model && d.modelSlug);
 ---
 
-<Layout title={d.name} active="datasets" subtitle={`${d.source || 'dataset'} · ${d.langName || d.lang.toUpperCase()}`}>
+<Layout title={d.name} active="datasets" pageUrl={`/dataset/${d.slug}/`}
+  description={`LJSpeech dataset: ${d.class} (${d.source}, ${d.langName || d.lang}). Train your own Piper TTS voice.`} subtitle={`${d.source || 'dataset'} · ${d.langName || d.lang.toUpperCase()}`}>
   <a class="back" href={`${base}datasets/`}>← all datasets</a>
 
   <div class="hero model-hero">

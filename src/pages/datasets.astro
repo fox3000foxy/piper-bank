@@ -9,7 +9,8 @@ const noModel = datasets.filter((d) => !d.modelSlug);
 const hasModel = datasets.filter((d) => d.modelSlug);
 ---
 
-<Layout title="Datasets" active="datasets" subtitle="126 datasets · ljspeech">
+<Layout title="Datasets" active="datasets" pageUrl="/datasets/"
+  description="126 LJSpeech datasets for Piper TTS training: Portal, TF2, Valorant, Counter-Strike voices." subtitle="126 datasets · ljspeech">
     <h1 class="page-title">Datasets <span class="accent">({datasets.length})</span></h1>
     <p class="subtitle">{hasModel.length} with model · {noModel.length} to train</p>
 
