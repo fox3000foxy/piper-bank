@@ -1,0 +1,182 @@
+---
+import data from '../data/models.json';
+
+const models = data.filter((m) => m.usable);
+const languages = [...new Set(models.map((m) => m.langName))].sort();
+const qualities = [...new Set(models.map((m) => m.quality))];
+const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Piper TTS Explorer</title>
+  </head>
+  <body>
+    <header class="hero">
+      <img src="/logo.png" alt="PiperBot" class="logo" />
+      <div>
+        <h1>
+          <span class="accent">Piper</span> TTS Explorer
+        </h1>
+        <p class="subtitle">{models.length} modèles · {totalVoices.toLocaleString('fr-FR')} voix · 100% local, CPU only</p>
+      </div>
+    </header>
+
+    <section class="filters">
+      <input id="search" type="search" placeholder="Rechercher un modèle, une voix, un auteur…" autocomplete="off" />
+      <div class="chips" id="lang-chips">{
+        languages.map((lang) => <button class="chip lang-chip" data-lang={lang}>{lang}</button>)
+      }</div>
+      <div class="chips" id="quality-chips">{
+        qualities.map((q) => <button class="chip quality-chip" data-quality={q}>{q}</button>)
+      }</div>
+      <label class="multiselect"> <input type="checkbox" id="multivoice-only" /> Multi-voices </label>
+      <span id="count" class="count"></span>
+    </section>
+
+    <main id="grid" class="grid">
+      {models.map((m) => (
+        <article
+          class="card"
+          data-lang={m.langName}
+          data-quality={m.quality}
+          data-multivoice={m.voices > 1 ? '1' : '0'}
+          data-search={`${m.name} ${m.author} ${m.langName} ${m.repo}`.toLowerCase()}
+        >
+          <h2>{m.name}</h2>
+          <div class="meta">
+            <span class="badge lang">{m.langName}</span>
+            <span class={`badge q-${m.quality}`}>{m.quality}</span>
+            {m.voices > 1 && <span class="badge voices">{m.voices} voix</span>}
+          </div>
+          <p class="author">par {m.author}</p>
+          <div class="links">
+            <a href={`https://huggingface.co/${m.repo}`} target="_blank" rel="noopener">HF ↗</a>
+            {m.thread && <a href={`https://discord.com/channels/1523276835712929946/${m.thread}`} target="_blank" rel="noopener">Discord ↗</a>}
+          </div>
+        </article>
+      ))}
+    </main>
+
+    <footer>
+      <p>PiperBot · Discord <a href="https://discord.gg" target="_blank">PiperTTS</a> · Data: <a href="https://huggingface.co/rhasspy/piper-voices" target="_blank">rhasspy/piper-voices</a> + community</p>
+    </footer>
+
+    <style is:global>
+      :root {
+        --bg: #000000;
+        --card: #0a0a0a;
+        --border: #1a1a1a;
+        --text: #e4e4e7;
+        --dim: #71717a;
+        --accent: #a855f7;
+        --accent-2: #d8b4fe;
+        --q-high: #4ade80;
+        --q-medium: #facc15;
+        --q-low: #ef4444;
+        --q-unknown: #71717a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--bg); color: var(--text);
+        font-family: system-ui, -apple-system, sans-serif;
+        padding: 2rem 1rem 4rem;
+        max-width: 1200px; margin-inline: auto;
+      }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      .hero { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; }
+      .logo { width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--border); }
+      h1 { margin: 0; font-size: 1.75rem; letter-spacing: -0.02em; }
+      .accent { color: var(--accent); }
+      .subtitle { color: var(--dim); margin: 0.25rem 0 0; font-size: 0.95rem; }
+
+      .filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 1.5rem; }
+      #search {
+        flex: 1 1 320px; padding: 0.7rem 1rem; border-radius: 10px;
+        background: var(--card); border: 1px solid var(--border); color: var(--text);
+        font-size: 0.95rem; outline: none;
+      }
+      #search:focus { border-color: var(--accent); }
+      .chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+      .chip {
+        padding: 0.3rem 0.75rem; border-radius: 999px; font-size: 0.8rem; cursor: pointer;
+        background: var(--card); border: 1px solid var(--border); color: var(--dim);
+      }
+      .chip.on { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+      .count { color: var(--dim); font-size: 0.85rem; margin-left: auto; }
+      .multiselect { display: flex; gap: 0.4rem; align-items: center; color: var(--dim); font-size: 0.85rem; }
+
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+      .card {
+        background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+        padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem;
+      }
+      .card:hover { border-color: #2e2e3a; }
+      .card h2 { margin: 0; font-size: 1rem; line-height: 1.3; }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .badge {
+        font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 999px;
+        background: #141414; border: 1px solid var(--border); color: var(--text);
+      }
+      .badge.lang { color: var(--accent-2); }
+      .badge.q-high { color: var(--q-high); }
+      .badge.q-medium { color: var(--q-medium); }
+      .badge.q-low { color: var(--q-low); }
+      .badge.q-unknown { color: var(--q-unknown); }
+      .badge.voices { color: #7dd3fc; }
+      .author { margin: 0; color: var(--dim); font-size: 0.8rem; }
+      .links { display: flex; gap: 0.8rem; font-size: 0.8rem; }
+
+      footer { margin-top: 3rem; color: var(--dim); font-size: 0.8rem; text-align: center; }
+    </style>
+
+    <script>
+      const search = document.getElementById('search');
+      const langChips = [...document.querySelectorAll('.lang-chip')];
+      const qualityChips = [...document.querySelectorAll('.quality-chip')];
+      const multivoiceOnly = document.getElementById('multivoice-only');
+      const count = document.getElementById('count');
+      const cards = [...document.querySelectorAll('.card')];
+
+      const state = { search: '', lang: '', quality: '', multivoice: false };
+
+      function activeChips(chips) { return chips.filter((c) => c.classList.contains('on')); }
+      function renderChips(chips, key) {
+        chips.forEach((chip) => {
+          chip.addEventListener('click', () => {
+            const value = chip.dataset[key];
+            const isActive = chip.classList.contains('on');
+            activeChips(chips).forEach((c) => c.classList.remove('on'));
+            chip.classList.toggle('on', !isActive);
+            state[key] = isActive ? '' : value;
+            apply();
+          });
+        });
+      }
+      renderChips(langChips, 'lang');
+      renderChips(qualityChips, 'quality');
+
+      search.addEventListener('input', () => { state.search = search.value.toLowerCase().trim(); apply(); });
+      multivoiceOnly.addEventListener('change', () => { state.multivoice = multivoiceOnly.checked; apply(); });
+
+      function apply() {
+        let visible = 0;
+        for (const card of cards) {
+          const matchSearch = !state.search || card.dataset.search.includes(state.search);
+          const matchLang = !state.lang || card.dataset.lang === state.lang;
+          const matchQuality = !state.quality || card.dataset.quality === state.quality;
+          const matchMulti = !state.multivoice || card.dataset.multivoice === '1';
+          const show = matchSearch && matchLang && matchQuality && matchMulti;
+          card.style.display = show ? '' : 'none';
+          if (show) visible++;
+        }
+        count.textContent = `${visible} / ${cards.length} modèles`;
+      }
+      apply();
+    </script>
+  </body>
+</html>
