@@ -8,6 +8,10 @@ export async function getStaticPaths() {
 
 const { model: m } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const avatar = m.avatar || { emoji: '?', hue: 260 };
+const voicePairs = (m.voiceNames || []).map((vn, i) => ({
+  name: vn, sid: (m.voiceIds || [])[i] ?? i,
+}));
 ---
 
 <html lang="fr">
@@ -20,6 +24,7 @@ const base = import.meta.env.BASE_URL;
     <a class="back" href={`${base}`}>← tous les modèles</a>
 
     <header class="hero">
+      <span class="avatar big" style={`--h:${avatar.hue}`}>{avatar.emoji}</span>
       <div>
         <h1>{m.name}</h1>
         <p class="subtitle">par {m.author} · {m.repo}</p>
@@ -36,23 +41,48 @@ const base = import.meta.env.BASE_URL;
       <span class="tag">{m.sampleRate} Hz</span>
     </section>
 
-    {m.voices > 1 && (
-      <section class="sec">
-        <h2>Voix ({m.voices})</h2>
-        <div id="voices" class="chips">
-          {m.voiceNames.slice(0, 60).map((vn) => <button class="chip" data-voice={vn}>{vn}</button>)}
-          {m.voiceNames.length > 60 && <span class="dim">… +{m.voiceNames.length - 60}</span>}
-        </div>
-      </section>
-    )}
+    <section class="sec">
+      <h2>Téléchargements</h2>
+      <div class="dl-row">
+        <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.onnx}`}>⬇ model.onnx</a>
+        <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.json}`}>⬇ model.onnx.json</a>
+        <a class="btn-dl ghost" href={`https://huggingface.co/${m.repo}`}>repo HF</a>
+        {m.thread && <a class="btn-dl ghost" href={`https://discord.com/channels/1523276835712929946/${m.thread}`}>thread</a>}
+      </div>
+    </section>
 
     <section class="sec">
-      <h2>Écouter un exemple</h2>
+      <h2>Voix & exemples ({m.voices})</h2>
+      <p class="dim">cliquez sur ▶ pour écouter · cliquez sur le nom pour l'utiliser dans la synthèse</p>
+      <div id="voice-list">
+        {voicePairs.slice(0, 120).map((v, i) => (
+          <div class="player" style={`--vc:${(avatar.hue + i * 47) % 360}`} data-sid={v.sid} data-vname={v.name}>
+            <button class="pp" aria-label={`écouter ${v.name}`}>▶</button>
+            <div class="pbody">
+              <div class="prow">
+                <button class="pname" title={v.name}>{v.name}</button>
+                <span class="ptime">0:00</span>
+              </div>
+              <div class="pbar"><div class="pfill"></div></div>
+              <div class="psamples">
+                <audio preload="none" data-n="0"></audio>
+                <audio preload="none" data-n="1"></audio>
+              </div>
+            </div>
+          </div>
+        ))}
+        {voicePairs.length > 120 && <p class="dim">… +{voicePairs.length - 120} voix (synthèse dispo pour toutes)</p>}
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Exemples du thread</h2>
       <div id="samples"><p class="dim">chargement…</p></div>
     </section>
 
     <section class="sec">
       <h2>Synthétiser</h2>
+      <p class="dim" id="sel-voice-line">voix : <b id="sel-voice">défaut</b></p>
       <textarea id="text" rows="2" placeholder="Texte à synthétiser…"></textarea>
       <div class="opts">
         <label>vitesse <input id="len" type="number" step="0.05" min="0.2" max="3" placeholder="1.0" /></label>
@@ -68,16 +98,6 @@ const base = import.meta.env.BASE_URL;
       <div id="dataset-link"><p class="dim">recherche…</p></div>
     </section>
 
-    <section class="sec">
-      <h2>Fichiers</h2>
-      <ul class="files">
-        <li><a id="dl-onnx" href={`https://huggingface.co/${m.repo}/resolve/main/${m.onnx}`}>model.onnx</a></li>
-        <li><a href={`https://huggingface.co/${m.repo}/resolve/main/${m.json}`}>model.onnx.json</a></li>
-        <li><a href={`https://huggingface.co/${m.repo}`}>repo HuggingFace</a></li>
-        {m.thread && <li><a href={`https://discord.com/channels/1523276835712929946/${m.thread}`}>thread Discord</a></li>}
-      </ul>
-    </section>
-
     <style is:global>
       :root { --bg:#000; --card:#0a0a0a; --border:#17171a; --text:#e4e4e7; --dim:#71717a;
         --accent:#a855f7; --accent-2:#d8b4fe; --q-high:#4ade80; --q-medium:#facc15; --q-low:#ef4444; }
@@ -87,8 +107,12 @@ const base = import.meta.env.BASE_URL;
       a { color:var(--accent); text-decoration:none; }
       .back { color:var(--dim); font-size:.85rem; }
       .back:hover { color:var(--accent-2); }
-      .hero h1 { margin:.6rem 0 0; font-size:1.5rem; font-weight:600; letter-spacing:-.01em; }
-      .subtitle { color:var(--dim); font-size:.9rem; margin:.3rem 0 0; overflow-wrap:anywhere; }
+      .hero { display:flex; gap:1rem; align-items:center; margin-top:.6rem; }
+      .avatar.big { width:76px; height:76px; font-size:2.4rem; border-radius:20px; display:grid; place-items:center; flex:0 0 auto;
+        background:linear-gradient(135deg, hsl(var(--h) 65% 26%), hsl(calc(var(--h) + 40) 70% 12%));
+        border:1px solid hsl(var(--h) 60% 32% / .55); text-shadow:0 2px 8px #0009; }
+      .hero h1 { margin:0; font-size:1.45rem; font-weight:600; letter-spacing:-.01em; }
+      .subtitle { color:var(--dim); font-size:.88rem; margin:.3rem 0 0; overflow-wrap:anywhere; }
       .tags { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:1rem; }
       .tag { font-size:.75rem; padding:.18rem .6rem; border-radius:999px; background:#141414;
         border:1px solid var(--border); color:var(--text); }
@@ -97,11 +121,41 @@ const base = import.meta.env.BASE_URL;
       .tag.voices { color:#7dd3fc; }
       .sec { margin-top:1.6rem; border-top:1px solid var(--border); padding-top:1rem; }
       .sec h2 { margin:0 0 .7rem; font-size:.78rem; font-weight:500; color:#52525b; text-transform:uppercase; letter-spacing:.06em; }
-      .chips { display:flex; flex-wrap:wrap; gap:.35rem; }
-      .chip { padding:.28rem .65rem; border-radius:999px; font-size:.78rem; cursor:pointer; font-family:inherit;
-        background:var(--card); border:1px solid var(--border); color:var(--dim); }
-      .chip.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
       .dim { color:var(--dim); font-size:.82rem; }
+
+      .dl-row { display:flex; flex-wrap:wrap; gap:.5rem; }
+      .btn-dl { display:inline-flex; align-items:center; gap:.4rem; font-size:.84rem; font-weight:550;
+        padding:.5rem .95rem; border-radius:10px; color:var(--text);
+        background:linear-gradient(180deg,#a855f722,#a855f711); border:1px solid #a855f755; transition:all .12s; }
+      .btn-dl:hover { border-color:var(--accent); box-shadow:0 0 18px #a855f733; }
+      .btn-dl.ghost { background:none; border-color:var(--border); color:var(--dim); font-weight:400; }
+      .btn-dl.ghost:hover { color:var(--text); border-color:#3f3f46; box-shadow:none; }
+
+      .player { display:flex; gap:.7rem; align-items:center; padding:.6rem .7rem; margin-bottom:.5rem;
+        border-radius:12px; background:#0a0a0d;
+        border:1px solid hsl(var(--vc) 55% 30% / .5); transition:border-color .15s, box-shadow .15s; }
+      .player:hover { border-color:hsl(var(--vc) 70% 45% / .8); }
+      .player.playing { border-color:hsl(var(--vc) 80% 55%); box-shadow:0 0 16px hsl(var(--vc) 80% 50% / .25); }
+      .pp { flex:0 0 auto; width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:.85rem;
+        background:transparent; color:hsl(var(--vc) 85% 70%);
+        border:1.5px solid hsl(var(--vc) 70% 55%); transition:all .12s; font-family:inherit; }
+      .pp:hover { background:hsl(var(--vc) 70% 50% / .2); }
+      .player.playing .pp { background:hsl(var(--vc) 70% 50%); color:#000; border-color:transparent; }
+      .pbody { flex:1; min-width:0; display:flex; flex-direction:column; gap:.3rem; }
+      .prow { display:flex; align-items:baseline; gap:.6rem; }
+      .pname { background:none; border:none; padding:0; cursor:pointer; font-family:inherit;
+        color:var(--text); font-size:.86rem; font-weight:550; white-space:nowrap; overflow:hidden;
+        text-overflow:ellipsis; text-align:left; }
+      .pname:hover { color:hsl(var(--vc) 85% 72%); }
+      .pname.sel { color:hsl(var(--vc) 85% 72%); text-decoration:underline; text-underline-offset:3px; }
+      .ptime { margin-left:auto; color:var(--dim); font-size:.72rem; font-variant-numeric:tabular-nums; white-space:nowrap; }
+      .pbar { height:4px; border-radius:99px; background:#ffffff12; cursor:pointer; }
+      .pfill { height:100%; width:0%; border-radius:99px; background:hsl(var(--vc) 75% 58%); transition:width .1s linear; }
+      .sample { margin-bottom:.7rem; }
+      .sample audio { width:100%; margin-top:.25rem; }
+      .sample p { margin:0 0 .2rem; font-size:.82rem; color:var(--dim); }
+
+      .chips { display:flex; flex-wrap:wrap; gap:.35rem; }
       #text { width:100%; background:#0a0a0a; border:1px solid var(--border); border-radius:9px;
         color:var(--text); padding:.6rem .75rem; font-family:inherit; font-size:.92rem; resize:vertical; min-height:64px; }
       #text:focus { border-color:#3f3f46; outline:none; }
@@ -116,13 +170,9 @@ const base = import.meta.env.BASE_URL;
       #status { font-size:.78rem; margin-top:.4rem; min-height:1.2em; }
       .files { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.3rem; }
       .files a { font-size:.88rem; }
-      .sample { margin-bottom:.7rem; }
-      .sample audio { width:100%; margin-top:.25rem; }
-      .sample p { margin:0 0 .2rem; font-size:.82rem; color:var(--dim); }
     </style>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
-    <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
     <script define:vars={{ thread: m.thread, fallbackKey: m.repo + '|' + m.onnx, siteBase: base, modelName: m.name, modelRepo: m.repo }}>
       (async () => {
         const box = document.getElementById('samples');
@@ -165,20 +215,82 @@ const base = import.meta.env.BASE_URL;
       })();
     </script>
     <script type="module">
-      const { synthesize } = await new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
       const model = JSON.parse(document.getElementById('model-data').textContent);
       const siteBase = window.__BASE__;
-      const voicesEl = document.getElementById('voices');
-      let selectedVoice = null, selectedSid = null;
-      voicesEl?.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
-        voicesEl.querySelectorAll('.chip').forEach((x) => x.classList.remove('on'));
-        b.classList.add('on');
-        selectedVoice = b.dataset.voice;
-        selectedSid = model.voiceNames.indexOf(selectedVoice);
-      }));
+      const HF_SAMPLES = 'https://huggingface.co/datasets/fox3000foxy/piper-samples/resolve/main/';
+      const safe = (s) => s.replace(/[^a-zA-Z0-9\-_.]/g, '_');
+      const sampleBase = safe(model.repo.replace('/', '--') + '__' + model.onnx.replace('/', '_').replace(/\.onnx$/, ''));
+      const sampleUrl = (sid, n) => `${HF_SAMPLES}${sampleBase}__sp${sid}__${n}.wav`;
 
-      // échantillons du thread Discord (script séparé, indépendant du module d'inférence)
+      // players custom : 2 exemples par voix, couleur rotative
+      let currentAudio = null, currentCard = null;
+      const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+      document.querySelectorAll('.player').forEach((card) => {
+        const sid = parseInt(card.dataset.sid, 10);
+        const btn = card.querySelector('.pp');
+        const fill = card.querySelector('.pfill');
+        const time = card.querySelector('.ptime');
+        const audios = [...card.querySelectorAll('audio')];
+        audios.forEach((a, n) => { a.src = sampleUrl(sid, n); });
+        let idx = 0;
+        const audio = audios[0];
+        const paint = () => {
+          const d = audio.duration || 0, c = audio.currentTime || 0;
+          fill.style.width = (d ? (c / d) * 100 : 0) + '%';
+          time.textContent = fmt(c) + (d ? ' / ' + fmt(d) : '');
+        };
+        audio.addEventListener('timeupdate', paint);
+        audio.addEventListener('loadedmetadata', paint);
+        audio.addEventListener('ended', () => {
+          if (idx < audios.length - 1 && audios[idx + 1].src) {
+            idx++;
+            // pré-vérifie l'existence avant de jouer
+            fetch(audios[idx].src, { method: 'HEAD' }).then((r) => {
+              if (r.ok) { audios[idx].play().catch(() => stop()); }
+              else stop();
+            }).catch(() => stop());
+          } else stop();
+        });
+        audio.addEventListener('error', () => {
+          if (idx === 0) {
+            // aucun sample pour cette voix (génération en cours) -> masque le player
+            card.style.display = 'none';
+          } else stop();
+        }, true);
+        const stop = () => {
+          audio.pause(); idx = 0;
+          card.classList.remove('playing'); btn.textContent = '▶';
+        };
+        btn.addEventListener('click', () => {
+          if (currentAudio && currentAudio !== audio) {
+            currentAudio.pause();
+            if (currentCard) {
+              currentCard.classList.remove('playing');
+              currentCard.querySelector('.pp').textContent = '▶';
+            }
+          }
+          if (audio.paused) {
+            currentAudio = audio; currentCard = card;
+            audio.play().then(() => { card.classList.add('playing'); btn.textContent = '⏸'; })
+              .catch(() => { card.style.display = 'none'; });
+          } else {
+            stop(); currentAudio = null; currentCard = null;
+          }
+        });
+        card.querySelector('.pbar').addEventListener('click', (e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          if (audio.duration) audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+        });
+        // sélection voix pour la synthèse
+        card.querySelector('.pname').addEventListener('click', () => {
+          document.querySelectorAll('.pname').forEach((x) => x.classList.remove('sel'));
+          card.querySelector('.pname').classList.add('sel');
+          window.__selSid = sid;
+          document.getElementById('sel-voice').textContent = card.dataset.vname;
+        });
+      });
 
+      const { synthesize } = await new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
       const go = document.getElementById('go');
       go.addEventListener('click', async () => {
         const text = document.getElementById('text').value.trim();
@@ -190,7 +302,7 @@ const base = import.meta.env.BASE_URL;
             repo: model.repo, onnx: model.onnx, configs: model.configs,
             phonemeType: model.phonemeType, phonemeIdMap: model.phonemeIdMap,
             sampleRate: model.sampleRate, text,
-            speakerId: selectedSid,
+            speakerId: window.__selSid ?? null,
             lengthScale: parseFloat(document.getElementById('len').value) || undefined,
             noiseScale: parseFloat(document.getElementById('noise').value) || undefined,
           }, (s) => { status.textContent = '⏳ ' + s; });
