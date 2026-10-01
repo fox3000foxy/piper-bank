@@ -136,7 +136,7 @@ const base = import.meta.env.BASE_URL;
         const box = document.getElementById('samples');
         try {
           const s = await (await fetch(`${siteBase}data/samples.json`)).json();
-          const list = (s[model.thread] || []).slice(0, 4);
+          const list = (s[model.thread] || s[model.repo + '|' + model.onnx] || []).slice(0, 4);
           if (!list.length) { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; return; }
           box.innerHTML = '';
           list.forEach((u, i) => {
