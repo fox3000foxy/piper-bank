@@ -5,6 +5,7 @@
   },
   "dependencies": {
     "@mintplex-labs/piper-tts-web": "^1.0.5",
+    "astro": "^7.3.5",
     "pipertts": "^1.1.6"
   },
   "scripts": {
