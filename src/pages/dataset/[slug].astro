@@ -49,7 +49,7 @@ const hasModel = !!(d.model && d.modelSlug);
         <h2>Train a model</h2>
         <p class="dim">
           {hasModel
-            ? <>This dataset already has a model — listen to it on its page.</>
+            ? <>This dataset already has a model: listen to it on its page.</>
             : <>No model yet. Format: LJSpeech (<code>metadata.csv</code> + <code>wavs/</code>).
               Training takes 1–6h on the Kaggle notebook, output <code>model.onnx</code> + <code>model.onnx.json</code>.</>}
         </p>
