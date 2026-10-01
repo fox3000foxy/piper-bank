@@ -17,7 +17,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 
 <Layout title={m.name} active="voices" narrow subtitle={`par ${m.author}`}>
 
-    <a class="back" href={`${base}`}>← tous les modèles</a>
+    <a class="back" href={`${base}`}>← all models</a>
     <div class="hero model-hero">
       <span class="avatar big" style={`--h:${avatar.hue}`}>{avatar.emoji}</span>
       <div>
@@ -31,13 +31,13 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
       <span class={`tag q-${m.quality}`}>{m.quality}</span>
       {m.voices > 1
         ? <span class="tag voices">{m.voices} voix</span>
-        : <span class="tag">voix simple</span>}
-      <span class="tag type">{m.phonemeType === 'text' ? 'phonèmes: texte' : `phonèmes: ${((m.configs || {}).espeak || {}).voice || 'espeak'}`}</span>
+        : <span class="tag">single voice</span>}
+      <span class="tag type">{m.phonemeType === 'text' ? 'phonemes: text' : `phonemes: ${((m.configs || {}).espeak || {}).voice || 'espeak'}`}</span>
       <span class="tag">{m.sampleRate} Hz</span>
     </section>
 
     <section class="sec">
-      <h2>Téléchargements</h2>
+      <h2>Downloads</h2>
       <div class="dl-row">
         <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.onnx}`}>⬇ model.onnx</a>
         <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.json}`}>⬇ model.onnx.json</a>
@@ -47,12 +47,12 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
     </section>
 
     <section class="sec">
-      <h2>Voix & exemples ({m.voices})</h2>
-      <p class="dim">cliquez sur ▶ pour écouter · cliquez sur le nom pour l'utiliser dans la synthèse</p>
+      <h2>Voices & samples ({m.voices})</h2>
+      <p class="dim">click ▶ to listen · click the name to use it for synthesis</p>
       <div id="voice-list">
         {voicePairs.slice(0, 120).map((v, i) => (
           <div class="player" style={`--vc:${(avatar.hue + i * 47) % 360}`} data-sid={v.sid} data-vname={v.name}>
-            <button class="pp" aria-label={`écouter ${v.name}`}>▶</button>
+            <button class="pp" aria-label={`listen ${v.name}`}>▶</button>
             <div class="pbody">
               <div class="prow">
                 <button class="pname" title={v.name}>{v.name}</button>
@@ -66,25 +66,25 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
             </div>
           </div>
         ))}
-        {voicePairs.length > 120 && <p class="dim">… +{voicePairs.length - 120} voix (synthèse dispo pour toutes)</p>}
+        {voicePairs.length > 120 && <p class="dim">… +{voicePairs.length - 120} voices (synthesis available for all)</p>}
       </div>
     </section>
 
     <section class="sec">
-      <h2>Synthétiser</h2>
-      <p class="dim" id="sel-voice-line">voix : <b id="sel-voice">défaut</b></p>
-      <textarea id="text" rows="2" placeholder="Texte à synthétiser…"></textarea>
+      <h2>Synthesize</h2>
+      <p class="dim" id="sel-voice-line">voice: <b id="sel-voice">default</b></p>
+      <textarea id="text" rows="2" placeholder="Text to synthesize…"></textarea>
       <div class="opts">
-        <label>vitesse <input id="len" type="number" step="0.05" min="0.2" max="3" placeholder="1.0" /></label>
-        <label>bruit <input id="noise" type="number" step="0.05" min="0" max="1.5" placeholder="0.667" /></label>
-        <button id="go">Générer</button>
+        <label>speed <input id="len" type="number" step="0.05" min="0.2" max="3" placeholder="1.0" /></label>
+        <label>noise <input id="noise" type="number" step="0.05" min="0" max="1.5" placeholder="0.667" /></label>
+        <button id="go">Generate</button>
       </div>
       <audio id="player" controls hidden></audio>
       <p id="status" class="dim"></p>
     </section>
 
     <section class="sec">
-      <h2>Dataset lié</h2>
+      <h2>Linked dataset</h2>
       <div id="dataset-link"><p class="dim">recherche…</p></div>
     </section>
 
@@ -144,7 +144,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
     <script define:vars={{ siteBase: base, modelName: m.name, modelRepo: m.repo }}>
-      // dataset lié (même classe / même repo source)
+      // linked dataset (same class / same source repo)
       (async () => {
         const box = document.getElementById('dataset-link');
         try {
@@ -164,9 +164,9 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
           if (hit) {
             box.innerHTML = `<a href="${siteBase}datasets/">${hit.name}</a> <span class="dim">· ${hit.source || ''} · ${hit.repo || ''}</span>`;
           } else {
-            box.innerHTML = '<p class="dim">aucun dataset référencé</p>';
+            box.innerHTML = '<p class="dim">no linked dataset</p>';
           }
-        } catch { box.innerHTML = '<p class="dim">aucun dataset référencé</p>'; }
+        } catch { box.innerHTML = '<p class="dim">no linked dataset</p>'; }
       })();
     </script>
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
@@ -178,7 +178,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
       const sampleBase = safe(model.repo.replace('/', '--') + '__' + model.onnx.replace('/', '_').replace(/\.onnx$/, ''));
       const sampleUrl = (sid, n) => `${HF_SAMPLES}${sampleBase}__sp${sid}__${n}.wav`;
 
-      // players custom : 2 exemples par voix, couleur rotative
+      // custom players: 2 samples per voice, rotating colors
       let currentAudio = null, currentCard = null;
       const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
       document.querySelectorAll('.player').forEach((card) => {
@@ -200,7 +200,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
         audio.addEventListener('ended', () => {
           if (idx < audios.length - 1 && audios[idx + 1].src) {
             idx++;
-            // pré-vérifie l'existence avant de jouer
+            // pre-check existence before playing
             fetch(audios[idx].src, { method: 'HEAD' }).then((r) => {
               if (r.ok) { audios[idx].play().catch(() => stop()); }
               else stop();
@@ -209,7 +209,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
         });
         audio.addEventListener('error', () => {
           if (idx === 0) {
-            // aucun sample pour cette voix (génération en cours) -> masque le player
+            // no sample for this voice (generation running) -> hide player
             card.style.display = 'none';
           } else stop();
         }, true);
@@ -237,7 +237,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
           const r = e.currentTarget.getBoundingClientRect();
           if (audio.duration) audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
         });
-        // sélection voix pour la synthèse
+        // voice selection for synthesis
         card.querySelector('.pname').addEventListener('click', () => {
           document.querySelectorAll('.pname').forEach((x) => x.classList.remove('sel'));
           card.querySelector('.pname').classList.add('sel');
@@ -251,7 +251,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
       go.addEventListener('click', async () => {
         const text = document.getElementById('text').value.trim();
         const status = document.getElementById('status');
-        if (!text) { status.textContent = 'Entrez du texte.'; return; }
+        if (!text) { status.textContent = 'Enter some text.'; return; }
         go.disabled = true;
         try {
           const blob = await synthesize({
@@ -264,7 +264,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
           }, (s) => { status.textContent = '⏳ ' + s; });
           const player = document.getElementById('player');
           player.src = URL.createObjectURL(blob); player.hidden = false; player.play();
-          status.textContent = '✅ synthèse locale (navigateur)';
+          status.textContent = '✅ local synthesis (browser)';
         } catch (e) { status.textContent = '❌ ' + (e.message || e); }
         finally { go.disabled = false; }
       });

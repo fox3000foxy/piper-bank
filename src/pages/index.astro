@@ -9,14 +9,14 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
 const base = import.meta.env.BASE_URL;
 ---
 
-<Layout title="banque de voix" active="voices" subtitle={`${models.length} modèles · ${totalVoices.toLocaleString("fr-FR")} voix · 100 % local`}>
+<Layout title="voice bank" active="voices" subtitle={`${models.length} models · ${totalVoices.toLocaleString("fr-FR")} voices · 100% local`}>
 
 
     <section class="filters">
-      <input id="search" type="search" placeholder="Rechercher une voix, un personnage, un auteur…" autocomplete="off" />
+      <input id="search" type="search" placeholder="Search a voice, character, author…" autocomplete="off" />
       <div class="chips" id="lang-chips">{languages.map((l) => <button class="chip" data-lang={l}>{l}</button>)}</div>
       <div class="chips" id="quality-chips">{qualities.map((q) => <button class="chip" data-quality={q}>{q}</button>)}</div>
-      <label class="multiselect"><input type="checkbox" id="multivoice-only" />Multi-voices</label>
+      <label class="multiselect"><input type="checkbox" id="multivoice-only" />Multi-voice</label>
       <select id="sort">
         <option value="name">A → Z</option>
         <option value="voices-desc">Voix ↓</option>

@@ -13,10 +13,10 @@ const threadToSlug = {};
 models.forEach((m) => { if (m.thread) threadToSlug[m.thread] = m.slug; });
 
 function datasetModel(d) {
-  // lien explicite "➡️ modèle: <thread_id>" ou repo ↔ modèle
+  // explicit link "➡️ modèle: <thread_id>" or repo ↔ model
   const m = d.status.match(/modèle:\s*(\d+)/);
   if (m && threadToSlug[m[1]]) return threadToSlug[m[1]];
-  // fallback: même nom de classe dans un nom de modèle
+  // fallback: same class name inside a model name
   const cls = (d.class || '').toLowerCase();
   if (cls.length > 2) {
     const hit = models.find((x) => x.name.toLowerCase().includes(cls));
@@ -30,14 +30,14 @@ const hasModel = datasets.filter((d) => datasetModel(d));
 
 <Layout title="Datasets" active="datasets" subtitle="126 datasets · ljspeech">
     <h1 class="page-title">Datasets <span class="accent">({datasets.length})</span></h1>
-    <p class="subtitle">{hasModel.length} avec modèle · {noModel.length} à entraîner</p>
+    <p class="subtitle">{hasModel.length} with model · {noModel.length} to train</p>
 
     <section class="filters">
-      <input id="search" type="search" placeholder="Rechercher un dataset…" autocomplete="off" />
+      <input id="search" type="search" placeholder="Search a dataset…" autocomplete="off" />
       <div class="chips">
-        <button class="chip on" data-f="all">tous</button>
-        <button class="chip" data-f="with">avec modèle ({hasModel.length})</button>
-        <button class="chip" data-f="without">sans modèle ({noModel.length})</button>
+        <button class="chip on" data-f="all">all</button>
+        <button class="chip" data-f="with">with model ({hasModel.length})</button>
+        <button class="chip" data-f="without">to train ({noModel.length})</button>
       </div>
       <span id="count" class="count"></span>
     </section>
@@ -53,8 +53,8 @@ const hasModel = datasets.filter((d) => datasetModel(d));
               <span class="badge">{d.source || '—'}</span>
               <span class="badge">{d.lang.toUpperCase()}</span>
               {slug
-                ? <a class="badge ok" href={`${base}model/${slug}/`}>→ modèle</a>
-                : <span class="badge missing">à entraîner</span>}
+                ? <a class="badge ok" href={`${base}model/${slug}/`}>→ model</a>
+                : <span class="badge missing">to train</span>}
             </div>
             <p class="author">{d.repo || 'pas de repo'}</p>
           </article>
