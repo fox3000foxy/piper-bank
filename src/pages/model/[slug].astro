@@ -116,8 +116,12 @@ const base = import.meta.env.BASE_URL;
       .sample p { margin:0 0 .2rem; font-size:.82rem; color:var(--dim); }
     </style>
 
-    <script define:vars={{ model: m, siteBase: base }}>
-      import { synthesize } from '../../lib/piper-infer.js';
+    <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
+    <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
+    <script type="module">
+      const { synthesize } = await import(window.__BASE__ + 'piper-infer.js');
+      const model = JSON.parse(document.getElementById('model-data').textContent);
+      const siteBase = window.__BASE__;
       const voicesEl = document.getElementById('voices');
       let selectedVoice = null, selectedSid = null;
       voicesEl?.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
