@@ -19,7 +19,14 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 
     <a class="back" href={`${base}`}>← all models</a>
     <div class="hero model-hero">
-      <span class="avatar big" style={`--h:${avatar.hue}`}>{avatar.emoji}</span>
+      <span class="avatar-wrap">
+        <span class="avatar big" style={`--h:${avatar.hue}`}>
+          {avatar.icon
+            ? <img src={`${base}${avatar.icon}`} alt="" />
+            : avatar.emoji}
+        </span>
+        {avatar.certified && <img class="cert big-cert" src={`${base}icons/certified.svg`} alt="certifié" title="voix officielle rhasspy" />}
+      </span>
       <div>
         <h1>{m.name}</h1>
         <p class="subtitle">par {m.author} · {m.repo}</p>
@@ -133,6 +140,11 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
       .avatar.big { width:76px; height:76px; font-size:2.4rem; border-radius:20px; display:grid; place-items:center; flex:0 0 auto;
         background:linear-gradient(135deg, hsl(var(--h) 65% 26%), hsl(calc(var(--h) + 40) 70% 12%));
         border:1px solid hsl(var(--h) 60% 32% / .55); text-shadow:0 2px 8px #0009; }
+      .avatar.big img { width:62%; height:62%; object-fit:contain; }
+      .avatar-wrap { position:relative; flex:0 0 auto; display:grid; }
+      .cert { position:absolute; right:-4px; bottom:-4px; width:20px; height:20px;
+        filter:drop-shadow(0 1px 3px #000); }
+      .big-cert { width:26px; height:26px; right:-6px; bottom:-6px; }
 
       .dl-row { display:flex; flex-wrap:wrap; gap:.5rem; }
       .btn-dl { display:inline-flex; align-items:center; gap:.4rem; font-size:.84rem; font-weight:550;

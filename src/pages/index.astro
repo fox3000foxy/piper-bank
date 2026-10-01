@@ -36,7 +36,14 @@ const base = import.meta.env.BASE_URL;
           data-multivoice={m.voices > 1 ? '1' : '0'}
           data-search={`${m.name} ${m.author} ${m.langName} ${m.repo} ${(m.voiceNames || []).join(' ')}`.toLowerCase()}
         >
-          <span class="avatar" style={`--h:${m.avatar?.hue ?? 260}`}>{m.avatar?.emoji ?? '?'}</span>
+          <span class="avatar-wrap">
+            <span class="avatar" style={`--h:${m.avatar?.hue ?? 260}`}>
+              {m.avatar?.icon
+                ? <img src={`${base}${m.avatar.icon}`} alt="" loading="lazy" />
+                : (m.avatar?.emoji ?? '?')}
+            </span>
+            {m.avatar?.certified && <img class="cert" src={`${base}icons/certified.svg`} alt="certifié" title="voix officielle rhasspy" loading="lazy" />}
+          </span>
           <span class="card-body">
             <h2>{m.name}</h2>
             <span class="meta">
@@ -80,6 +87,10 @@ const base = import.meta.env.BASE_URL;
         background:linear-gradient(135deg, hsl(var(--h) 65% 26%), hsl(calc(var(--h) + 40) 70% 12%));
         border:1px solid hsl(var(--h) 60% 32% / .55); text-shadow:0 2px 8px #0009; }
       .card-body { display:flex; flex-direction:column; gap:.4rem; min-width:0; }
+      .avatar img { width:62%; height:62%; object-fit:contain; }
+      .avatar-wrap { position:relative; flex:0 0 auto; display:grid; }
+      .cert { position:absolute; right:-4px; bottom:-4px; width:20px; height:20px;
+        filter:drop-shadow(0 1px 3px #000); }
       .card-body h2 { margin:0; font-size:.98rem; line-height:1.32; font-weight:550; }
       .meta { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
       .badge { font-size:.7rem; padding:.12rem .5rem; border-radius:999px;

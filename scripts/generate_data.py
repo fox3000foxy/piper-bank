@@ -117,6 +117,11 @@ with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_speakers, need))
 
 # Classement par repo d'abord (exact), puis par mots entiers du NOM (pas le repo).
+ICONS = {
+ 'portal': 'icons/portal.svg', 'tf2': 'icons/tf2.svg', 'valorant': 'icons/valorant.svg',
+ 'hal': 'icons/hal9000.svg', 'starwars': 'icons/ahsoka.svg', 'fortune': 'icons/fortune.svg',
+ 'counter-strike': 'icons/counter-strike.svg', 'kurmanci': 'icons/kurmanci.svg',
+}
 REPO_UNIVERSE = [
  ('fox3000foxy/piper-checkpoints-fortune', 'fortune', '🔮', 300),
  ('fox3000foxy/piper-checkpoints-glados', 'portal', '🌀', 265),
@@ -159,7 +164,14 @@ NAME_UNIVERSE = [
  ('kurmanci', [r'kurmanci', r'kurdish \(kmr\)'], '🦚', 45),
 ]
 
-def avatar_of(name, repo):
+def avatar_of(name, repo, certified=False):
+    out = _avatar_of(name, repo)
+    out['icon'] = ICONS.get(out['universe'])
+    out['certified'] = certified
+    return out
+
+
+def _avatar_of(name, repo):
     rl = repo.lower()
     for prefix, uni, emoji, hue in REPO_UNIVERSE:
         if rl.startswith(prefix.lower()):
@@ -214,7 +226,7 @@ for mm in models:
         s_ = f"{base}-{k}"; k += 1
     seen_slugs.add(s_)
     mm['slug'] = s_
-    mm['avatar'] = avatar_of(mm['name'], mm['repo'])
+    mm['avatar'] = avatar_of(mm['name'], mm['repo'], certified=(mm['repo'] == 'rhasspy/piper-voices'))
     mm['dataset'] = _dataset_link(mm['repo'], mm['thread'])
 # lien inverse : dataset -> modèle (pour les pages dataset)
 slug_by_thread = {m['thread']: m['slug'] for m in models if m.get('thread')}
