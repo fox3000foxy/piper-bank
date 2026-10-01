@@ -5,7 +5,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'src', 'data')
 os.makedirs(OUT, exist_ok=True)
 CACHE = os.path.join(OUT, 'speakers_cache.json')
-HF_TOKEN = os.environ.get('HF_TOKEN') or open(os.path.expanduser('~/huggingface-crawler/.env')).read().split('HF_TOKEN=')[1].split('\n')[0]
+def _hf_token():
+    if os.environ.get('HF_TOKEN'):
+        return os.environ['HF_TOKEN']
+    try:
+        return open(os.path.expanduser('~/huggingface-crawler/.env')).read().split('HF_TOKEN=')[1].split('\n')[0]
+    except Exception:
+        return ''
+HF_TOKEN = _hf_token()
 CSV_MODELS = os.environ.get('CSV_MODELS', '/home/lsannier/huggingface-crawler/models_mapping.csv')
 CSV_DATASETS = os.environ.get('CSV_DATASETS', '/home/lsannier/huggingface-crawler/datasets_mapping.csv')
 
