@@ -6,29 +6,29 @@ const languages = [...new Set(models.map((m) => m.langName))].sort();
 const qualities = [...new Set(models.map((m) => m.quality))];
 const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
 const base = import.meta.env.BASE_URL;
-
-function slugOf(m, i) {
-  return m.slug || ('model-' + i);
-}
 ---
 
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Piper TTS Explorer</title>
+    <title>Piper TTS Explorer — banque de voix</title>
   </head>
   <body>
     <header class="hero">
       <img src={`${base}logo.png`} alt="PiperBot" class="logo" />
-      <div>
+      <div class="hero-text">
         <h1>Piper <span class="accent">TTS Explorer</span></h1>
         <p class="subtitle">{models.length} modèles · {totalVoices.toLocaleString('fr-FR')} voix · 100 % local</p>
       </div>
+      <nav class="topnav">
+        <a class="nav-on" href={`${base}`}>Voix</a>
+        <a href={`${base}datasets/`}>Datasets</a>
+      </nav>
     </header>
 
     <section class="filters">
-      <input id="search" type="search" placeholder="Rechercher…" autocomplete="off" />
+      <input id="search" type="search" placeholder="Rechercher une voix, un personnage, un auteur…" autocomplete="off" />
       <div class="chips" id="lang-chips">{languages.map((l) => <button class="chip" data-lang={l}>{l}</button>)}</div>
       <div class="chips" id="quality-chips">{qualities.map((q) => <button class="chip" data-quality={q}>{q}</button>)}</div>
       <label class="multiselect"><input type="checkbox" id="multivoice-only" />Multi-voices</label>
@@ -41,67 +41,89 @@ function slugOf(m, i) {
     </section>
 
     <main id="grid" class="grid">
-      {models.map((m, i) => (
+      {models.map((m) => (
         <a
           class="card"
-          href={`${base}model/${slugOf(m, i)}/`}
+          href={`${base}model/${m.slug}/`}
           data-name={m.name}
           data-lang={m.langName}
           data-quality={m.quality}
           data-multivoice={m.voices > 1 ? '1' : '0'}
-          data-search={`${m.name} ${m.author} ${m.langName} ${m.repo}`.toLowerCase()}
+          data-search={`${m.name} ${m.author} ${m.langName} ${m.repo} ${(m.voiceNames || []).join(' ')}`.toLowerCase()}
         >
-          <h2>{m.name}</h2>
-          <div class="meta">
-            <span class="badge lang">{m.langName}</span>
-            <span class={`spec q-${m.quality}`}>{m.quality}</span>
-            {m.voices > 1 && <span class="voices">{m.voices} voix</span>}
-          </div>
-          <p class="author">{m.author}</p>
+          <span class="avatar" style={`--h:${m.avatar?.hue ?? 260}`}>{m.avatar?.emoji ?? '?'}</span>
+          <span class="card-body">
+            <h2>{m.name}</h2>
+            <span class="meta">
+              <span class="badge lang">{m.langName}</span>
+              <span class={`spec q-${m.quality}`}>{m.quality}</span>
+              {m.voices > 1 && <span class="voices">{m.voices} voix</span>}
+            </span>
+            <span class="author">{m.author}</span>
+          </span>
         </a>
       ))}
     </main>
 
-    <footer>PiperBot · data: rhasspy/piper-voices + communauté</footer>
+    <footer>PiperBot · data: rhasspy/piper-voices + communauté · <a href={`${base}datasets/`}>voir les datasets</a></footer>
 
     <style is:global>
-      :root { --bg:#000; --card:#0a0a0a; --border:#17171a; --text:#e4e4e7; --dim:#71717a;
-        --accent:#a855f7; --accent-2:#d8b4fe; --q-high:#4ade80; --q-medium:#facc15; --q-low:#ef4444; }
-      * { box-sizing: border-box; }
-      body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif;
-        padding:2rem 1rem 4rem; max-width:1200px; margin-inline:auto; }
+      :root { --bg:#000; --card:#0b0b0e; --border:#1b1b21; --text:#ececf1; --dim:#8b8b96;
+        --accent:#a855f7; --accent-2:#d8b4fe;
+        --q-high:#4ade80; --q-medium:#facc15; --q-low:#f87171; }
+      * { box-sizing:border-box; }
+      body { margin:0; background:radial-gradient(1200px 500px at 50% -10%, #12081f 0%, var(--bg) 60%) fixed, var(--bg);
+        color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+        padding:2rem 1.25rem 4rem; max-width:1280px; margin-inline:auto; }
       a { color:var(--accent); text-decoration:none; }
-      .hero { display:flex; align-items:center; gap:1rem; margin-bottom:2rem; }
-      .logo { width:56px; height:56px; border-radius:10px; }
-      h1 { font-size:1.5rem; margin:0; font-weight:600; }
-      .accent { color:var(--accent-2); }
-      .subtitle { color:var(--dim); margin:.25rem 0 0; font-size:.92rem; }
-      .filters { display:flex; flex-wrap:wrap; gap:.7rem; align-items:center; margin-bottom:1.5rem; }
-      #search { flex:1 1 320px; padding:.6rem .9rem; border-radius:8px; background:var(--card);
-        border:1px solid var(--border); color:var(--text); font-size:.92rem; outline:none; }
-      #search:focus { border-color:#3f3f46; }
-      .chips { display:flex; gap:.35rem; flex-wrap:wrap; }
-      .chip { padding:.3rem .7rem; border-radius:999px; font-size:.78rem; cursor:pointer;
-        background:var(--card); border:1px solid var(--border); color:var(--dim); font-family:inherit; }
+
+      .hero { display:flex; align-items:center; gap:1rem; margin-bottom:1.6rem; }
+      .logo { width:58px; height:58px; border-radius:14px; box-shadow:0 0 32px #a855f733; }
+      .hero-text { flex:1; min-width:0; }
+      h1 { font-size:1.55rem; margin:0; font-weight:650; letter-spacing:-.02em; }
+      .accent { background:linear-gradient(90deg,#c084fc,#f0abfc); -webkit-background-clip:text; background-clip:text; color:transparent; }
+      .subtitle { color:var(--dim); margin:.25rem 0 0; font-size:.9rem; }
+      .topnav { display:flex; gap:.4rem; }
+      .topnav a { padding:.45rem .9rem; border-radius:999px; font-size:.84rem; color:var(--dim);
+        border:1px solid var(--border); background:var(--card); }
+      .topnav a:hover { color:var(--text); }
+      .topnav .nav-on { color:#000; background:var(--accent-2); border-color:var(--accent-2); font-weight:600; }
+
+      .filters { position:sticky; top:0; z-index:10; display:flex; flex-wrap:wrap; gap:.65rem; align-items:center;
+        margin-bottom:1.4rem; background:#000000d9; backdrop-filter:blur(10px); padding:.7rem 0; }
+      #search { flex:1 1 300px; padding:.62rem .95rem; border-radius:10px; background:var(--card);
+        border:1px solid var(--border); color:var(--text); font-size:.92rem; outline:none; transition:border-color .15s, box-shadow .15s; }
+      #search:focus { border-color:var(--accent); box-shadow:0 0 0 3px #a855f722; }
+      .chips { display:flex; gap:.32rem; flex-wrap:wrap; }
+      .chip { padding:.3rem .68rem; border-radius:999px; font-size:.76rem; cursor:pointer;
+        background:var(--card); border:1px solid var(--border); color:var(--dim); font-family:inherit; transition:all .12s; }
+      .chip:hover { color:var(--text); border-color:#33333d; }
       .chip.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
-      .count { color:var(--dim); font-size:.85rem; margin-left:auto; }
-      .multiselect { display:flex; gap:.4rem; align-items:center; color:var(--dim); font-size:.84rem; }
-      #sort { padding:.35rem .55rem; border-radius:8px; background:var(--card); border:1px solid var(--border);
-        color:var(--text); font-size:.8rem; }
-      .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:.9rem; }
-      .card { background:var(--card); border:1px solid var(--border); border-radius:12px;
-        padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.55rem;
-        transition:border-color .12s, background .12s; color:var(--text); }
-      .card:hover { border-color:#2e2e3a; background:#0d0d0f; }
-      .card h2 { margin:0; font-size:1rem; line-height:1.35; font-weight:500; }
+      .count { color:var(--dim); font-size:.82rem; margin-left:auto; font-variant-numeric:tabular-nums; }
+      .multiselect { display:flex; gap:.4rem; align-items:center; color:var(--dim); font-size:.82rem; cursor:pointer; }
+      #sort { padding:.38rem .55rem; border-radius:8px; background:var(--card); border:1px solid var(--border);
+        color:var(--text); font-size:.78rem; cursor:pointer; }
+
+      .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:.85rem; }
+      .card { display:flex; gap:.85rem; align-items:flex-start; background:linear-gradient(180deg,#0d0d11,#0a0a0d);
+        border:1px solid var(--border); border-radius:14px; padding:.95rem 1rem; color:var(--text);
+        transition:transform .14s, border-color .14s, box-shadow .14s; }
+      .card:hover { transform:translateY(-2px); border-color:#a855f744; box-shadow:0 8px 28px #00000088, 0 0 0 1px #a855f722; }
+      .avatar { flex:0 0 auto; width:52px; height:52px; border-radius:13px; display:grid; place-items:center;
+        font-size:1.5rem; font-weight:700;
+        background:linear-gradient(135deg, hsl(var(--h) 65% 26%), hsl(calc(var(--h) + 40) 70% 12%));
+        border:1px solid hsl(var(--h) 60% 32% / .55); text-shadow:0 2px 8px #0009; }
+      .card-body { display:flex; flex-direction:column; gap:.4rem; min-width:0; }
+      .card-body h2 { margin:0; font-size:.98rem; line-height:1.32; font-weight:550; }
       .meta { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
-      .badge { font-size:.72rem; padding:.12rem .5rem; border-radius:999px;
-        background:#141414; border:1px solid var(--border); color:var(--accent-2); }
-      .spec { font-size:.72rem; color:var(--dim); }
+      .badge { font-size:.7rem; padding:.12rem .5rem; border-radius:999px;
+        background:#ffffff0d; border:1px solid var(--border); color:var(--accent-2); }
+      .spec { font-size:.7rem; color:var(--dim); text-transform:capitalize; }
       .spec.q-high { color:var(--q-high); } .spec.q-medium { color:var(--q-medium); }
       .spec.q-low { color:var(--q-low); }
-      .voices { color:#7dd3fc; font-size:.75rem; }
-      .author { margin:0; color:var(--dim); font-size:.8rem; }
+      .voices { color:#7dd3fc; font-size:.73rem; font-weight:600; }
+      .author { color:var(--dim); font-size:.78rem; }
+
       footer { margin-top:3rem; text-align:center; color:#52525b; font-size:.78rem; }
     </style>
 
@@ -115,7 +137,6 @@ function slugOf(m, i) {
       const sort = document.getElementById('sort');
       const cards = [...grid.querySelectorAll('.card')];
       const state = { search: '', lang: '', quality: '', multivoice: false };
-
       function apply() {
         let visible = 0;
         for (const card of cards) {

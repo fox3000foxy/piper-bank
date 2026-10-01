@@ -1,0 +1,130 @@
+---
+import modelsData from  '../data/models.json';
+import datasetsData from  '../data/datasets.json';
+
+const models = modelsData.filter((m) => m.usable);
+const datasets = datasetsData;
+const withModel = datasets.filter((d) => d.status.includes('modèle') || d.status === '✅ files' && false);
+const base = import.meta.env.BASE_URL;
+
+// thread_id -> model slug lookup
+const threadToSlug = {};
+models.forEach((m) => { if (m.thread) threadToSlug[m.thread] = m.slug; });
+
+function datasetModel(d) {
+  // lien explicite "➡️ modèle: <thread_id>" ou repo ↔ modèle
+  const m = d.status.match(/modèle:\s*(\d+)/);
+  if (m && threadToSlug[m[1]]) return threadToSlug[m[1]];
+  // fallback: même nom de classe dans un nom de modèle
+  const cls = (d.class || '').toLowerCase();
+  if (cls.length > 2) {
+    const hit = models.find((x) => x.name.toLowerCase().includes(cls));
+    if (hit) return hit.slug;
+  }
+  return null;
+}
+const noModel = datasets.filter((d) => !datasetModel(d));
+const hasModel = datasets.filter((d) => datasetModel(d));
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Datasets · Piper TTS Explorer</title>
+  </head>
+  <body>
+    <a class="back" href={`${base}`}>← modèles</a>
+    <header class="hero">
+      <div>
+        <h1>Datasets <span class="accent">({datasets.length})</span></h1>
+        <p class="subtitle">{hasModel.length} avec modèle · {noModel.length} à entraîner</p>
+      </div>
+    </header>
+
+    <section class="filters">
+      <input id="search" type="search" placeholder="Rechercher un dataset…" autocomplete="off" />
+      <div class="chips">
+        <button class="chip on" data-f="all">tous</button>
+        <button class="chip" data-f="with">avec modèle ({hasModel.length})</button>
+        <button class="chip" data-f="without">sans modèle ({noModel.length})</button>
+      </div>
+      <span id="count" class="count"></span>
+    </section>
+
+    <main id="grid" class="grid">
+      {datasets.map((d) => {
+        const slug = datasetModel(d);
+        return (
+          <article class="card" data-has={slug ? '1' : '0'}
+            data-search={`${d.name} ${d.class} ${d.source} ${d.repo}`.toLowerCase()}>
+            <h2>{d.name}</h2>
+            <div class="meta">
+              <span class="badge">{d.source || '—'}</span>
+              <span class="badge">{d.lang.toUpperCase()}</span>
+              {slug
+                ? <a class="badge ok" href={`${base}model/${slug}/`}>→ modèle</a>
+                : <span class="badge missing">à entraîner</span>}
+            </div>
+            <p class="author">{d.repo || 'pas de repo'}</p>
+          </article>
+        );
+      })}
+    </main>
+
+    <style is:global>
+      :root { --bg:#000; --card:#0a0a0a; --border:#17171a; --text:#e4e4e7; --dim:#71717a;
+        --accent:#a855f7; --accent-2:#d8b4fe; }
+      * { box-sizing:border-box; }
+      body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,sans-serif;
+        padding:2rem 1rem 4rem; max-width:1200px; margin-inline:auto; }
+      a { color:var(--accent); text-decoration:none; }
+      .back { color:var(--dim); font-size:.85rem; }
+      .hero h1 { font-size:1.5rem; margin:.6rem 0 0; }
+      .accent { color:var(--accent-2); }
+      .subtitle { color:var(--dim); font-size:.9rem; }
+      .filters { display:flex; flex-wrap:wrap; gap:.7rem; align-items:center; margin:1.2rem 0 1.5rem; }
+      #search { flex:1 1 320px; padding:.6rem .9rem; border-radius:8px; background:var(--card);
+        border:1px solid var(--border); color:var(--text); font-size:.92rem; outline:none; }
+      .chips { display:flex; gap:.35rem; }
+      .chip { padding:.3rem .7rem; border-radius:999px; font-size:.78rem; cursor:pointer;
+        background:var(--card); border:1px solid var(--border); color:var(--dim); font-family:inherit; }
+      .chip.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
+      .count { color:var(--dim); font-size:.85rem; margin-left:auto; }
+      .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:.9rem; }
+      .card { background:var(--card); border:1px solid var(--border); border-radius:12px;
+        padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.55rem; }
+      .card h2 { margin:0; font-size:1rem; font-weight:500; }
+      .meta { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+      .badge { font-size:.72rem; padding:.12rem .5rem; border-radius:999px;
+        background:#141414; border:1px solid var(--border); color:var(--text); }
+      .badge.ok { color:#4ade80; }
+      .badge.missing { color:#facc15; }
+      .author { margin:0; color:var(--dim); font-size:.8rem; overflow-wrap:anywhere; }
+    </style>
+
+    <script>
+      const search = document.getElementById('search');
+      const chips = [...document.querySelectorAll('.chip')];
+      const cards = [...document.querySelectorAll('.card')];
+      const count = document.getElementById('count');
+      let f = 'all', q = '';
+      function apply() {
+        let n = 0;
+        for (const c of cards) {
+          const ok = (!q || c.dataset.search.includes(q))
+            && (f === 'all' || (f === 'with') === (c.dataset.has === '1'));
+          c.style.display = ok ? '' : 'none';
+          if (ok) n++;
+        }
+        count.textContent = `${n} / ${cards.length}`;
+      }
+      chips.forEach((c) => c.addEventListener('click', () => {
+        chips.forEach((x) => x.classList.remove('on')); c.classList.add('on');
+        f = c.dataset.f; apply();
+      }));
+      search.addEventListener('input', () => { q = search.value.toLowerCase().trim(); apply(); });
+      apply();
+    </script>
+  </body>
+</html>

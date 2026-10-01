@@ -64,6 +64,11 @@ const base = import.meta.env.BASE_URL;
     </section>
 
     <section class="sec">
+      <h2>Dataset lié</h2>
+      <div id="dataset-link"><p class="dim">recherche…</p></div>
+    </section>
+
+    <section class="sec">
       <h2>Fichiers</h2>
       <ul class="files">
         <li><a id="dl-onnx" href={`https://huggingface.co/${m.repo}/resolve/main/${m.onnx}`}>model.onnx</a></li>
@@ -118,7 +123,7 @@ const base = import.meta.env.BASE_URL;
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
-    <script define:vars={{ thread: m.thread, fallbackKey: m.repo + '|' + m.onnx, siteBase: base }}>
+    <script define:vars={{ thread: m.thread, fallbackKey: m.repo + '|' + m.onnx, siteBase: base, modelName: m.name, modelRepo: m.repo }}>
       (async () => {
         const box = document.getElementById('samples');
         try {
@@ -133,6 +138,30 @@ const base = import.meta.env.BASE_URL;
             d.append(p, a); box.append(d);
           });
         } catch { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; }
+      })();
+      // dataset lié (même classe / même repo source)
+      (async () => {
+        const box = document.getElementById('dataset-link');
+        try {
+          const ds = await (await fetch(`${siteBase}data/datasets.json`)).json();
+          const hay = (modelName + ' ' + modelRepo).toLowerCase();
+          const hit = ds.find((d) => {
+            const cls = (d.class || '').toLowerCase();
+            if (cls.length > 2 && hay.includes(cls)) return true;
+            const dr = (d.repo || '').toLowerCase();
+            if (dr && modelRepo.toLowerCase().split('/')[0] === dr.split('/')[0]) {
+              const a = dr.replace(/[-_]ljspeech.*$/, ''), b = modelRepo.toLowerCase();
+              const aa = a.split('/')[1] || '', bb = b.split('/')[1] || '';
+              if (aa && bb && (aa.includes(bb.split('-')[0]) || bb.includes(aa.split('-')[0]))) return true;
+            }
+            return false;
+          });
+          if (hit) {
+            box.innerHTML = `<a href="${siteBase}datasets/">${hit.name}</a> <span class="dim">· ${hit.source || ''} · ${hit.repo || ''}</span>`;
+          } else {
+            box.innerHTML = '<p class="dim">aucun dataset référencé</p>';
+          }
+        } catch { box.innerHTML = '<p class="dim">aucun dataset référencé</p>'; }
       })();
     </script>
     <script type="module">

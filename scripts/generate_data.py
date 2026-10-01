@@ -28,6 +28,17 @@ if os.path.realpath(CACHE):
 lang_names = {'fr':'Français','en':'English','de':'Deutsch','es':'Español','ru':'Русский','it':'Italiano','zh':'中文',
               'ar':'العربية','tr':'Türkçe','pl':'Polski','sv':'Svenska','pt':'Português','hi':'हिन्दी','hu':'Magyar','fi':'Suomi','brx':'Bodo','si':'Sinhala','tet':'Tetun','kmr':'Kurmanci','ha':'Hausa'}
 
+datasets = []
+for d in csv.DictReader(open('/home/lsannier/huggingface-crawler/datasets_mapping.csv', newline='')):
+    datasets.append({
+        'name': d['thread_name'].strip(), 'repo': d['hf_repo'].strip(),
+        'lang': (d['language'] or '').strip().lower() or 'xx',
+        'class': d['class_name'].strip(), 'source': d['source'].strip(),
+        'status': d['status'].strip(), 'thread': d['thread_id'].strip(),
+    })
+json.dump(datasets, open(os.path.join(OUT, 'datasets.json'), 'w'), ensure_ascii=False)
+print(f"{len(datasets)} datasets")
+
 models = []
 for r in csv.DictReader(open('/home/lsannier/huggingface-crawler/models_mapping.csv', newline='')):
     status = r['status'].strip()
@@ -75,6 +86,27 @@ def get_speakers(m):
 with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_speakers, need))
 
+UNIVERSES = [
+ ('portal', ['glados', 'wheatley', 'portal', 'turret', 'announcer', 'aperture', 'chell', 'cave johnson', 'caroline'], '🌀', 265),
+ ('tf2', ['scout', 'soldier', 'pyro', 'demoman', 'heavy', 'engineer', 'medic', 'sniper', 'spy', 'tf2', 'team fortress'], '🔫', 8),
+ ('valorant', ['valorant', 'jett', 'sage', 'reyna', 'omen', 'sova', 'raze', 'phoenix', 'astra', 'breach', 'brimstone', 'chamber', 'clove', 'cypher', 'deadlock', 'fade', 'gekko', 'harbor', 'iso', 'kayo', 'killjoy', 'neon', 'skye', 'tejo', 'viper', 'vyse', 'yoru'], '🎯', 350),
+ ('hal', ['hal 9000', 'hal-9000'], '🔴', 0),
+ ('starwars', ['ahsoka'], '⚔️', 210),
+ ('fortune', ['fortune', 'itsrealfortune'], '🔮', 300),
+ ('counter-strike', ['counter', 'css', 'annonceur', 'radio'], '💣', 35),
+ ('kurmanci', ['kurmanci', 'kurd'], '🦚', 45),
+]
+
+def avatar_of(name, repo):
+    hay = (name + ' ' + repo).lower()
+    for uni, keys, emoji, hue in UNIVERSES:
+        if any(k in hay for k in keys):
+            return {'emoji': emoji, 'hue': hue, 'universe': uni}
+    # défaut: initiale + teinte dérivée du nom
+    initial = next((c.upper() for c in name if c.isalnum()), '?')
+    hue = sum(ord(c) for c in name) % 360
+    return {'emoji': initial, 'hue': hue, 'universe': 'default'}
+
 import re as _re
 seen_slugs = set()
 for mm in models:
@@ -84,6 +116,7 @@ for mm in models:
         s_ = f"{base}-{k}"; k += 1
     seen_slugs.add(s_)
     mm['slug'] = s_
+    mm['avatar'] = avatar_of(mm['name'], mm['repo'])
 json.dump(cache, open(CACHE,'w'), ensure_ascii=False)
 json.dump(models, open(os.path.join(OUT,'models.json'),'w'), ensure_ascii=False)
 usable_voices = sum(m['voices'] for m in models if m['usable'])
