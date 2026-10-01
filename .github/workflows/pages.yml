@@ -26,14 +26,6 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Build data JSON from CSV
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          curl -sL -o /tmp/models_mapping.csv https://raw.githubusercontent.com/fox3000foxy/huggingface-crawler/main/models_mapping.csv
-          curl -sL -o /tmp/datasets_mapping.csv https://raw.githubusercontent.com/fox3000foxy/huggingface-crawler/main/datasets_mapping.csv
-          CSV_MODELS=/tmp/models_mapping.csv CSV_DATASETS=/tmp/datasets_mapping.csv python3 scripts/generate_data.py
-
       - name: Build site
         run: |
           npm ci
