@@ -142,7 +142,7 @@ const base = import.meta.env.BASE_URL;
           list.forEach((u, i) => {
             const d = document.createElement('div'); d.className = 'sample';
             const p = document.createElement('p'); p.textContent = `exemple ${i + 1}`;
-            const a = document.createElement('audio'); a.controls = true; a.src = u;
+            const a = document.createElement('audio'); a.controls = true; a.src = o + u;
             d.append(p, a); box.append(d);
           });
         } catch { box.innerHTML = '<p class="dim">aucun échantillon — synthétisez ci-dessous.</p>'; }
