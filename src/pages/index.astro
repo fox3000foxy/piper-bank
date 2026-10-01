@@ -17,23 +17,17 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
     <header class="hero">
       <img src="/logo.png" alt="PiperBot" class="logo" />
       <div>
-        <h1>
-          <span class="accent">Piper</span> TTS Explorer
-        </h1>
-        <p class="subtitle">{models.length} modèles · {totalVoices.toLocaleString('fr-FR')} voix · 100% local, CPU only</p>
+        <h1>Piper <span class="accent">TTS Explorer</span></h1>
+        <p class="subtitle">{models.length} modèles · {totalVoices.toLocaleString('fr-FR')} voix · 100 % local</p>
       </div>
     </header>
 
     <section class="filters">
-      <input id="search" type="search" placeholder="Rechercher un modèle, une voix, un auteur…" autocomplete="off" />
-      <div class="chips" id="lang-chips">{
-        languages.map((lang) => <button class="chip lang-chip" data-lang={lang}>{lang}</button>)
-      }</div>
-      <div class="chips" id="quality-chips">{
-        qualities.map((q) => <button class="chip quality-chip" data-quality={q}>{q}</button>)
-      }</div>
-      <label class="multiselect"> <input type="checkbox" id="multivoice-only" /> Multi-voices </label>
-      <select id="sort" class="sort-select">
+      <input id="search" type="search" placeholder="Rechercher…" autocomplete="off" />
+      <div class="chips" id="lang-chips">{languages.map((l) => <button class="chip" data-lang={l}>{l}</button>)}</div>
+      <div class="chips" id="quality-chips">{qualities.map((q) => <button class="chip" data-quality={q}>{q}</button>)}</div>
+      <label class="multiselect"><input type="checkbox" id="multivoice-only" />Multi-voices</label>
+      <select id="sort">
         <option value="name">A → Z</option>
         <option value="voices-desc">Voix ↓</option>
         <option value="voices-asc">Voix ↑</option>
@@ -41,197 +35,295 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       <span id="count" class="count"></span>
     </section>
 
-    <main id="grid" class="list">
+    <main id="grid" class="grid">
       {models.map((m, i) => (
         <article
-          class="row"
+          class="card"
+          tabindex="0"
+          data-name={m.name}
           data-lang={m.langName}
           data-quality={m.quality}
           data-multivoice={m.voices > 1 ? '1' : '0'}
           data-search={`${m.name} ${m.author} ${m.langName} ${m.repo}`.toLowerCase()}
         >
-          <div class="row-main" data-idx={i}>
-            <h2>{m.name}</h2>
-            {m.voices > 1 && <span class="voices-count">{m.voices} voix</span>}
-          </div>
-          <div class="row-side">
-            <span class="spec">{m.langName}</span>
+          <h2>{m.name}</h2>
+          <div class="meta">
+            <span class="badge lang">{m.langName}</span>
             <span class={`spec q-${m.quality}`}>{m.quality}</span>
-            <span class="spec author">{m.author}</span>
+            {m.voices > 1 && <span class="voices">{m.voices} voix</span>}
           </div>
-          {m.voices > 1 && (
-            <ul class="voice-list" id={`vl-${i}`} hidden>
-              {m.voiceNames.slice(0, 24).map((vn) => <li>{vn}</li>)}
-              {m.voiceNames.length > 24 && <li class="dim">… + {m.voiceNames.length - 24} autres</li>}
-            </ul>
-          )}
-          <div class="row-links">
-            <a href={`https://huggingface.co/${m.repo}`} target="_blank" rel="noopener">HF</a>
-            {m.thread && <a href={`https://discord.com/channels/1523276835712929946/${m.thread}`} target="_blank" rel="noopener">thread</a>}
-          </div>
+          <p class="author">{m.author}</p>
         </article>
       ))}
     </main>
 
-    <footer>
-      <p>PiperBot · Discord <a href="https://discord.gg" target="_blank">PiperTTS</a> · Data: <a href="https://huggingface.co/rhasspy/piper-voices" target="_blank">rhasspy/piper-voices</a> + community</p>
-    </footer>
+    <footer>PiperBot · data: rhasspy/piper-voices + communauté · modèle natif: <b>pipertts</b></footer>
+
+    <!-- Modal détail -->
+    <div id="modal" hidden>
+      <div id="modal-bg"></div>
+      <div id="modal-card">
+        <button id="modal-close" aria-label="Fermer">✕</button>
+        <h2 id="md-name"></h2>
+        <div id="md-meta" class="meta"></div>
+        <p id="md-author" class="author"></p>
+
+        <section class="md-sec">
+          <h3>Voices</h3>
+          <div id="md-voices" class="chip-wrap"></div>
+        </section>
+
+        <section class="md-sec">
+          <h3>Inférence (onnxruntime natif)</h3>
+          <textarea id="md-text" rows="3" placeholder="Tape le texte à synthétiser…"></textarea>
+          <div class="infer-opts">
+            <label>len <input id="md-len" type="number" step="0.05" min="0.2" max="3" /></label>
+            <label>noise <input id="md-noise" type="number" step="0.05" min="0" max="1.5" /></label>
+            <label>noiseW <input id="md-noiseW" type="number" step="0.05" min="0" max="1.5" /></label>
+            <button id="md-go">Générer</button>
+          </div>
+          <audio id="md-audio" controls hidden></audio>
+          <div id="md-status"></div>
+        </section>
+
+        <section class="md-sec">
+          <h3>Liens</h3>
+          <div id="md-links"></div>
+        </section>
+      </div>
+    </div>
 
     <style is:global>
       :root {
-        --bg: #000000;
-        --card: #0a0a0a;
-        --border: #1a1a1a;
-        --text: #e4e4e7;
-        --dim: #71717a;
-        --accent: #a855f7;
-        --accent-2: #d8b4fe;
-        --q-high: #4ade80;
-        --q-medium: #facc15;
-        --q-low: #ef4444;
-        --q-unknown: #71717a;
+        --bg: #000; --card: #0a0a0a; --border: #17171a; --text: #e4e4e7; --dim: #71717a;
+        --accent: #a855f7; --accent-2: #d8b4fe;
+        --q-high: #4ade80; --q-medium: #facc15; --q-low: #ef4444; --q-unknown: #71717a;
       }
       * { box-sizing: border-box; }
-      body {
-        margin: 0; background: var(--bg); color: var(--text);
-        font-family: system-ui, -apple-system, sans-serif;
-        padding: 2rem 1rem 4rem;
-        max-width: 1200px; margin-inline: auto;
-      }
+      body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif;
+        padding: 2rem 1rem 4rem; max-width: 1200px; margin-inline: auto; }
       a { color: var(--accent); text-decoration: none; }
-      a:hover { text-decoration: underline; }
-
-      .hero { display: flex; align-items: center; gap: 1rem; margin-bottom: 2.5rem; }
-      .logo { width: 52px; height: 52px; border-radius: 8px; }
-      h1 { margin: 0; font-size: 1.4rem; font-weight: 500; letter-spacing: -0.02em; }
+      .hero { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+      .logo { width: 56px; height: 56px; border-radius: 10px; }
+      h1 { font-size: 1.5rem; margin: 0; font-weight: 600; }
       .accent { color: var(--accent-2); }
-      .subtitle { color: var(--dim); margin: 0.2rem 0 0; font-size: 0.9rem; }
+      .subtitle { color: var(--dim); margin: 0.25rem 0 0; font-size: 0.92rem; }
 
-      .filters { display: flex; flex-wrap: wrap; gap: 0.9rem; align-items: center; margin-bottom: 1.8rem; }
-      #search {
-        flex: 1 1 340px; padding: 0.55rem 0.75rem; border-radius: 6px;
-        background: var(--card); border: 1px solid var(--border); color: var(--text);
-        font-size: 0.9rem; outline: none; transition: border-color .15s;
-      }
+      .filters { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; margin-bottom: 1.5rem; }
+      #search { flex: 1 1 320px; padding: 0.6rem 0.9rem; border-radius: 8px; background: var(--card);
+        border: 1px solid var(--border); color: var(--text); font-size: 0.92rem; outline: none; }
       #search:focus { border-color: #3f3f46; }
-      #search::placeholder { color: #52525b; }
       .chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-      .chip {
-        padding: 0.25rem 0.55rem; font-size: 0.78rem; cursor: pointer;
-        background: none; border: none; color: var(--dim);
-        border-bottom: 1px solid transparent; font-family: inherit;
-      }
-      .chip.on { color: var(--accent-2); border-bottom: 1px solid var(--accent-2); }
-      .count { color: #52525b; font-size: 0.82rem; margin-left: auto; }
-      .multiselect { display: flex; gap: 0.4rem; align-items: center; color: var(--dim); font-size: 0.82rem; }
-      .sort-select {
-        background: none; border: none; border-bottom: 1px solid var(--border); color: var(--dim);
-        font-size: 0.78rem; padding: 0.25rem 0.1rem; cursor: pointer;
-      }
+      .chip { padding: 0.3rem 0.7rem; border-radius: 999px; font-size: 0.78rem; cursor: pointer;
+        background: var(--card); border: 1px solid var(--border); color: var(--dim); font-family: inherit; }
+      .chip.on { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+      .chip-wrap { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+      .count { color: var(--dim); font-size: 0.85rem; margin-left: auto; }
+      .multiselect { display: flex; gap: 0.4rem; align-items: center; color: var(--dim); font-size: 0.84rem; }
+      #sort { padding: 0.35rem 0.55rem; border-radius: 8px; background: var(--card); border: 1px solid var(--border);
+        color: var(--text); font-size: 0.8rem; }
 
-      .list { display: flex; flex-direction: column; max-width: 860px; margin-inline: auto; }
-      .row {
-        display: grid; grid-template-columns: 1fr auto; gap: .2rem .9rem;
-        padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border);
-        transition: background .12s;
-      }
-      .row:hover { background: #060606; }
-      .row .voice-list, .row .row-links { grid-column: 1 / -1; }
-      .row-main { display: flex; align-items: baseline; gap: 0.7rem; min-width: 0; }
-      .row-main h2 { margin: 0; font-size: 0.95rem; font-weight: 450; color: var(--text); cursor: pointer; text-overflow: ellipsis; }
-      .voices-count { color: #93c5fd; font-size: 0.75rem; white-space: nowrap; cursor: pointer; }
-      .row-side { display: flex; gap: 0.8rem; align-items: baseline; }
-      .spec { color: var(--dim); font-size: 0.78rem; white-space: nowrap; }
-      .spec.q-high { color: var(--q-high); }
-      .spec.q-medium { color: var(--q-medium); }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.9rem; }
+      .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+        padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.55rem; cursor: pointer;
+        transition: border-color .12s, background .12s; outline: none; }
+      .card:hover, .card:focus { border-color: #2e2e3a; background: #0d0d0f; }
+      .card h2 { margin: 0; font-size: 1rem; line-height: 1.35; font-weight: 500; }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+      .badge { font-size: 0.72rem; padding: 0.12rem 0.5rem; border-radius: 999px;
+        background: #141414; border: 1px solid var(--border); color: var(--accent-2); }
+      .spec { font-size: 0.72rem; color: var(--dim); }
+      .spec.q-high { color: var(--q-high); } .spec.q-medium { color: var(--q-medium); }
       .spec.q-low { color: var(--q-low); }
-      .spec.author { opacity: .75; }
-      .voice-list {
-        margin: 0.3rem 0 0; padding: 0.4rem 0 0 0.8rem;
-        border-left: 2px solid var(--border); color: var(--dim); font-size: 0.78rem;
-        display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; list-style: none;
-      }
-      .voice-list .dim { opacity: .55; }
-      .row-links { display: flex; gap: 1rem; font-size: 0.75rem; }
-      .row-links a { color: #52525b; text-transform: lowercase; }
-      .row-links a:hover { color: var(--accent-2); text-decoration: none; }
-      .sort-select {
-        padding: 0.4rem 0.6rem; border-radius: 8px; background: var(--card);
-        border: 1px solid var(--border); color: var(--text); font-size: 0.85rem;
-      }
-      .voice-list {
-        margin: 0; padding: 0.5rem 0 0 1rem; color: var(--dim); font-size: 0.8rem;
-        display: flex; flex-wrap: wrap; gap: 0.35rem; list-style: none; column-gap: 0.8rem;
-      }
-      .voice-list .dim { opacity: 0.6; }
-      .btn-voices { cursor: pointer; }
+      .voices { color: #7dd3fc; font-size: 0.75rem; }
+      .author { margin: 0; color: var(--dim); font-size: 0.8rem; }
 
-      footer { margin-top: 3rem; color: var(--dim); font-size: 0.8rem; text-align: center; }
+      footer { margin-top: 3rem; text-align: center; color: #52525b; font-size: 0.78rem; }
+
+      #modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+      #modal-bg { position: absolute; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(3px); }
+      #modal-card { position: relative; background: #060606; border: 1px solid var(--border); border-radius: 14px;
+        width: min(640px, 100%); max-height: 88vh; overflow-y: auto; padding: 1.4rem 1.6rem; }
+      #modal-card h2 { margin: 0 2.2rem 0 0; font-size: 1.15rem; font-weight: 550; }
+      #modal-close { position: absolute; top: .9rem; right: .9rem; background: none; border: 1px solid var(--border);
+        color: var(--dim); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; font-family: inherit; }
+      #modal-close:hover { color: var(--text); }
+      #modal .meta { margin-top: .7rem; }
+      .md-sec { margin-top: 1.3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+      .md-sec h3 { margin: 0 0 .6rem; font-size: 0.78rem; font-weight: 500; color: #52525b; text-transform: uppercase; letter-spacing: .06em; }
+      .voice-btn { font-family: inherit; font-size: .78rem; padding: .28rem .6rem; border-radius: 7px; cursor: pointer;
+        background: var(--card); border: 1px solid var(--border); color: var(--dim); }
+      .voice-btn.on { background: var(--accent); color: #000; border-color: var(--accent); }
+      #md-text { width: 100%; background: #0a0a0a; border: 1px solid var(--border); border-radius: 9px;
+        color: var(--text); padding: .6rem .75rem; font-family: inherit; font-size: .92rem; resize: vertical; min-height: 74px; }
+      #md-text:focus { border-color: #3f3f46; }
+      .infer-opts { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-top: .6rem; }
+      .infer-opts label { color: var(--dim); font-size: .78rem; display: flex; gap: .3rem; align-items: center; }
+      .infer-opts input { width: 64px; background: #0a0a0a; border: 1px solid var(--border); border-radius: 6px;
+        color: var(--text); padding: .22rem .35rem; font-size: .8rem; }
+      #md-go { margin-left: auto; background: var(--accent); color: #000; border: none; border-radius: 8px;
+        padding: .45rem 1rem; cursor: pointer; font-weight: 600; font-size: .88rem; font-family: inherit; }
+      #md-go:disabled { opacity: .5; cursor: wait; }
+      #md-audio { width: 100%; margin-top: .7rem; }
+      #md-status { color: var(--dim); font-size: .78rem; margin-top: .4rem; }
+      #md-links a { font-size: .88rem; margin-right: 1rem; }
     </style>
 
     <script>
+      (async () => {
+      const models = (await (await fetch('/data/models.json')).json()).filter(m => m.usable);
       const search = document.getElementById('search');
-      const langChips = [...document.querySelectorAll('.lang-chip')];
-      const qualityChips = [...document.querySelectorAll('.quality-chip')];
+      const langChips = [...document.querySelectorAll('#lang-chips .chip')];
+      const qualityChips = [...document.querySelectorAll('#quality-chips .chip')];
       const multivoiceOnly = document.getElementById('multivoice-only');
       const count = document.getElementById('count');
-      const cards = [...document.querySelectorAll('.row')];
-
-      const state = { search: '', lang: '', quality: '', multivoice: false };
-
-      function activeChips(chips) { return chips.filter((c) => c.classList.contains('on')); }
-      function renderChips(chips, key) {
-        chips.forEach((chip) => {
-          chip.addEventListener('click', () => {
-            const value = chip.dataset[key];
-            const isActive = chip.classList.contains('on');
-            activeChips(chips).forEach((c) => c.classList.remove('on'));
-            chip.classList.toggle('on', !isActive);
-            state[key] = isActive ? '' : value;
-            apply();
-          });
-        });
-      }
-      renderChips(langChips, 'lang');
-      renderChips(qualityChips, 'quality');
-
-      search.addEventListener('input', () => { state.search = search.value.toLowerCase().trim(); apply(); });
-      multivoiceOnly.addEventListener('change', () => { state.multivoice = multivoiceOnly.checked; apply(); });
-
       const grid = document.getElementById('grid');
       const sort = document.getElementById('sort');
-      sort.addEventListener('change', () => {
-        const rows = [...grid.children];
-        const byName = (a, b) => a.querySelector('h2').textContent.localeCompare(b.querySelector('h2').textContent);
-        const byVoices = (a, b) => {
-          const va = parseInt((a.querySelector('.voices-count')?.textContent || '0'), 10) || 0;
-          const vb = parseInt((b.querySelector('.voices-count')?.textContent || '0'), 10) || 0;
-          return sort.value === 'voices-desc' ? vb - va || byName(a, b) : va - vb || byName(a, b);
-        };
-        rows.sort(sort.value === 'name' ? byName : byVoices).forEach((r) => grid.appendChild(r));
-      });
+      const cards = [...grid.querySelectorAll('.card')];
 
-      document.querySelectorAll('.row-main[h2], .voices-count').forEach - 0;
-
-      document.querySelectorAll('.voices-count').forEach((el) => {
-        const idx = el.closest('.row')?.querySelector('.row-main')?.dataset.idx;
-        el.addEventListener('click', () => { document.getElementById(`vl-${el.closest('.row').querySelector('.row-main').dataset.idx}`).hidden ^= 1; });
-      });
+      const state = { search: '', lang: '', quality: '', multivoice: false };
 
       function apply() {
         let visible = 0;
         for (const card of cards) {
-          const matchSearch = !state.search || card.dataset.search.includes(state.search);
-          const matchLang = !state.lang || card.dataset.lang === state.lang;
-          const matchQuality = !state.quality || card.dataset.quality === state.quality;
-          const matchMulti = !state.multivoice || card.dataset.multivoice === '1';
-          const show = matchSearch && matchLang && matchQuality && matchMulti;
-          card.style.display = show ? '' : 'none';
-          if (show) visible++;
+          const m = modelByCard.get(card);
+          const ok = (!state.search || card.dataset.search.includes(state.search))
+            && (!state.lang || card.dataset.lang === state.lang)
+            && (!state.quality || card.dataset.quality === state.quality)
+            && (!state.multivoice || card.dataset.multivoice === '1');
+          card.style.display = ok ? '' : 'none';
+          if (ok) visible++;
         }
-        count.textContent = `${visible} / ${cards.length} modèles`;
+        count.textContent = `${visible} / ${cards.length}`;
       }
+
+      function bindChips(chips, key) {
+        const on = (c) => c.classList.contains('on');
+        chips.forEach((chip) => chip.addEventListener('click', () => {
+          const already = on(chip);
+          chips.forEach((c) => c.classList.remove('on'));
+          chip.classList.toggle('on', !already);
+          state[key] = already ? '' : chip.dataset[key];
+          apply();
+        }));
+      }
+      bindChips(langChips, 'lang');
+      bindChips(qualityChips, 'quality');
+
+      search.addEventListener('input', () => { state.search = search.value.toLowerCase().trim(); apply(); });
+      multivoiceOnly.addEventListener('change', () => { state.multivoice = multivoiceOnly.checked; apply(); });
+
+      sort.addEventListener('change', () => {
+        const arr = [...grid.children];
+        const byName = (a, b) => a.dataset.name.localeCompare(b.dataset.name);
+        const voicesOf = (c) => parseInt((c.querySelector('.voices')?.textContent || '0'), 10) || 0;
+        arr.sort(sort.value === 'name' ? byName
+          : sort.value === 'voices-desc' ? (a, b) => voicesOf(b) - voicesOf(a) || byName(a, b)
+          : (a, b) => voicesOf(a) - voicesOf(b) || byName(a, b)).forEach((c) => grid.appendChild(c));
+      });
+
+      // Modal
+      const modal = document.getElementById('modal');
+      const modelByCard = new Map();
+      let current = null;
+      let selectedVoice = null;
+
+      function openModal(model) {
+        current = model;
+        selectedVoice = null;
+        document.getElementById('md-name').textContent = model.name;
+        document.getElementById('md-author').textContent = 'par ' + model.author + ' · ' + model.repo;
+        const meta = document.getElementById('md-meta');
+        meta.innerHTML = '';
+        const badge = (txt, cls) => { const s = document.createElement('span'); s.className = 'badge ' + (cls || ''); s.textContent = txt; return s; };
+        meta.append(badge(model.langName, 'lang'), badge(model.quality, 'spec'));
+        if (model.voices > 1) meta.append(badge(model.voices + ' voix', 'voices'));
+
+        const voicesEl = document.getElementById('md-voices');
+        voicesEl.innerHTML = '';
+        if (model.voices > 1) {
+          model.voiceNames.slice(0, 40).forEach((vn) => {
+            const b = document.createElement('button');
+            b.className = 'voice-btn'; b.textContent = vn;
+            b.addEventListener('click', () => {
+              voicesEl.querySelectorAll('.voice-btn').forEach((x) => x.classList.remove('on'));
+              b.classList.add('on');
+              selectedVoice = model.voiceNames[model.voiceNames.indexOf(vn)];
+            });
+            voicesEl.append(b);
+          });
+          if (model.voiceNames.length > 40) {
+            const more = document.createElement('span');
+            more.className = 'spec'; more.textContent = `… +${model.voiceNames.length - 40}`;
+            voicesEl.append(more);
+          }
+        } else {
+          const s = document.createElement('span');
+          s.className = 'spec'; s.textContent = 'voix simple';
+          voicesEl.append(s);
+        }
+
+        const links = document.getElementById('md-links');
+        links.innerHTML = '';
+        const a = (href, txt) => { const el = document.createElement('a'); el.href = href; el.target = '_blank'; el.rel = 'noopener'; el.textContent = txt; return el; };
+        links.append(a('https://huggingface.co/' + model.repo, 'HuggingFace'));
+        if (model.thread) links.append(a('https://discord.com/channels/1523276835712929946/' + model.thread, 'Thread Discord'));
+
+        const audio = document.getElementById('md-audio');
+        audio.hidden = true; audio.removeAttribute('src');
+        document.getElementById('md-status').textContent = '';
+        document.getElementById('md-text').value = '';
+        hidden_inputs_reset();
+        modal.hidden = false;
+      }
+
+      function hidden_inputs_reset() {
+        document.getElementById('md-len').value = '';
+        document.getElementById('md-noise').value = '';
+        document.getElementById('md-noiseW').value = '';
+      }
+
+      cards.forEach((card) => {
+        const model = models.find((m) => m.name === card.dataset.name);
+        modelByCard.set(card, model);
+        card.addEventListener('click', () => openModal(model));
+        card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(model); });
+      });
+
+      document.getElementById('modal-close').addEventListener('click', () => { modal.hidden = true; });
+      document.getElementById('modal-bg').addEventListener('click', () => { modal.hidden = true; });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') modal.hidden = true; });
+
+      const go = document.getElementById('md-go');
+      go.addEventListener('click', async () => {
+        const text = document.getElementById('md-text').value.trim();
+        const status = document.getElementById('md-status');
+        if (!current) return;
+        if (!text) { status.textContent = 'Entrez du texte.'; return; }
+        const body = { model: current.name, text };
+        const sel = document.getElementById('md-len').value; if (sel) body.lengthScale = sel;
+        const n1 = document.getElementById('md-noise').value; if (n1) body.noiseScale = n1;
+        const n2 = document.getElementById('md-noiseW').value; if (n2) body.noiseW = n2;
+        if (selectedVoice) body.voice = selectedVoice;
+        go.disabled = true; status.textContent = '⏳ Synthèse…';
+        try {
+          const resp = await fetch('/api/infer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          if (!resp.ok) throw new Error((await resp.json()).error || 'Error ' + resp.status);
+          const blob = await resp.blob();
+          const url = URL.createObjectURL(blob);
+          const audio = document.getElementById('md-audio');
+          audio.src = url; audio.hidden = false; audio.play();
+          const dur = resp.headers.get('x-duration-ms');
+          status.textContent = `✅ ${dur} ms`;
+        } catch (e) {
+          status.textContent = '❌ ' + e.message;
+        } finally {
+          go.disabled = false;
+        }
+      });
+
       apply();
+      })();
     </script>
   </body>
 </html>

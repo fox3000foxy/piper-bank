@@ -2,5 +2,12 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "pipertts": "^1.1.6"
+  },
+  "scripts": {
+    "data": "python3 scripts/generate_data.py",
+    "build": "astro build && mkdir -p dist/data && cp src/data/models.json dist/data/models.json && cp dist/data/models.json dist/data/models.json"
   }
 }
