@@ -15,7 +15,7 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 }));
 ---
 
-<Layout title={m.name} active="voices" narrow subtitle={`par ${m.author}`}>
+<Layout title={m.name} active="voices" subtitle={`par ${m.author}`}>
 
     <a class="back" href={`${base}`}>← all models</a>
     <div class="hero model-hero">
@@ -46,10 +46,12 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
       </div>
     </section>
 
-    <section class="sec">
+    <div class="model-cols">
+      <div class="model-main">
+    <section class="sec first">
       <h2>Voices & samples ({m.voices})</h2>
       <p class="dim">click ▶ to listen · click the name to use it for synthesis</p>
-      <div id="voice-list">
+      <div id="voice-list" class="voice-grid">
         {voicePairs.slice(0, 120).map((v, i) => (
           <div class="player" style={`--vc:${(avatar.hue + i * 47) % 360}`} data-sid={v.sid} data-vname={v.name}>
             <button class="pp" aria-label={`listen ${v.name}`}>▶</button>
@@ -66,11 +68,12 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
             </div>
           </div>
         ))}
-        {voicePairs.length > 120 && <p class="dim">… +{voicePairs.length - 120} voices (synthesis available for all)</p>}
+        {voicePairs.length > 120 && <p class="dim wide-note">… +{voicePairs.length - 120} voices (synthesis available for all)</p>}
       </div>
     </section>
-
-    <section class="sec">
+      </div>
+      <aside class="model-side">
+    <section class="sec first">
       <h2>Synthesize</h2>
       <p class="dim" id="sel-voice-line">voice: <b id="sel-voice">default</b></p>
       <textarea id="text" rows="2" placeholder="Text to synthesize…"></textarea>
@@ -85,11 +88,23 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 
     <section class="sec">
       <h2>Linked dataset</h2>
-      <div id="dataset-link"><p class="dim">recherche…</p></div>
+      <div id="dataset-link"><p class="dim">loading…</p></div>
     </section>
+      </aside>
+    </div>
 
     <link rel="stylesheet" href={`${base}site.css`} />
     <style is:global>
+      .model-cols { display:grid; grid-template-columns: minmax(0, 1fr) 320px; gap:2rem; align-items:start; }
+      .model-side { position:sticky; top:1rem; display:flex; flex-direction:column; }
+      .model-side .sec.first, .model-main .sec.first { margin-top:0; border-top:none; padding-top:0; }
+      .voice-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:.55rem; }
+      .voice-grid .player { margin-bottom:0; }
+      .wide-note { grid-column:1 / -1; }
+      @media (max-width: 900px) {
+        .model-cols { grid-template-columns:1fr; }
+        .model-side { position:static; }
+      }
       .avatar.big { width:76px; height:76px; font-size:2.4rem; border-radius:20px; display:grid; place-items:center; flex:0 0 auto;
         background:linear-gradient(135deg, hsl(var(--h) 65% 26%), hsl(calc(var(--h) + 40) 70% 12%));
         border:1px solid hsl(var(--h) 60% 32% / .55); text-shadow:0 2px 8px #0009; }
