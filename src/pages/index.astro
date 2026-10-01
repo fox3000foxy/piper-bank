@@ -33,11 +33,16 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
         qualities.map((q) => <button class="chip quality-chip" data-quality={q}>{q}</button>)
       }</div>
       <label class="multiselect"> <input type="checkbox" id="multivoice-only" /> Multi-voices </label>
+      <select id="sort" class="sort-select">
+        <option value="name">A → Z</option>
+        <option value="voices-desc">Voix ↓</option>
+        <option value="voices-asc">Voix ↑</option>
+      </select>
       <span id="count" class="count"></span>
     </section>
 
     <main id="grid" class="grid">
-      {models.map((m) => (
+      {models.map((m, i) => (
         <article
           class="card"
           data-lang={m.langName}
@@ -49,8 +54,14 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
           <div class="meta">
             <span class="badge lang">{m.langName}</span>
             <span class={`badge q-${m.quality}`}>{m.quality}</span>
-            {m.voices > 1 && <span class="badge voices">{m.voices} voix</span>}
+            {m.voices > 1 && <button class="badge voices btn-voices" data-idx={i}>{m.voices} voix ▾</button>}
           </div>
+          {m.voices > 1 && (
+            <ul class="voice-list" id={`vl-${i}`} hidden>
+              {m.voiceNames.slice(0, 24).map((vn) => <li>{vn}</li>)}
+              {m.voiceNames.length > 24 && <li class="dim">… + {m.voiceNames.length - 24} autres</li>}
+            </ul>
+          )}
           <p class="author">par {m.author}</p>
           <div class="links">
             <a href={`https://huggingface.co/${m.repo}`} target="_blank" rel="noopener">HF ↗</a>
@@ -130,6 +141,16 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
       .badge.voices { color: #7dd3fc; }
       .author { margin: 0; color: var(--dim); font-size: 0.8rem; }
       .links { display: flex; gap: 0.8rem; font-size: 0.8rem; }
+      .sort-select {
+        padding: 0.4rem 0.6rem; border-radius: 8px; background: var(--card);
+        border: 1px solid var(--border); color: var(--text); font-size: 0.85rem;
+      }
+      .voice-list {
+        margin: 0; padding: 0.5rem 0 0 1rem; color: var(--dim); font-size: 0.8rem;
+        display: flex; flex-wrap: wrap; gap: 0.35rem; list-style: none; column-gap: 0.8rem;
+      }
+      .voice-list .dim { opacity: 0.6; }
+      .btn-voices { cursor: pointer; }
 
       footer { margin-top: 3rem; color: var(--dim); font-size: 0.8rem; text-align: center; }
     </style>
@@ -162,6 +183,23 @@ const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
 
       search.addEventListener('input', () => { state.search = search.value.toLowerCase().trim(); apply(); });
       multivoiceOnly.addEventListener('change', () => { state.multivoice = multivoiceOnly.checked; apply(); });
+
+      const grid = document.getElementById('grid');
+      const sort = document.getElementById('sort');
+      sort.addEventListener('change', () => {
+        const cards = [...grid.children];
+        const byName = (a, b) => a.querySelector('h2').textContent.localeCompare(b.querySelector('h2').textContent);
+        const byVoices = (a, b) => {
+          const va = parseInt((a.querySelector('.badge.voices')?.textContent || '0'), 10) || 0;
+          const vb = parseInt((b.querySelector('.badge.voices')?.textContent || '0'), 10) || 0;
+          return sort.value === 'voices-desc' ? vb - va || byName(a, b) : va - vb || byName(a, b);
+        };
+        cards.sort(sort.value === 'name' ? byName : byVoices).forEach((c) => grid.appendChild(c));
+      });
+
+      document.querySelectorAll('.btn-voices').forEach((btn) => {
+        btn.addEventListener('click', () => { document.getElementById(`vl-${btn.dataset.idx}`).hidden ^= 1; });
+      });
 
       function apply() {
         let visible = 0;
