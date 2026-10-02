@@ -1,46 +1,97 @@
 ---
-const { title, active, description, pageUrl, image } = Astro.props;
+import { localizedPath, t, type Locale } from '../i18n/ui';
+
+const { title, active, description, pageUrl, image, locale = 'fr' as Locale } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const site = 'https://piper-bank.fox3000foxy.com';
-const desc = description || 'Explore 300 Piper TTS models and 2900+ voices. Listen to samples, compare voices, synthesize in your browser.';
-const url = pageUrl ? site + pageUrl : site + '/';
+const desc = description || t(locale, 'site.description');
+const url = site + localizedPath(base, locale, pageUrl || '/');
 const img = image ? site + image : site + base + 'logo.png';
+const frenchUrl = site + localizedPath(base, 'fr', pageUrl || '/');
+const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
 ---
-
-<html lang="en">
+<html lang={locale} data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · Piper TTS Explorer</title>
+    <meta name="theme-color" content="#ffffff" />
+    <title>{title} · Piper Bank</title>
     <meta name="description" content={desc} />
     <link rel="icon" type="image/png" href={`${base}logo.png`} />
+    <link rel="preload" href={`${base}fonts/archivo-latin.woff2`} as="font" type="font/woff2" crossorigin />
+    <script is:inline>
+      (() => {
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let saved = null;
+        try { saved = localStorage.getItem('piper-theme'); } catch {}
+        const theme = saved || (systemDark ? 'dark' : 'light');
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
+      })();
+    </script>
     <link rel="stylesheet" href={`${base}site.css`} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Piper TTS Explorer" />
-    <meta property="og:title" content={`${title} · Piper TTS Explorer`} />
+    <meta property="og:site_name" content="Piper Bank" />
+    <meta property="og:title" content={`${title} · Piper Bank`} />
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={url} />
     <meta property="og:image" content={img} />
+    <link rel="canonical" href={url} />
+    <link rel="alternate" hreflang="fr" href={frenchUrl} />
+    <link rel="alternate" hreflang="en" href={englishUrl} />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content={`${title} · Piper TTS Explorer`} />
+    <meta name="twitter:title" content={`${title} · Piper Bank`} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={img} />
   </head>
-  <body class={Astro.props.narrow ? 'narrow' : ''}>
-    <header class="hero">
-      <img src={`${base}logo.png`} alt="PiperBot" class="logo" />
-      <div class="hero-text">
-        <h1>Piper <span class="accent">TTS Explorer</span></h1>
-        <p class="subtitle">{Astro.props.subtitle || 'voice bank · 100% local'}</p>
-      </div>
-      <nav class="topnav">
-        <a class={active === 'voices' ? 'nav-on' : ''} href={`${base}`}>Voices</a>
-        <a class={active === 'datasets' ? 'nav-on' : ''} href={`${base}datasets/`}>Datasets</a>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href={localizedPath(base, locale, '/')} aria-label={`Piper Bank, ${t(locale, 'nav.home').toLowerCase()}`}><img src={`${base}logo.png`} alt="" /><span class="wordmark-name"><span class="wordmark-piper">Piper</span><span class="wordmark-bank">Bank</span></span></a>
+      <nav class="topnav" aria-label={t(locale, 'nav.main')}>
+        <a class={active === 'home' ? 'nav-on' : ''} href={localizedPath(base, locale, '/')}>{t(locale, 'nav.home')}</a>
+        <a class={active === 'voices' ? 'nav-on' : ''} href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a>
+        <a class={active === 'datasets' ? 'nav-on' : ''} href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'nav.datasets')}</a>
+        <a class={active === 'guides' ? 'nav-on' : ''} href={localizedPath(base, locale, '/guides/')}>{t(locale, 'nav.guides')}</a>
       </nav>
+      <div class="header-end">
+        <a class="header-project" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'nav.project')} <span aria-hidden="true">↗</span></a>
+        <label class="locale-picker">
+          <span class="sr-only">{t(locale, 'language.label')}</span>
+          <select aria-label={t(locale, 'language.label')} data-fr={localizedPath(base, 'fr', pageUrl || '/')} data-en={localizedPath(base, 'en', pageUrl || '/') }>
+            <option value="fr" selected={locale === 'fr'}>{t(locale, 'language.french')}</option>
+            <option value="en" selected={locale === 'en'}>{t(locale, 'language.english')}</option>
+          </select>
+        </label>
+        <button class="theme-toggle" type="button" aria-label={t(locale, 'theme.change')} title={t(locale, 'theme.change')}>
+          <svg class="icon-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.4"/><path d="M10 1.75v2M10 16.25v2M18.25 10h-2M3.75 10h-2m14.08-5.83-1.41 1.41M5.58 14.42l-1.41 1.41m11.66 0-1.41-1.41M5.58 5.58 4.17 4.17"/></svg>
+          <svg class="icon-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.8 12.4A7 7 0 0 1 7.6 3.2a7.2 7.2 0 1 0 9.2 9.2Z"/></svg>
+        </button>
+      </div>
     </header>
-
     <slot />
-
-    <footer>PiperBot · data: rhasspy/piper-voices + community · <a href="https://discord.gg">Discord</a> · <a href="https://huggingface.co/fox3000foxy/piper-voices-collection">collection HF</a></footer>
+    <footer class="site-footer">
+      <a class="wordmark footer-mark" href={localizedPath(base, locale, '/')}><img src={`${base}logo.png`} alt="" /><span class="wordmark-name"><span class="wordmark-piper">Piper</span><span class="wordmark-bank">Bank</span></span></a>
+      <p>{t(locale, 'footer.description')}<br />{t(locale, 'footer.licenses')}</p>
+      <nav aria-label={t(locale, 'nav.footerLinks')}>
+        <a href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a>
+        <a href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'nav.datasets')}</a>
+        <a href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'footer.source')} ↗</a>
+      </nav>
+      <span class="footer-note">{t(locale, 'footer.local')}</span>
+    </footer>
+    <script is:inline>
+      const localePicker = document.querySelector('.locale-picker select');
+      localePicker?.addEventListener('change', () => {
+        const destination = localePicker.dataset[localePicker.value];
+        if (destination) window.location.assign(destination);
+      });
+      const themeButton = document.querySelector('.theme-toggle');
+      themeButton?.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('piper-theme', next); } catch {}
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#000000' : '#ffffff');
+      });
+    </script>
   </body>
 </html>
