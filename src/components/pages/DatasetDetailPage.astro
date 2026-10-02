@@ -1,0 +1,77 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
+
+const { locale = 'fr' as Locale } = Astro.props;
+const { ds: d } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const hasModel = !!(d.model && d.modelSlug);
+---
+
+<Layout title={d.name} active="datasets" locale={locale} pageUrl={`/dataset/${d.slug}/`}
+  description={t(locale, 'dataset.description', { class: d.class || '-', source: d.source || '-', language: languageLabel(d.lang, d.langName || d.lang, locale) })} subtitle={`${d.source || t(locale, 'dataset.titleFallback')} · ${languageLabel(d.lang, d.langName || d.lang, locale)}`}>
+  <a class="back" href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'detail.backDatasets')}</a>
+
+  <div class="hero model-hero">
+    <span class="avatar big dataset-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 7.5h6l2 2h9v9h-17z"/><path d="M3.5 7.5v-2h6l2 2"/></svg></span>
+    <div>
+      <h1>{d.name}</h1>
+      <p class="subtitle">{d.class} · {d.source}</p>
+    </div>
+  </div>
+
+  <section class="tags">
+    <span class="tag lang">{languageLabel(d.lang, d.langName || d.lang, locale)}</span>
+    <span class="tag">{d.source || '-'}</span>
+    {hasModel
+      ? <a class="tag voices" href={localizedPath(base, locale, `/model/${d.modelSlug}/`)}>{t(locale, 'dataset.modelAssociated', { model: d.model })}</a>
+      : <span class="tag q-medium">{t(locale, 'datasets.toTrain')}</span>}
+  </section>
+
+  <div class="model-cols">
+    <div class="model-main">
+      <section class="sec first">
+        <h2>{t(locale, 'dataset.information')}</h2>
+        <dl class="details">
+          <div><dt>{t(locale, 'dataset.class')}</dt><dd>{d.class || '-'}</dd></div>
+          <div><dt>{t(locale, 'dataset.source')}</dt><dd>{d.source || '-'}</dd></div>
+          <div><dt>{t(locale, 'detail.language')}</dt><dd>{languageLabel(d.lang, d.langName || d.lang, locale)}</dd></div>
+          <div><dt>{t(locale, 'detail.repository')}</dt><dd>{d.repo
+            ? <a href={`https://huggingface.co/datasets/${d.repo}`}>{d.repo}</a>
+            : t(locale, 'common.none')}</dd></div>
+          <div><dt>{t(locale, 'dataset.status')}</dt><dd>{hasModel ? t(locale, 'dataset.filesAndModel') : t(locale, 'dataset.filesAvailable')}</dd></div>
+        </dl>
+      </section>
+
+      <section class="sec">
+        <h2>{t(locale, 'dataset.trainVoice')}</h2>
+        <p class="dim">
+          {hasModel
+            ? t(locale, 'dataset.modelAlreadyAssociated')
+            : t(locale, 'dataset.noModelYet', { metadata: 'metadata.csv', wavs: 'wavs', onnx: 'model.onnx', json: 'model.onnx.json' })}
+        </p>
+      </section>
+    </div>
+    <aside class="model-side">
+      <section class="sec first">
+          <h2>{t(locale, 'dataset.links')}</h2>
+        <div class="dl-row">
+          {d.repo && !d.repo.startsWith('↔') &&
+            <a class="btn-dl" href={`https://huggingface.co/datasets/${d.repo}`}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v10m0 0 4-4m-4 4-4-4M3.5 14.5v2h13v-2"/></svg>{t(locale, 'dataset.openDataset')}</a>}
+          {d.thread &&
+            <a class="btn-dl ghost" href={`https://discord.com/channels/1523276835712929946/${d.thread}`}>{t(locale, 'detail.discussion')}</a>}
+        </div>
+      </section>
+
+      {hasModel && (
+        <section class="sec">
+          <h2>{t(locale, 'dataset.model')}</h2>
+          <div class="dl-row">
+            <a class="btn-dl" href={localizedPath(base, locale, `/model/${d.modelSlug}/`)}>→ {d.model}</a>
+          </div>
+        </section>
+      )}
+    </aside>
+  </div>
+
+</Layout>

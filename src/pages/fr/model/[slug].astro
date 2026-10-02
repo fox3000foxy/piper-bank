@@ -1,6 +1,6 @@
 ---
-import ModelDetailPage from '../../components/pages/ModelDetailPage.astro';
-import models from '../../data/models.json';
+import ModelDetailPage from '../../../components/pages/ModelDetailPage.astro';
+import models from '../../../data/models.json';
 
 export async function getStaticPaths() {
   return models.filter((model) => model.usable).map((model) => ({ params: { slug: model.slug }, props: { model } }));
@@ -8,4 +8,4 @@ export async function getStaticPaths() {
 
 const { model } = Astro.props;
 ---
-<ModelDetailPage model={model} locale="en" />
+<ModelDetailPage model={model} locale="fr" />
