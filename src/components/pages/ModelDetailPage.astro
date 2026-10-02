@@ -1,0 +1,379 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
+
+const { locale = 'fr' as Locale } = Astro.props;
+const { model: m } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const avatar = m.avatar || { emoji: '?', hue: 260, icon: null };
+const voicePairs = (m.voiceNames || []).map((vn, i) => ({
+  name: vn, sid: (m.voiceIds || [])[i] ?? i,
+}));
+const waveformPath = (seed: number) => {
+  let state = (Math.abs(Math.trunc(seed)) || 1) >>> 0;
+  let height = 4;
+  return Array.from({ length: 68 }, (_, i) => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    height = Math.round(height * 0.52 + (3 + (state % 23)) * 0.48);
+    return `M${4 + i * 8} ${28 - height / 2}v${height}`;
+  }).join(' ');
+};
+---
+
+<Layout title={m.name} active="voices" locale={locale} pageUrl={`/model/${m.slug}/`}
+  description={t(locale, 'voices.description')} subtitle={`${locale === 'fr' ? 'par' : 'by'} ${m.author}`}>
+
+    <a class="back" href={localizedPath(base, locale, '/voices/')}>{t(locale, 'detail.backVoices')}</a>
+    <div class="hero model-hero">
+      <span class="avatar-wrap">
+        <span class="avatar big" style={`--h:${avatar.hue ?? 260}`} aria-hidden="true">
+          {avatar.icon
+            ? <img src={`${base}${avatar.icon}`} alt="" />
+            : avatar.universe === 'default'
+              ? <svg class="avatar-wave" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 13v6m5-11v16m5-19v22m5-17v12m5-8v4" /></svg>
+              : avatar.emoji}
+        </span>
+        {avatar.certified && <img class="cert big-cert" src={`${base}icons/certified.svg`} alt={t(locale, 'detail.modelOfficial')} title={t(locale, 'detail.modelOfficial')} />}
+      </span>
+      <div>
+        <h1>{m.name}</h1>
+        <p class="subtitle">{locale === 'fr' ? 'par' : 'by'} {m.author} · {m.repo}</p>
+      </div>
+    </div>
+
+    <section class="tags">
+      <span class="tag lang">{languageLabel(m.lang, m.langName, locale)}</span>
+      <span class={`tag q-${m.quality}`}>{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</span>
+      {m.voices > 1
+        ? <span class="tag voices">{formatNumber(locale, m.voices)} {locale === 'fr' ? 'voix' : 'voices'}</span>
+        : <span class="tag">{t(locale, 'common.oneSpeaker')}</span>}
+      {m.dataset
+        ? <a class="tag voices" href={localizedPath(base, locale, `/dataset/${m.dataset.slug || ''}/`)} title={m.dataset.repo}>{t(locale, 'detail.dataset')}</a>
+        : <span class="tag q-medium">{t(locale, 'detail.noDataset')}</span>}
+      <span class="tag type">{m.phonemeType === 'text' ? `${t(locale, 'detail.phonemes')}: ${locale === 'fr' ? 'texte' : 'text'}` : `${t(locale, 'detail.phonemes')}: ${((m.configs || {}).espeak || {}).voice || 'espeak'}`}</span>
+      <span class="tag">{formatNumber(locale, m.sampleRate)} Hz</span>
+    </section>
+
+    <div class="model-cols">
+      <div class="model-main">
+    <section class="sec first">
+      <h2>{t(locale, 'detail.synthesis')}</h2>
+      <textarea id="text" rows="7" placeholder={t(locale, 'detail.enterText')}></textarea>
+      <div class="editor-submit"><span id="status" class="dim" aria-live="polite"></span><button id="go">{t(locale, 'detail.generateAudio')} <span aria-hidden="true">→</span></button></div>
+      <div id="synthesis-player" class="synthesis-player" style={`--synth-hue:${avatar.hue ?? 260}`} hidden>
+        <button id="synthesis-toggle" class="sample-play" type="button" aria-label={t(locale, 'detail.playSynthesis')} data-play-label={t(locale, 'detail.playSynthesis')} data-pause-label={t(locale, 'detail.pauseSynthesis')}>
+          <svg class="play-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4.8 8 5.2-8 5.2z"/></svg>
+          <svg class="pause-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10m6-10v10"/></svg>
+        </button>
+        <div class="synthesis-track">
+          <div class="synthesis-wave">
+            <svg viewBox="0 0 540 56" preserveAspectRatio="none" aria-hidden="true">
+              <defs><clipPath id="synthesis-progress-clip" clipPathUnits="userSpaceOnUse"><rect id="synthesis-progress" x="0" y="0" width="0" height="56" /></clipPath></defs>
+              <path class="synthesis-wave-rest" d={waveformPath(m.sampleRate + m.name.length)} />
+              <path class="synthesis-wave-played" d={waveformPath(m.sampleRate + m.name.length)} clip-path="url(#synthesis-progress-clip)" />
+            </svg>
+            <input id="synthesis-seek" type="range" min="0" max="1000" value="0" aria-label={t(locale, 'detail.synthesisPosition')} />
+          </div>
+          <div class="synthesis-time"><span id="synthesis-current">0:00</span><span id="synthesis-duration">0:00</span></div>
+        </div>
+      </div>
+      <audio id="player" preload="none" hidden></audio>
+    </section>
+
+      <section class="sec">
+        <h2>{t(locale, 'detail.information')}</h2>
+      <dl class="details">
+        <div><dt>{t(locale, 'detail.author')}</dt><dd>{m.author}</dd></div>
+        <div><dt>{t(locale, 'detail.repository')}</dt><dd><a href={`https://huggingface.co/${m.repo}`}>{m.repo}</a></dd></div>
+        <div><dt>{t(locale, 'detail.language')}</dt><dd>{languageLabel(m.lang, m.langName, locale)}</dd></div>
+        <div><dt>{t(locale, 'detail.quality')}</dt><dd class="cap">{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</dd></div>
+        <div><dt>{t(locale, 'detail.speakers')}</dt><dd>{formatNumber(locale, m.voices)}</dd></div>
+        <div><dt>{t(locale, 'detail.phonemes')}</dt><dd>{m.phonemeType === 'text' ? (locale === 'fr' ? 'texte' : 'text') : (((m.configs || {}).espeak || {}).voice || 'espeak')}</dd></div>
+        <div><dt>{t(locale, 'detail.sampleRate')}</dt><dd>{formatNumber(locale, m.sampleRate)} Hz</dd></div>
+      </dl>
+    </section>
+
+    <section class="sec">
+      <h2>{t(locale, 'detail.dataset')}</h2>
+      {m.dataset
+        ? <div><a href={localizedPath(base, locale, m.dataset.slug ? `/dataset/${m.dataset.slug}/` : '/datasets/')}>{m.dataset.name}</a> <span class="dim">· {m.dataset.source} · {m.dataset.repo}</span></div>
+        : <div><p class="dim">{t(locale, 'detail.noDataset')}</p></div>}
+    </section>
+
+
+      </div>
+      <aside class="model-side">
+    <section class="sec first setting-section">
+      <h2>{t(locale, 'detail.voiceSettings')}</h2>
+      {voicePairs.length > 1 ? <label class="synthesis-voice">{t(locale, 'detail.voiceToSynthesize')}
+        <select id="voice-select" aria-label={t(locale, 'detail.selectVoice')}>
+          {voicePairs.map((voice) => <option value={voice.sid}>{voice.name}</option>)}
+        </select>
+      </label> : <p class="dim synthesis-single-voice">{locale === 'fr' ? 'Voix' : 'Voice'}: {voicePairs[0]?.name || (locale === 'fr' ? 'par défaut' : 'default')}</p>}
+      <div class="setting-grid">
+        <label>{t(locale, 'detail.speed')} <input id="len" type="number" step="0.05" min="0.2" max="3" placeholder={locale === 'fr' ? '1,0' : '1.0'} /></label>
+        <label>{t(locale, 'detail.noise')} <input id="noise" type="number" step="0.05" min="0" max="1.5" placeholder={locale === 'fr' ? '0,667' : '0.667'} /></label>
+      </div>
+    </section>
+    <section class="sec download-section">
+      <h2>{t(locale, 'detail.downloads')}</h2>
+      <div class="dl-row">
+        <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.onnx}`} aria-label={locale === 'fr' ? 'Télécharger le modèle ONNX' : 'Download the ONNX model'}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v10m0 0 4-4m-4 4-4-4M3.5 14.5v2h13v-2"/></svg>model.onnx</a>
+        <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.json}`} aria-label={locale === 'fr' ? 'Télécharger la configuration JSON' : 'Download the JSON configuration'}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v10m0 0 4-4m-4 4-4-4M3.5 14.5v2h13v-2"/></svg>model.onnx.json</a>
+        <a class="btn-dl ghost" href={`https://huggingface.co/${m.repo}`}>{t(locale, 'detail.huggingFace')}</a>
+        {m.thread && <a class="btn-dl ghost" href={`https://discord.com/channels/1523276835712929946/${m.thread}`}>{t(locale, 'detail.discussion')}</a>}
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>{t(locale, 'detail.voiceSamples', { count: formatNumber(locale, m.voices) })}</h2>
+      <p class="dim">{t(locale, 'detail.sampleHelp')}</p>
+      <div id="voice-list" class="voice-list">
+        {voicePairs.slice(0, 120).map((v, i) => {
+          const clipId = `voice-progress-${m.slug}-${i}`;
+          const waveform = waveformPath(Number(v.sid) + i * 97 + 1);
+          return (
+          <div class="player" style={`--voice-hue:${(i * 51.43 + 18) % 360}`} data-sid={v.sid} data-vname={v.name}>
+            <button class="pp" aria-label={t(locale, 'detail.listenVoice', { name: v.name })}>
+              <svg class="icon-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5 14 10l-8 5.5z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 5v10m7-10v10"/></svg>
+            </button>
+            <div class="pbody">
+              <div class="prow">
+                <button class="pname" title={v.name}>{v.name}</button>
+                <span class="ex-sw">
+                  <button class="ex on" data-n="0" title={t(locale, 'detail.sampleN', { number: 1 })}>1</button><button class="ex" data-n="1" title={t(locale, 'detail.sampleN', { number: 2 })}>2</button>
+                </span>
+                <span class="ptime">0:00</span>
+              </div>
+              <div class="pwave">
+                <svg class="pwave-svg" viewBox="0 0 540 56" preserveAspectRatio="none" aria-hidden="true">
+                  <defs><clipPath id={clipId} clipPathUnits="userSpaceOnUse"><rect class="pwave-progress" x="0" y="0" width="0" height="56" /></clipPath></defs>
+                  <path class="pwave-rest" d={waveform} />
+                  <path class="pwave-played" d={waveform} clip-path={`url(#${clipId})`} />
+                </svg>
+                <input class="pbar" type="range" min="0" max="1000" value="0" aria-label={t(locale, 'detail.samplePosition', { name: v.name })} />
+              </div>
+              <div class="psamples">
+                <audio preload="none" data-n="0"></audio>
+                <audio preload="none" data-n="1"></audio>
+              </div>
+            </div>
+          </div>
+          );
+        })}
+        {voicePairs.length > 120 && <p class="dim">{t(locale, 'detail.moreSpeakers', { count: formatNumber(locale, voicePairs.length - 120) })}</p>}
+      </div>
+    </section>
+      </aside>
+    </div>
+
+    <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
+    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), loading: t(locale, 'detail.loading'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure') } })} />
+    <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
+    <script type="module">
+      const model = JSON.parse(document.getElementById('model-data').textContent);
+      const ui = JSON.parse(document.getElementById('ui-messages').textContent);
+      const message = (template, values = {}) => template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
+      const formatCount = (n) => new Intl.NumberFormat(ui.locale === 'fr' ? 'fr-FR' : 'en-US').format(n);
+      const siteBase = window.__BASE__;
+      const HF_SAMPLES = 'https://huggingface.co/datasets/fox3000foxy/piper-samples/resolve/main/';
+      const safe = (s) => s.replace(/[^a-zA-Z0-9\-_.]/g, '_');
+      const sampleBase = safe(model.repo.replace('/', '--') + '__' + model.onnx.replace('/', '_').replace(/\.onnx$/, ''));
+      const sampleUrl = (sid, n) => `${HF_SAMPLES}${sampleBase}__sp${sid}__${n}.wav`;
+
+      // Keep one preview active and expose seeking through a native range control.
+      let currentAudio = null, currentCard = null, progressFrame = 0;
+      const voiceSelect = document.getElementById('voice-select');
+      if (voiceSelect) window.__selSid = Number(voiceSelect.value);
+      voiceSelect?.addEventListener('change', () => { window.__selSid = Number(voiceSelect.value); });
+      const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+      const resetCard = (card) => {
+        if (!card) return;
+        card.classList.remove('playing');
+        const button = card.querySelector('.pp');
+        button?.classList.remove('is-playing');
+        button?.setAttribute('aria-label', message(ui.labels.listenVoice, { name: card.dataset.vname }));
+      };
+      const stopCurrent = () => {
+        cancelAnimationFrame(progressFrame);
+        if (currentAudio) currentAudio.pause();
+        resetCard(currentCard);
+        currentAudio = null;
+        currentCard = null;
+      };
+      document.querySelectorAll('.player').forEach((card) => {
+        const sid = Number(card.dataset.sid);
+        const btn = card.querySelector('.pp');
+        const time = card.querySelector('.ptime');
+        const seek = card.querySelector('.pbar');
+        const waveformProgress = card.querySelector('.pwave-progress');
+        const audios = [...card.querySelectorAll('audio')];
+        const exBtns = [...card.querySelectorAll('.ex')];
+        audios.forEach((a, n) => { a.src = sampleUrl(sid, n); });
+        let idx = 0;
+        const audio = () => audios[idx];
+        const paint = () => {
+          const a = audio(), d = a.duration || 0, c = a.currentTime || 0;
+          const progress = d ? Math.min(1, Math.max(0, c / d)) : 0;
+          seek.value = String(Math.round(progress * Number(seek.max)));
+          waveformProgress.setAttribute('width', String(540 * progress));
+          seek.setAttribute('aria-valuetext', d ? message(ui.labels.durationPair, { current: fmt(c), duration: fmt(d) }) : fmt(c));
+          time.textContent = d ? `${fmt(c)} / ${fmt(d)}` : fmt(c);
+        };
+        const animateProgress = () => {
+          if (currentAudio !== audio() || audio().paused) return;
+          paint();
+          progressFrame = requestAnimationFrame(animateProgress);
+        };
+        const play = async (sampleIndex = idx) => {
+          idx = sampleIndex;
+          exBtns.forEach((item, n) => item.classList.toggle('on', n === idx));
+          const a = audio();
+          if (currentAudio && currentAudio !== a) stopCurrent();
+          if (!a.paused) { stopCurrent(); return; }
+          if (a.error) a.load();
+          if (a.ended) a.currentTime = 0;
+          currentAudio = a; currentCard = card;
+          try {
+            await a.play();
+            if (currentAudio === a && !a.paused) {
+              card.classList.add('playing');
+              btn.classList.add('is-playing');
+              btn.setAttribute('aria-label', message(ui.labels.pauseVoice, { name: card.dataset.vname }));
+              cancelAnimationFrame(progressFrame);
+              progressFrame = requestAnimationFrame(animateProgress);
+            }
+          } catch {
+            if (currentAudio === a) {
+              resetCard(card);
+              time.textContent = ui.labels.sampleUnavailable;
+              currentAudio = null; currentCard = null;
+            }
+          }
+        };
+        audios.forEach((a) => {
+          a.addEventListener('timeupdate', () => { if (a === audio()) paint(); });
+          a.addEventListener('loadedmetadata', () => { if (a === audio()) paint(); });
+          a.addEventListener('waiting', () => { if (a === audio()) { card.classList.add('loading'); time.textContent = ui.labels.loading; } });
+          a.addEventListener('playing', () => { if (a === audio()) { card.classList.remove('loading'); paint(); } });
+          a.addEventListener('pause', () => {
+            if (a === currentAudio && !a.ended) {
+              resetCard(card);
+              currentAudio = null; currentCard = null;
+            }
+          });
+          a.addEventListener('ended', () => { if (a === currentAudio) stopCurrent(); paint(); });
+          a.addEventListener('error', () => {
+            if (a === audio()) {
+              card.classList.remove('loading');
+              time.textContent = ui.labels.sampleUnavailable;
+              resetCard(card);
+              if (a === currentAudio) { currentAudio = null; currentCard = null; }
+            }
+          });
+        });
+        btn.addEventListener('click', () => { void play(); });
+        exBtns.forEach((item, n) => item.addEventListener('click', (event) => {
+          event.stopPropagation();
+          void play(n);
+        }));
+        seek.addEventListener('input', () => {
+          const a = audio();
+          if (Number.isFinite(a.duration) && a.duration > 0) {
+            a.currentTime = (Number(seek.value) / Number(seek.max)) * a.duration;
+            paint();
+          }
+        });
+        card.querySelector('.pname').addEventListener('click', () => {
+          document.querySelectorAll('.pname').forEach((item) => item.classList.remove('sel'));
+          card.querySelector('.pname').classList.add('sel');
+          window.__selSid = sid;
+          if (voiceSelect) voiceSelect.value = String(sid);
+        });
+      });
+
+      const { synthesize } = await new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
+      const go = document.getElementById('go');
+      const synthesisAudio = document.getElementById('player');
+      const synthesisControl = document.getElementById('synthesis-player');
+      const synthesisToggle = document.getElementById('synthesis-toggle');
+      const synthesisSeek = document.getElementById('synthesis-seek');
+      const synthesisProgress = document.getElementById('synthesis-progress');
+      const synthesisCurrent = document.getElementById('synthesis-current');
+      const synthesisDuration = document.getElementById('synthesis-duration');
+      let synthesisUrl = '', synthesisFrame = 0;
+      const paintSynthesis = () => {
+        const duration = Number.isFinite(synthesisAudio.duration) ? synthesisAudio.duration : 0;
+        const current = synthesisAudio.currentTime || 0;
+        const progress = duration ? Math.min(1, Math.max(0, current / duration)) : 0;
+        synthesisSeek.value = String(Math.round(progress * Number(synthesisSeek.max)));
+        synthesisProgress.setAttribute('width', String(540 * progress));
+        synthesisCurrent.textContent = fmt(current);
+        synthesisDuration.textContent = fmt(duration);
+        synthesisSeek.setAttribute('aria-valuetext', message(ui.labels.durationPair, { current: fmt(current), duration: fmt(duration) }));
+      };
+      const animateSynthesis = () => {
+        paintSynthesis();
+        if (!synthesisAudio.paused && !synthesisAudio.ended) synthesisFrame = requestAnimationFrame(animateSynthesis);
+      };
+      synthesisToggle.addEventListener('click', () => {
+        if (synthesisAudio.paused) {
+          if (synthesisAudio.ended) synthesisAudio.currentTime = 0;
+          synthesisAudio.play().catch(() => {});
+        } else synthesisAudio.pause();
+      });
+      synthesisAudio.addEventListener('play', () => {
+        synthesisToggle.classList.add('is-playing');
+        synthesisToggle.setAttribute('aria-label', synthesisToggle.dataset.pauseLabel);
+        cancelAnimationFrame(synthesisFrame);
+        synthesisFrame = requestAnimationFrame(animateSynthesis);
+      });
+      synthesisAudio.addEventListener('pause', () => {
+        synthesisToggle.classList.remove('is-playing');
+        synthesisToggle.setAttribute('aria-label', synthesisToggle.dataset.playLabel);
+        cancelAnimationFrame(synthesisFrame);
+        paintSynthesis();
+      });
+      synthesisAudio.addEventListener('timeupdate', paintSynthesis);
+      synthesisAudio.addEventListener('loadedmetadata', paintSynthesis);
+      synthesisAudio.addEventListener('ended', paintSynthesis);
+      synthesisSeek.addEventListener('input', () => {
+        if (Number.isFinite(synthesisAudio.duration) && synthesisAudio.duration > 0) {
+          synthesisAudio.currentTime = Number(synthesisSeek.value) / Number(synthesisSeek.max) * synthesisAudio.duration;
+          paintSynthesis();
+        }
+      });
+      go.addEventListener('click', async () => {
+        const text = document.getElementById('text').value.trim();
+        const status = document.getElementById('status');
+        if (!text) { status.textContent = ui.labels.enterText; return; }
+        synthesisAudio.pause();
+        synthesisAudio.removeAttribute('src');
+        synthesisAudio.load();
+        synthesisControl.hidden = true;
+        if (synthesisUrl) URL.revokeObjectURL(synthesisUrl);
+        synthesisUrl = '';
+        go.disabled = true;
+        try {
+          const blob = await synthesize({
+            repo: model.repo, onnx: model.onnx, configs: model.configs,
+            phonemeType: model.phonemeType, phonemeIdMap: model.phonemeIdMap,
+            sampleRate: model.sampleRate, text,
+            speakerId: window.__selSid ?? null,
+            lengthScale: parseFloat(document.getElementById('len').value) || undefined,
+            noiseScale: parseFloat(document.getElementById('noise').value) || undefined,
+          }, (s) => { status.textContent = message(ui.labels.synthProgress, { progress: s }); });
+          synthesisUrl = URL.createObjectURL(blob);
+          synthesisAudio.src = synthesisUrl;
+          synthesisAudio.hidden = true;
+          synthesisControl.hidden = false;
+          synthesisAudio.load();
+          paintSynthesis();
+          status.textContent = ui.labels.audioReady;
+          synthesisAudio.play().catch(() => {});
+        } catch (e) { status.textContent = message(ui.labels.synthFailure, { message: e.message || e }); }
+        finally { go.disabled = false; }
+      });
+    </script>
+</Layout>
