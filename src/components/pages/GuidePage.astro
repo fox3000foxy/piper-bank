@@ -1,0 +1,299 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { t, type Locale } from '../../i18n/ui';
+
+const { locale = 'en' as Locale } = Astro.props;
+const copy = {
+  fr: {
+    title: 'Guides',
+    description: 'Préparez un jeu de données LJSpeech et entraînez une voix Piper avec le notebook Kaggle.',
+    eyebrow: 'GUIDE PRATIQUE · PIPER TTS',
+    headline: 'Des enregistrements\nà une voix.',
+    intro: 'Les étapes essentielles pour préparer vos données vocales et entraîner un modèle Piper. Les limites Kaggle peuvent évoluer : vérifiez votre quota avant un long entraînement.',
+    contents: 'Dans ce guide',
+    datasetTitle: 'Créer un jeu de données LJSpeech pour Piper TTS',
+    datasetIntro: 'LJSpeech est le format standard attendu par Piper. Chaque phrase est un fichier WAV séparé, associé à sa transcription dans metadata.csv.',
+    archiveLabel: 'STRUCTURE DE L’ARCHIVE',
+    archive: `data.zip\n├── metadata.csv   # nom_du_fichier|transcription\n└── wavs/\n    ├── 000001.wav\n    └── ...`,
+    step1: 'Récupérer les fichiers audio',
+    step1copy: 'Utilisez des enregistrements que vous pouvez traiter et redistribuer. Les sources peuvent être des wikis de jeux, des médias que vous possédez, ou des jeux de données publics.',
+    hfSearch: 'Chercher des jeux LJSpeech sur Hugging Face',
+    ytDlp: 'Télécharger une source vidéo avec yt-dlp',
+    step2: 'Découper en phrases',
+    step2copy: 'Préparez un fichier WAV par phrase. Pour le découpage automatique ou l’alignement, vous pouvez utiliser :',
+    tools: ['audiosplitter · découpage automatique', 'Montreal Forced Aligner (MFA) · alignement forcé', 'faster-whisper + VAD · transcription et horodatages', 'Audacity · découpage manuel pour les petits volumes'],
+    step3: 'Créer metadata.csv',
+    step3copy: 'Une ligne par fichier. Le séparateur est une barre verticale ; le nom doit correspondre exactement au fichier présent dans wavs/.',
+    metadata: `000001.wav|Ceci est une phrase d'exemple.\n000002.wav|Voici une autre phrase pour l'entraînement.`,
+    step4: 'Compresser l’archive',
+    step4copy: 'Placez metadata.csv et le dossier wavs/ à la racine de l’archive.',
+    zip: 'zip -r data.zip metadata.csv wavs/',
+    step5: 'Téléverser sur Hugging Face',
+    step5copy: 'Créez un dépôt de jeu de données, par exemple user/wheatley-english-ljspeech. Ajoutez data.zip et un README.md contenant la configuration :',
+    yaml: `---\nconfigs:\n- config_name: default\n  data_files:\n  - split: train\n    path: data.zip\n---`,
+    newDataset: 'Créer un jeu de données',
+    exampleProfile: 'Voir les exemples de fox3000foxy',
+    step6: 'Publier sur le forum Piper',
+    step6copy: 'Créez un fil dans le canal de jeux de données et d’entraînement avec le lien Hugging Face et le tag approprié.',
+    forum: 'Ouvrir le canal Discord',
+    trainingTitle: 'Entraîner une voix sur Kaggle',
+    trainingIntro: 'Le quota GPU est attribué par Kaggle au compte et peut varier selon la disponibilité. Consultez le compteur avant de lancer une session longue.',
+    quotaTitle: 'Quota GPU hebdomadaire',
+    quotaValue: '30 h · parfois davantage',
+    quotaCopy: 'Kaggle indique une base de 30 heures par semaine, susceptible d’être supérieure selon la demande et les ressources disponibles. Le quota se réinitialise le samedi à 00:00 UTC.',
+    sessionTitle: 'Durée maximale d’une session',
+    sessionValue: '12 heures',
+    sessionCopy: 'La documentation Kaggle indique une limite continue de 12 heures pour les sessions CPU et GPU. Un notebook CPU ne consomme pas le quota GPU, mais sa durée de session reste limitée.',
+    acceleratorTitle: 'Accélérateur disponible',
+    acceleratorCopy: 'Kaggle a retiré le Tesla P100 le 15 septembre 2026. Le T4 x2 reste proposé dans les notebooks ; choisissez-le pour l’entraînement Piper plutôt que de suivre d’anciens guides P100.',
+    resumeTitle: 'Reprendre après une coupure',
+    resumeCopy: 'Un entraînement complet dépasse souvent les 12 heures d’une session. Le notebook Piper de ce projet reprend depuis un checkpoint Hugging Face : après une coupure ou un quota épuisé, relancez-le pour continuer depuis le dernier checkpoint enregistré.',
+    beforeTitle: 'Avant un entraînement long',
+    beforeList: ['Vérifiez le quota restant dans les paramètres du notebook, votre profil ou la page d’usage des accélérateurs.', 'Arrêtez les sessions GPU quand vous ne les utilisez pas.', 'Utilisez le T4 x2 ; le P100 n’est plus disponible sur Kaggle.'],
+    kaggleQuota: 'Documentation Kaggle · quota GPU',
+    kaggleNotebooks: 'Documentation Kaggle · notebooks',
+    p100Notice: 'Annonce Kaggle · retrait du P100',
+    footnote: 'Les quotas, accélérateurs et interfaces de Kaggle peuvent changer. Vérifiez toujours les informations affichées dans votre compte avant un entraînement.',
+    useVoiceTitle: 'Utiliser une voix Piper',
+    useVoiceIntro: 'Installez Piper, récupérez les deux fichiers de la voix choisie, puis générez un WAV en local. Les commandes ci-dessous utilisent la version maintenue par Open Home Foundation.',
+    installTitle: 'Installer Piper',
+    installCopy: 'Piper est distribué comme paquet Python. Les anciens guides qui utilisent le dépôt rhasspy/piper ou son archive binaire correspondent à la version historique.',
+    downloadTitle: 'Télécharger une voix',
+    downloadCopy: 'Choisissez une voix dans le catalogue puis téléchargez son modèle ONNX et son fichier de configuration JSON associé. Gardez les deux fichiers ensemble ; le chemin JSON est le chemin du modèle suivi de .json.',
+    voiceCatalog: 'Parcourir les voix Piper sur Hugging Face',
+    voiceForum: 'Chercher une voix sur le forum',
+    synthTitle: 'Générer un fichier WAV',
+    synthCopy: 'Téléchargez d’abord une voix depuis le catalogue Piper, ou remplacez le nom ci-dessous par le chemin de votre fichier .onnx.',
+    textFileTitle: 'Lire le texte depuis un fichier',
+    rawTitle: 'Lire le son en sortie directe',
+    rawCopy: 'La fréquence d’échantillonnage dépend de la voix. Vérifiez voice.onnx.json et remplacez 22050 si nécessaire.',
+    pythonTitle: 'Depuis Python',
+    homeAssistantTitle: 'Avec Home Assistant',
+    homeAssistantCopy: 'Piper s’intègre à Home Assistant via Wyoming. Ajoutez Piper dans Paramètres → Appareils et services, puis utilisez l’action tts.speak avec l’entité TTS Piper.',
+    homeAssistantLink: 'Configurer Piper dans Home Assistant',
+    nodeRedTitle: 'Avec Node-RED',
+    nodeRedCopy: 'Le paquet node-red-contrib-piper-tts cité dans certains guides n’est pas confirmé dans le catalogue public. Une option consiste à appeler la commande Piper depuis le nœud Exec intégré ; adaptez les chemins et droits d’accès à votre installation.',
+    adviceTitle: 'Ajuster le rendu',
+    adviceCopy: 'La qualité dépend notamment des données d’entraînement et de la voix choisie. Une valeur length-scale plus élevée ralentit la parole ; une valeur plus basse l’accélère. noise-scale et noise-w modifient la variation de la génération.',
+    usefulLinks: 'Documentation et liens utiles',
+    piperDocs: 'Piper · documentation CLI',
+    pythonDocs: 'Piper · API Python',
+    piperProject: 'Projet Piper maintenu',
+    synthCommand: 'python -m piper -m ./voice.onnx -f output.wav -- "Bonjour, ceci est un test."',
+    rawCommand: 'echo "Bonjour." | python -m piper -m ./voice.onnx --output-raw | aplay -r 22050 -f S16_LE -c 1 -t raw',
+    pythonExample: 'import wave\nfrom piper import PiperVoice\n\nvoice = PiperVoice.load("./voice.onnx")\nwith wave.open("output.wav", "wb") as wav_file:\n    voice.synthesize_wav("Bonjour le monde.", wav_file)',
+    slowCommand: 'python -m piper -m ./voice.onnx --length-scale 1.5 --noise-scale 0.667 --noise-w 0.8 -f lent.wav -- "Texte lent."\npython -m piper -m ./voice.onnx --length-scale 0.7 --noise-scale 0.667 --noise-w 0.8 -f rapide.wav -- "Texte rapide."',
+    npmTitle: 'Intégrer Piper dans un projet Node.js avec pipertts',
+    npmIntro: 'pipertts est un wrapper TypeScript qui expose Piper dans Node.js, avec écriture de fichiers ou retour audio en mémoire. Le mode standard lance Piper via Python ; le paquet npm ne fournit ni l’exécutable Python ni les voix.',
+    npmInstall: 'Installer les dépendances',
+    npmInstallCopy: 'La documentation annonce Node.js 18+ et TypeScript 5+. Pour le mode wrapper, installez aussi Python et Piper. Le modèle vocal reste un fichier séparé ; la sélection par identifiant de catalogue peut télécharger le modèle et sa configuration dans models/.',
+    npmQuickStart: 'Démarrage avec une voix du catalogue',
+    npmCustomVoice: 'Utiliser un modèle local',
+    npmCustomCopy: 'Pour une voix téléchargée manuellement, passez le chemin du fichier ONNX. Le fichier .onnx.json associé doit être placé à côté ; vous pouvez préciser configPath si son emplacement diffère.',
+    npmApi: 'API et formats',
+    npmApiCopy: 'synthesize() retourne un Buffer audio et la durée en millisecondes ; synthesizeToFile() écrit directement sur disque. Les options sont en camelCase : lengthScale (> 1 ralentit, < 1 accélère), noiseScale, noiseWScale, speakerId et outputFormat (wav, raw, mp3, ogg ou opus). Le transcodage hors WAV peut dépendre de FFmpeg ; le format ogg le requiert.',
+    npmNative: 'Inférence native en processus',
+    npmNativeCopy: 'PiperNativeTTS garde la session ONNX chargée pour enchaîner les synthèses sans lancer Python à chaque appel ; ce mode natif n’a pas besoin du runtime Python. Certaines langues peuvent télécharger des données de phonémisation au premier lancement.',
+    npmDocs: 'Documentation et exemples pipertts',
+    npmHome: 'Page npm de pipertts',
+    npmRepo: 'Dépôt GitHub de pipertts',
+    npmInstallCommand: 'npm install pipertts\npython3 -m pip install piper-tts',
+    npmExample: 'import { PiperTTS } from "pipertts";\n\nconst tts = await PiperTTS.create({\n  model: "en_US-lessac-medium",\n  modelsDir: "./models",\n  defaultOptions: { outputFormat: "wav" },\n});\n\nawait tts.synthesizeToFile(\n  "Hello from Piper.",\n  "./hello.wav",\n);',
+    npmCustomExample: 'const tts = await PiperTTS.create({\n  model: "custom",\n  modelPath: "./models/my-voice.onnx",\n});\n\nconst result = await tts.synthesize("Hello.");\nconsole.log(result.durationMs);',
+    npmNativeExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/en_US-lessac-medium.onnx",\n});\nconst wav = await tts.synthesize("Hello from native Piper.");',
+  },
+  en: {
+    title: 'Guides',
+    description: 'Prepare an LJSpeech dataset and train a Piper voice with the Kaggle notebook.',
+    eyebrow: 'FIELD GUIDE · PIPER TTS',
+    headline: 'From recordings\nto a voice.',
+    intro: 'The essential steps for preparing voice data and training a Piper model. Kaggle limits can change, so check your quota before a long run.',
+    contents: 'In this guide',
+    datasetTitle: 'Create an LJSpeech dataset for Piper TTS',
+    datasetIntro: 'LJSpeech is the standard format expected by Piper. Each sentence is a separate WAV file, paired with its transcript in metadata.csv.',
+    archiveLabel: 'ARCHIVE STRUCTURE',
+    archive: `data.zip\n├── metadata.csv   # filename|transcript\n└── wavs/\n    ├── 000001.wav\n    └── ...`,
+    step1: 'Collect the audio files',
+    step1copy: 'Use recordings you are allowed to process and redistribute. Sources might include game wikis, media you own, or public datasets.',
+    hfSearch: 'Find LJSpeech datasets on Hugging Face',
+    ytDlp: 'Download source media with yt-dlp',
+    step2: 'Split the audio into sentences',
+    step2copy: 'Create one WAV file per sentence. For automatic splitting or alignment, these tools can help:',
+    tools: ['audiosplitter · automatic splitting', 'Montreal Forced Aligner (MFA) · forced alignment', 'faster-whisper + VAD · transcription and timestamps', 'Audacity · manual edits for smaller collections'],
+    step3: 'Create metadata.csv',
+    step3copy: 'Use one line per file. Separate the filename and transcript with a vertical bar; the filename must match the file in wavs/.',
+    metadata: `000001.wav|This is an example sentence.\n000002.wav|Here is another training sentence.`,
+    step4: 'Zip the archive',
+    step4copy: 'Place metadata.csv and the wavs/ directory at the archive root.',
+    zip: 'zip -r data.zip metadata.csv wavs/',
+    step5: 'Upload to Hugging Face',
+    step5copy: 'Create a dataset repository, for example user/wheatley-english-ljspeech. Add data.zip and a README.md with this configuration:',
+    yaml: `---\nconfigs:\n- config_name: default\n  data_files:\n  - split: train\n    path: data.zip\n---`,
+    newDataset: 'Create a dataset',
+    exampleProfile: 'Browse fox3000foxy examples',
+    step6: 'Post in the Piper forum',
+    step6copy: 'Start a thread in the datasets and training channel with the Hugging Face link and the appropriate tag.',
+    forum: 'Open the Discord channel',
+    trainingTitle: 'Train a voice on Kaggle',
+    trainingIntro: 'Kaggle assigns GPU quota to your account, and the allowance can vary with availability. Check the counter before starting a long session.',
+    quotaTitle: 'Weekly GPU quota',
+    quotaValue: '30 hours · sometimes more',
+    quotaCopy: 'Kaggle lists a 30-hour weekly baseline, which may be higher depending on demand and available resources. The quota resets on Saturday at 00:00 UTC.',
+    sessionTitle: 'Maximum session length',
+    sessionValue: '12 hours',
+    sessionCopy: 'Kaggle documentation lists a continuous 12-hour limit for CPU and GPU sessions. CPU-only notebooks do not use GPU quota, but their session length is still limited.',
+    acceleratorTitle: 'Available accelerator',
+    acceleratorCopy: 'Kaggle retired the Tesla P100 on September 15, 2026. T4 x2 remains available in notebooks; choose it for Piper training instead of following older P100 guides.',
+    resumeTitle: 'Resume after an interruption',
+    resumeCopy: 'A full training run often exceeds a 12-hour session. This project’s Piper notebook resumes from a Hugging Face checkpoint: after a timeout or an exhausted quota, run it again to continue from the latest saved checkpoint.',
+    beforeTitle: 'Before a long training run',
+    beforeList: ['Check your remaining quota in notebook settings, your profile, or the accelerator usage page.', 'Stop GPU sessions when you are not using them.', 'Use T4 x2; P100 is no longer available on Kaggle.'],
+    kaggleQuota: 'Kaggle docs · GPU quota',
+    kaggleNotebooks: 'Kaggle docs · notebooks',
+    p100Notice: 'Kaggle announcement · P100 retirement',
+    footnote: 'Kaggle quotas, accelerators, and interfaces can change. Always check the information shown in your account before training.',
+    useVoiceTitle: 'Use a Piper voice',
+    useVoiceIntro: 'Install Piper, get the two files for a voice, and generate a WAV locally. The commands below use the version maintained by the Open Home Foundation.',
+    installTitle: 'Install Piper',
+    installCopy: 'Piper is distributed as a Python package. Older guides using the rhasspy/piper repository or its binary archive refer to the historical release.',
+    downloadTitle: 'Download a voice',
+    downloadCopy: 'Choose a voice from the catalogue and download its ONNX model and matching JSON configuration file. Keep both files together; the JSON path is the model path followed by .json.',
+    voiceCatalog: 'Browse Piper voices on Hugging Face',
+    voiceForum: 'Search for a voice in the forum',
+    synthTitle: 'Generate a WAV file',
+    synthCopy: 'First download a voice from the Piper catalogue, or replace the name below with the path to your .onnx file.',
+    textFileTitle: 'Read text from a file',
+    rawTitle: 'Stream raw audio to playback',
+    rawCopy: 'The sample rate depends on the voice. Check voice.onnx.json and change 22050 if needed.',
+    pythonTitle: 'From Python',
+    homeAssistantTitle: 'With Home Assistant',
+    homeAssistantCopy: 'Home Assistant connects to Piper through Wyoming. Add Piper under Settings → Devices & services, then use the tts.speak action with the Piper TTS entity.',
+    homeAssistantLink: 'Set up Piper in Home Assistant',
+    nodeRedTitle: 'With Node-RED',
+    nodeRedCopy: 'The node-red-contrib-piper-tts package mentioned in some guides could not be confirmed in the public catalogue. One option is to call the Piper command from Node-RED’s built-in Exec node; adapt paths and permissions to your setup.',
+    adviceTitle: 'Adjust the output',
+    adviceCopy: 'Quality depends in part on the training data and selected voice. A higher length-scale slows speech; a lower value speeds it up. noise-scale and noise-w adjust variation in the generated audio.',
+    usefulLinks: 'Documentation and useful links',
+    piperDocs: 'Piper · CLI documentation',
+    pythonDocs: 'Piper · Python API',
+    piperProject: 'Maintained Piper project',
+    synthCommand: 'python -m piper -m ./voice.onnx -f output.wav -- "This is a speech synthesis test."',
+    rawCommand: 'echo "Hello." | python -m piper -m ./voice.onnx --output-raw | aplay -r 22050 -f S16_LE -c 1 -t raw',
+    pythonExample: 'import wave\nfrom piper import PiperVoice\n\nvoice = PiperVoice.load("./voice.onnx")\nwith wave.open("output.wav", "wb") as wav_file:\n    voice.synthesize_wav("Hello world.", wav_file)',
+    slowCommand: 'python -m piper -m ./voice.onnx --length-scale 1.5 --noise-scale 0.667 --noise-w 0.8 -f slow.wav -- "Slow speech."\npython -m piper -m ./voice.onnx --length-scale 0.7 --noise-scale 0.667 --noise-w 0.8 -f fast.wav -- "Fast speech."',
+    npmTitle: 'Use Piper in a Node.js project with pipertts',
+    npmIntro: 'pipertts is a TypeScript wrapper that exposes Piper in Node.js, with file output or in-memory audio. Its standard mode runs Piper through Python; the npm package does not include the Python executable or voice models.',
+    npmInstall: 'Install the dependencies',
+    npmInstallCopy: 'The docs specify Node.js 18+ and TypeScript 5+. For wrapper mode, also install Python and Piper. Voice models are separate files; selecting a catalogue ID can download the model and its config into models/.',
+    npmQuickStart: 'Quick start with a catalogue voice',
+    npmCustomVoice: 'Use a local model',
+    npmCustomCopy: 'For a voice you downloaded manually, pass the ONNX file path. Keep its matching .onnx.json file alongside it; set configPath if the config lives elsewhere.',
+    npmApi: 'API and output formats',
+    npmApiCopy: 'synthesize() returns an audio Buffer and duration in milliseconds; synthesizeToFile() writes directly to disk. Options use camelCase: lengthScale (> 1 slows speech, < 1 speeds it up), noiseScale, noiseWScale, speakerId, and outputFormat (wav, raw, mp3, ogg, or opus). Non-WAV transcoding may depend on FFmpeg; ogg requires it.',
+    npmNative: 'In-process native inference',
+    npmNativeCopy: 'PiperNativeTTS keeps the ONNX session loaded for repeated synthesis without spawning Python on every call; this native mode does not need the Python runtime. Some languages may download phonemization data on first use.',
+    npmDocs: 'pipertts documentation and examples',
+    npmHome: 'pipertts on npm',
+    npmRepo: 'pipertts on GitHub',
+    npmInstallCommand: 'npm install pipertts\npython3 -m pip install piper-tts',
+    npmExample: 'import { PiperTTS } from "pipertts";\n\nconst tts = await PiperTTS.create({\n  model: "en_US-lessac-medium",\n  modelsDir: "./models",\n  defaultOptions: { outputFormat: "wav" },\n});\n\nawait tts.synthesizeToFile(\n  "Hello from Piper.",\n  "./hello.wav",\n);',
+    npmCustomExample: 'const tts = await PiperTTS.create({\n  model: "custom",\n  modelPath: "./models/my-voice.onnx",\n});\n\nconst result = await tts.synthesize("Hello.");\nconsole.log(result.durationMs);',
+    npmNativeExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/en_US-lessac-medium.onnx",\n});\nconst wav = await tts.synthesize("Hello from native Piper.");',
+  },
+}[locale];
+
+const kaggleQuotaUrl = 'https://www.kaggle.com/docs/efficient-gpu-usage';
+const kaggleNotebooksUrl = 'https://www.kaggle.com/docs/notebooks';
+const p100NoticeUrl = 'https://www.kaggle.com/product-announcements/735239';
+const discordUrl = 'https://discord.com/channels/1523276835712929946/1523277508378886156';
+const voiceForumUrl = 'https://discord.com/channels/1523276835712929946/1523277617996894259';
+const piperttsUrl = 'https://www.npmjs.com/package/pipertts';
+const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
+---
+<Layout title={copy.title} description={copy.description} active="guides" locale={locale} pageUrl="/guides/">
+  <main class="guide-page">
+    <header class="guide-intro">
+      <p class="eyebrow">{copy.eyebrow}</p>
+      <h1>{copy.headline.split('\n')[0]}<br />{copy.headline.split('\n')[1]}</h1>
+      <p>{copy.intro}</p>
+    </header>
+
+    <nav class="guide-index" aria-label={copy.contents}>
+      <span>{copy.contents}</span>
+      <a href="#dataset-guide">01 <i>·</i> {copy.datasetTitle}</a>
+      <a href="#training-guide">02 <i>·</i> {copy.trainingTitle}</a>
+      <a href="#use-voice-guide">03 <i>·</i> {copy.useVoiceTitle}</a>
+      <a href="#pipertts-guide">04 <i>·</i> pipertts / Node.js</a>
+    </nav>
+
+    <section id="dataset-guide" class="guide-section">
+      <div class="guide-rail"><span>01</span><span>{copy.archiveLabel}</span></div>
+      <div class="guide-content">
+        <h2>{copy.datasetTitle}</h2>
+        <p class="guide-lede">{copy.datasetIntro}</p>
+        <pre class="guide-code"><code>{copy.archive}</code></pre>
+        <ol class="guide-steps">
+          <li><span class="guide-step-number">01</span><div><h3>{copy.step1}</h3><p>{copy.step1copy}</p><div class="guide-links"><a href="https://huggingface.co/datasets?search=ljspeech" target="_blank" rel="noreferrer">{copy.hfSearch} ↗</a><span>{copy.ytDlp}</span></div></div></li>
+          <li><span class="guide-step-number">02</span><div><h3>{copy.step2}</h3><p>{copy.step2copy}</p><ul class="guide-tool-list">{copy.tools.map((tool) => <li>{tool}</li>)}</ul></div></li>
+          <li><span class="guide-step-number">03</span><div><h3>{copy.step3}</h3><p>{copy.step3copy}</p><pre class="guide-code"><code>{copy.metadata}</code></pre></div></li>
+          <li><span class="guide-step-number">04</span><div><h3>{copy.step4}</h3><p>{copy.step4copy}</p><pre class="guide-code guide-code-command"><code>{copy.zip}</code></pre></div></li>
+          <li><span class="guide-step-number">05</span><div><h3>{copy.step5}</h3><p>{copy.step5copy}</p><pre class="guide-code"><code>{copy.yaml}</code></pre><div class="guide-links"><a href="https://huggingface.co/new-dataset" target="_blank" rel="noreferrer">{copy.newDataset} ↗</a><a href="https://huggingface.co/fox3000foxy" target="_blank" rel="noreferrer">{copy.exampleProfile} ↗</a></div></div></li>
+          <li><span class="guide-step-number">06</span><div><h3>{copy.step6}</h3><p>{copy.step6copy}</p><a class="guide-action" href={discordUrl} target="_blank" rel="noreferrer">{copy.forum} ↗</a></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="training-guide" class="guide-section guide-training">
+      <div class="guide-rail"><span>02</span><span>KAGGLE · GPU</span></div>
+      <div class="guide-content">
+        <h2>{copy.trainingTitle}</h2>
+        <p class="guide-lede">{copy.trainingIntro}</p>
+        <div class="guide-facts">
+          <article><span>{copy.quotaTitle}</span><strong>{copy.quotaValue}</strong><p>{copy.quotaCopy}</p></article>
+          <article><span>{copy.sessionTitle}</span><strong>{copy.sessionValue}</strong><p>{copy.sessionCopy}</p></article>
+          <article><span>{copy.acceleratorTitle}</span><strong>T4 x2</strong><p>{copy.acceleratorCopy}</p></article>
+        </div>
+        <div class="guide-resume"><span>↻</span><div><h3>{copy.resumeTitle}</h3><p>{copy.resumeCopy}</p></div></div>
+        <div class="guide-checklist"><h3>{copy.beforeTitle}</h3><ul>{copy.beforeList.map((item) => <li>{item}</li>)}</ul></div>
+        <div class="guide-references" aria-label={locale === 'fr' ? 'Sources officielles' : 'Official references'}>
+          <a href={kaggleQuotaUrl} target="_blank" rel="noreferrer">{copy.kaggleQuota} ↗</a>
+          <a href={kaggleNotebooksUrl} target="_blank" rel="noreferrer">{copy.kaggleNotebooks} ↗</a>
+          <a href={p100NoticeUrl} target="_blank" rel="noreferrer">{copy.p100Notice} ↗</a>
+        </div>
+        <p class="guide-footnote">{copy.footnote}</p>
+      </div>
+    </section>
+
+    <section id="use-voice-guide" class="guide-section guide-use-voice">
+      <div class="guide-rail"><span>03</span><span>PIPER · LOCAL TTS</span></div>
+      <div class="guide-content">
+        <h2>{copy.useVoiceTitle}</h2>
+        <p class="guide-lede">{copy.useVoiceIntro}</p>
+        <ol class="guide-steps">
+          <li><span class="guide-step-number">01</span><div><h3>{copy.installTitle}</h3><p>{copy.installCopy}</p><pre class="guide-code guide-code-command"><code>python -m pip install piper-tts</code></pre><pre class="guide-code guide-code-command"><code>python -m piper.download_voices en_US-lessac-medium</code></pre><div class="guide-links"><a href="https://github.com/OHF-Voice/piper1-gpl/releases" target="_blank" rel="noreferrer">{copy.piperProject} · binaires ↗</a></div></div></li>
+          <li><span class="guide-step-number">02</span><div><h3>{copy.downloadTitle}</h3><p>{copy.downloadCopy}</p><div class="guide-links"><a href="https://huggingface.co/rhasspy/piper-voices" target="_blank" rel="noreferrer">{copy.voiceCatalog} ↗</a><a href={voiceForumUrl} target="_blank" rel="noreferrer">{copy.voiceForum} ↗</a></div><pre class="guide-code"><code>voice.onnx<br />voice.onnx.json</code></pre></div></li>
+          <li><span class="guide-step-number">03</span><div><h3>{copy.synthTitle}</h3><p>{copy.synthCopy}</p><pre class="guide-code"><code>{copy.synthCommand}</code></pre></div></li>
+          <li><span class="guide-step-number">04</span><div><h3>{copy.textFileTitle}</h3><pre class="guide-code"><code>python -m piper -m ./voice.onnx -f output.wav --input-file mon_texte.txt</code></pre><h3 class="guide-subheading">{copy.rawTitle}</h3><p>{copy.rawCopy}</p><pre class="guide-code"><code>{copy.rawCommand}</code></pre></div></li>
+          <li><span class="guide-step-number">05</span><div><h3>{copy.pythonTitle}</h3><pre class="guide-code"><code>{copy.pythonExample}</code></pre></div></li>
+          <li><span class="guide-step-number">06</span><div><h3>{copy.homeAssistantTitle}</h3><p>{copy.homeAssistantCopy}</p><a class="guide-action" href="https://www.home-assistant.io/integrations/piper/" target="_blank" rel="noreferrer">{copy.homeAssistantLink} ↗</a><h3 class="guide-subheading">{copy.nodeRedTitle}</h3><p>{copy.nodeRedCopy}</p><div class="guide-links"><a href="https://nodered.org/docs/user-guide/nodes" target="_blank" rel="noreferrer">Node-RED · core nodes ↗</a></div></div></li>
+          <li><span class="guide-step-number">07</span><div><h3>{copy.adviceTitle}</h3><p>{copy.adviceCopy}</p><pre class="guide-code"><code>{copy.slowCommand}</code></pre><div class="guide-references"><a href="https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/CLI.md" target="_blank" rel="noreferrer">{copy.piperDocs} ↗</a><a href="https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/API_PYTHON.md" target="_blank" rel="noreferrer">{copy.pythonDocs} ↗</a><a href="https://github.com/rhasspy/piper" target="_blank" rel="noreferrer">GitHub · rhasspy/piper (archive) ↗</a></div></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="pipertts-guide" class="guide-section guide-pipertts">
+      <div class="guide-rail"><span>04</span><span>NODE.JS · TYPESCRIPT</span></div>
+      <div class="guide-content">
+        <h2>{copy.npmTitle}</h2>
+        <p class="guide-lede">{copy.npmIntro}</p>
+        <ol class="guide-steps">
+          <li><span class="guide-step-number">01</span><div><h3>{copy.npmInstall}</h3><p>{copy.npmInstallCopy}</p><pre class="guide-code"><code>{copy.npmInstallCommand}</code></pre></div></li>
+          <li><span class="guide-step-number">02</span><div><h3>{copy.npmQuickStart}</h3><pre class="guide-code"><code>{copy.npmExample}</code></pre></div></li>
+          <li><span class="guide-step-number">03</span><div><h3>{copy.npmCustomVoice}</h3><p>{copy.npmCustomCopy}</p><pre class="guide-code"><code>{copy.npmCustomExample}</code></pre></div></li>
+          <li><span class="guide-step-number">04</span><div><h3>{copy.npmApi}</h3><p>{copy.npmApiCopy}</p></div></li>
+          <li><span class="guide-step-number">05</span><div><h3>{copy.npmNative}</h3><p>{copy.npmNativeCopy}</p><pre class="guide-code"><code>{copy.npmNativeExample}</code></pre><div class="guide-references"><a href={piperttsUrl} target="_blank" rel="noreferrer">{copy.npmHome} ↗</a><a href={piperttsRepoUrl} target="_blank" rel="noreferrer">{copy.npmRepo} ↗</a><a href={`${piperttsRepoUrl}#readme`} target="_blank" rel="noreferrer">{copy.npmDocs} ↗</a></div></div></li>
+        </ol>
+      </div>
+    </section>
+  </main>
+</Layout>
