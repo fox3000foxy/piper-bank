@@ -76,6 +76,9 @@ const waveformPath = (seed: number) => {
           </div>
           <div class="synthesis-time"><span id="synthesis-current">0:00</span><span id="synthesis-duration">0:00</span></div>
         </div>
+        <a id="synthesis-download" class="sample-play" href="#" download="synthesis.wav" aria-label={t(locale, 'detail.downloadAudio')} title={t(locale, 'detail.downloadAudio')}>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 17h12"/></svg>
+        </a>
       </div>
       <audio id="player" preload="none" hidden></audio>
     </section>
@@ -302,6 +305,7 @@ const waveformPath = (seed: number) => {
       const synthesisProgress = document.getElementById('synthesis-progress');
       const synthesisCurrent = document.getElementById('synthesis-current');
       const synthesisDuration = document.getElementById('synthesis-duration');
+      const synthesisDownload = document.getElementById('synthesis-download');
       let synthesisUrl = '', synthesisFrame = 0;
       const paintSynthesis = () => {
         const duration = Number.isFinite(synthesisAudio.duration) ? synthesisAudio.duration : 0;
@@ -366,6 +370,9 @@ const waveformPath = (seed: number) => {
           }, (s) => { status.textContent = message(ui.labels.synthProgress, { progress: s }); });
           synthesisUrl = URL.createObjectURL(blob);
           synthesisAudio.src = synthesisUrl;
+          synthesisDownload.href = synthesisUrl;
+          const sidPart = (window.__selSid === null || window.__selSid === undefined) ? '' : '-sp' + window.__selSid;
+          synthesisDownload.download = `${(model.slug || model.repo || 'synthesis').split('/').pop()}${sidPart}.wav`;
           synthesisAudio.hidden = true;
           synthesisControl.hidden = false;
           synthesisAudio.load();
