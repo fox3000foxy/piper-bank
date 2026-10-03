@@ -91,16 +91,16 @@ const copy = {
     npmCustomVoice: 'Utiliser un modèle local',
     npmCustomCopy: 'Pour une voix téléchargée manuellement, passez le chemin du fichier ONNX. Le fichier .onnx.json associé doit être placé à côté ; vous pouvez préciser configPath si son emplacement diffère.',
     npmApi: 'API et formats',
-    npmApiCopy: 'synthesize() retourne un Buffer audio et la durée en millisecondes ; synthesizeToFile() écrit directement sur disque. Les options sont en camelCase : lengthScale (> 1 ralentit, < 1 accélère), noiseScale, noiseWScale, speakerId et outputFormat (wav, raw, mp3, ogg ou opus). Le transcodage hors WAV peut dépendre de FFmpeg ; le format ogg le requiert.',
-    npmNative: 'Inférence native en processus',
-    npmNativeCopy: 'PiperNativeTTS garde la session ONNX chargée en processus : aucune dépendance Python, session réutilisée entre les appels. Mesuré sur en_US-lessac-medium : environ 2,2 s/ligne en wrapper contre 0,22 s/ligne en natif. Les 7 phoneme_type sont portés en natif ; certaines langues téléchargent des données de phonémisation dans ./piper-data au premier lancement.',
+    npmApiCopy: 'synthesize() retourne audio (Buffer), sampleRate et text ; outputFile écrit aussi sur disque. Options : speakerId (multi-voix et multi-styles), lengthScale (> 1 ralentit, < 1 accélère), noiseScale, noiseWScale, sentenceSilence, normalizeAudio, volume et outputFormat (wav, raw, mp3, ogg ou opus). mp3 et opus ont des solutions JS pures ; ogg demande FFmpeg. phonemize() et synthesizeChunks() donnent accès au bas niveau, phrase par phrase.',
+    npmLegacy: 'Wrapper legacy (PiperTTS)',
+    npmLegacyCopy: 'PiperTTS lance python3 -m piper, un processus par synthèse : environ 10 fois plus lent, à réserver aux environnements où le moteur natif ne tourne pas. Exige Python et le module Piper.',
     npmDocs: 'Documentation et exemples pipertts',
     npmHome: 'Page npm de pipertts',
     npmRepo: 'Dépôt GitHub de pipertts',
     npmInstallCommand: 'npm install pipertts\n# mode wrapper uniquement : python3 -m pip install piper-tts',
-    npmExample: 'import { PiperTTS } from "pipertts";\n\nconst tts = await PiperTTS.create({\n  model: "en_US-lessac-medium",\n  modelsDir: "./models",\n  defaultOptions: { outputFormat: "wav" },\n});\n\nawait tts.synthesizeToFile(\n  "Hello from Piper.",\n  "./hello.wav",\n);',
-    npmCustomExample: 'const tts = await PiperTTS.create({\n  model: "custom",\n  modelPath: "./models/my-voice.onnx",\n});\n\nconst result = await tts.synthesize("Hello.");\nconsole.log(result.durationMs);',
-    npmNativeExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/en_US-lessac-medium.onnx",\n});\nconst wav = await tts.synthesize("Hello from native Piper.");',
+    npmExample: 'import { PiperNativeTTS, resolveModelPathFromOptions } from "pipertts";\nimport * as fs from "node:fs";\n\nconst modelPath = await resolveModelPathFromOptions({\n  model: "en_US-lessac-medium",\n  modelsDir: "./models",\n});\nconst tts = await PiperNativeTTS.load({ modelPath });\n\nconst { audio } = await tts.synthesize("Hello from Piper.");\nfs.writeFileSync("./hello.wav", audio);',
+    npmCustomExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/my-voice.onnx",\n});\nconst { audio, sampleRate } = await tts.synthesize("Hello.", { speakerId: 0 });',
+    npmLegacyExample: 'import { PiperTTS } from "pipertts";\n\nconst tts = await PiperTTS.create({\n  modelPath: "./models/en_US-lessac-medium.onnx",\n});\nawait tts.synthesizeToFile("Hello from the legacy wrapper.", "./hello.wav");',
   },
   en: {
     title: 'Guides',
@@ -189,16 +189,16 @@ const copy = {
     npmCustomVoice: 'Use a local model',
     npmCustomCopy: 'For a voice you downloaded manually, pass the ONNX file path. Keep its matching .onnx.json file alongside it; set configPath if the config lives elsewhere.',
     npmApi: 'API and output formats',
-    npmApiCopy: 'synthesize() returns an audio Buffer and duration in milliseconds; synthesizeToFile() writes directly to disk. Options use camelCase: lengthScale (> 1 slows speech, < 1 speeds it up), noiseScale, noiseWScale, speakerId, and outputFormat (wav, raw, mp3, ogg, or opus). Non-WAV transcoding may depend on FFmpeg; ogg requires it.',
-    npmNative: 'In-process native inference',
-    npmNativeCopy: 'PiperNativeTTS keeps the ONNX session loaded in-process: no Python dependency, session reused across calls. Measured on en_US-lessac-medium: about 2.2s/line wrapped versus 0.22s/line native. All 7 phoneme_type values are ported natively; some languages download phonemization data into ./piper-data on first use.',
+    npmApiCopy: 'synthesize() returns audio (Buffer), sampleRate, and text; outputFile also writes to disk. Options: speakerId (multi-voice and multi-style), lengthScale (> 1 slows speech, < 1 speeds it up), noiseScale, noiseWScale, sentenceSilence, normalizeAudio, volume, and outputFormat (wav, raw, mp3, ogg, or opus). mp3 and opus have pure-JS fallbacks; ogg requires FFmpeg. phonemize() and synthesizeChunks() give low-level, sentence-by-sentence access.',
+    npmLegacy: 'Legacy wrapper (PiperTTS)',
+    npmLegacyCopy: 'PiperTTS spawns python3 -m piper, one process per synthesis: about 10x slower, keep it for environments where the native engine cannot run. Requires Python and the Piper module.',
     npmDocs: 'pipertts documentation and examples',
     npmHome: 'pipertts on npm',
     npmRepo: 'pipertts on GitHub',
     npmInstallCommand: 'npm install pipertts\n# wrapper mode only: python3 -m pip install piper-tts',
-    npmExample: 'import { PiperTTS } from "pipertts";\n\nconst tts = await PiperTTS.create({\n  model: "en_US-lessac-medium",\n  modelsDir: "./models",\n  defaultOptions: { outputFormat: "wav" },\n});\n\nawait tts.synthesizeToFile(\n  "Hello from Piper.",\n  "./hello.wav",\n);',
-    npmCustomExample: 'const tts = await PiperTTS.create({\n  model: "custom",\n  modelPath: "./models/my-voice.onnx",\n});\n\nconst result = await tts.synthesize("Hello.");\nconsole.log(result.durationMs);',
-    npmNativeExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/en_US-lessac-medium.onnx",\n});\nconst wav = await tts.synthesize("Hello from native Piper.");',
+    npmExample: 'import { PiperNativeTTS, resolveModelPathFromOptions } from "pipertts";\nimport * as fs from "node:fs";\n\nconst modelPath = await resolveModelPathFromOptions({\n  model: "en_US-lessac-medium",\n  modelsDir: "./models",\n});\nconst tts = await PiperNativeTTS.load({ modelPath });\n\nconst { audio } = await tts.synthesize("Hello from Piper.");\nfs.writeFileSync("./hello.wav", audio);',
+    npmCustomExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/my-voice.onnx",\n});\nconst { audio, sampleRate } = await tts.synthesize("Hello.", { speakerId: 0 });',
+    npmLegacyExample: 'import { PiperTTS } from "pipertts";\n\nconst tts = await PiperTTS.create({\n  modelPath: "./models/en_US-lessac-medium.onnx",\n});\nawait tts.synthesizeToFile("Hello from the legacy wrapper.", "./hello.wav");',
   },
 }[locale];
 
@@ -291,7 +291,7 @@ const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
           <li><span class="guide-step-number">02</span><div><h3>{copy.npmQuickStart}</h3><pre class="guide-code"><code>{copy.npmExample}</code></pre></div></li>
           <li><span class="guide-step-number">03</span><div><h3>{copy.npmCustomVoice}</h3><p>{copy.npmCustomCopy}</p><pre class="guide-code"><code>{copy.npmCustomExample}</code></pre></div></li>
           <li><span class="guide-step-number">04</span><div><h3>{copy.npmApi}</h3><p>{copy.npmApiCopy}</p></div></li>
-          <li><span class="guide-step-number">05</span><div><h3>{copy.npmNative}</h3><p>{copy.npmNativeCopy}</p><pre class="guide-code"><code>{copy.npmNativeExample}</code></pre><div class="guide-references"><a href={piperttsUrl} target="_blank" rel="noreferrer">{copy.npmHome} ↗</a><a href={piperttsRepoUrl} target="_blank" rel="noreferrer">{copy.npmRepo} ↗</a><a href={`${piperttsRepoUrl}#readme`} target="_blank" rel="noreferrer">{copy.npmDocs} ↗</a></div></div></li>
+          <li><span class="guide-step-number">05</span><div><h3>{copy.npmLegacy}</h3><p>{copy.npmLegacyCopy}</p><pre class="guide-code"><code>{copy.npmLegacyExample}</code></pre><div class="guide-references"><a href={piperttsUrl} target="_blank" rel="noreferrer">{copy.npmHome} ↗</a><a href={piperttsRepoUrl} target="_blank" rel="noreferrer">{copy.npmRepo} ↗</a><a href={`${piperttsRepoUrl}#readme`} target="_blank" rel="noreferrer">{copy.npmDocs} ↗</a></div></div></li>
         </ol>
       </div>
     </section>
