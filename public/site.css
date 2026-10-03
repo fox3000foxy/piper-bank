@@ -2289,7 +2289,7 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
 }
 .synthesis-player {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 42px;
+  grid-template-columns: 44px minmax(0, 1fr);
   align-items: center;
   gap: 16px;
   width: 100%;
@@ -2308,10 +2308,23 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
   box-shadow: none;
 }
 .synthesis-player #synthesis-toggle:hover { filter: brightness(.95); }
-.synthesis-player #synthesis-download {
-  width: 42px;
-  height: 42px;
-  text-decoration: none;
+.synthesis-dl {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px -2px;
+  color: hsl(var(--synth-hue, 260) 66% 56%);
+}
+.synthesis-dl:hover { filter: brightness(1.2); }
+.synthesis-dl svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .synthesis-track { min-width: 0; }
 .synthesis-wave {

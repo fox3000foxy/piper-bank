@@ -74,11 +74,10 @@ const waveformPath = (seed: number) => {
             </svg>
             <input id="synthesis-seek" type="range" min="0" max="1000" value="0" aria-label={t(locale, 'detail.synthesisPosition')} />
           </div>
-          <div class="synthesis-time"><span id="synthesis-current">0:00</span><span id="synthesis-duration">0:00</span></div>
+          <div class="synthesis-time"><span id="synthesis-current">0:00</span><span id="synthesis-duration">0:00</span><a id="synthesis-download" class="synthesis-dl" href="#" download="synthesis.wav" aria-label={t(locale, 'detail.downloadAudio')} title={t(locale, 'detail.downloadAudio')}>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 17h12"/></svg>
+          </a></div>
         </div>
-        <a id="synthesis-download" class="sample-play" href="#" download="synthesis.wav" aria-label={t(locale, 'detail.downloadAudio')} title={t(locale, 'detail.downloadAudio')}>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 17h12"/></svg>
-        </a>
       </div>
       <audio id="player" preload="none" hidden></audio>
     </section>
@@ -298,6 +297,9 @@ const waveformPath = (seed: number) => {
 
       const { synthesize } = await new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
       const go = document.getElementById('go');
+      document.getElementById('text').addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); go.click(); }
+      });
       const synthesisAudio = document.getElementById('player');
       const synthesisControl = document.getElementById('synthesis-player');
       const synthesisToggle = document.getElementById('synthesis-toggle');
