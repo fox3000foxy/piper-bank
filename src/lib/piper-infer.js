@@ -22,11 +22,85 @@ export async function getSession(repo, onnx, onStatus) {
   if (sessions.has(key)) return sessions.get(key);
   const ort = (await loadStack(onStatus)).default ?? (await loadStack(onStatus));
   const O = ort.InferenceSession ? ort : ort.default;
-  onStatus?.('téléchargement voix…');
   const url = `https://huggingface.co/${repo}/resolve/main/${onnx.split('/').map(encodeURIComponent).join('/')}`;
-  const session = await O.InferenceSession.create(url, { executionProviders: ['wasm'] });
+  const open = (bytes) => O.InferenceSession.create(bytes, { executionProviders: ['wasm'] });
+  const cached = await idbGet(key);
+  if (cached && cached.data) {
+    onStatus?.('voix en cache…');
+    const session = await open(cached.data);
+    sessions.set(key, session);
+    refreshVoice(key, url, cached.size, onStatus);
+    return session;
+  }
+  onStatus?.('téléchargement voix…');
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('voix introuvable (' + res.status + ')');
+  const data = await res.arrayBuffer();
+  idbPut({ key, data, size: data.byteLength, savedAt: Date.now() });
+  const session = await open(data);
   sessions.set(key, session);
   return session;
+}
+
+// Revalide en arrière-plan : si le fichier HF a changé de taille, on
+// retélécharge et on remplace la session (les modèles en entraînement bougent).
+async function refreshVoice(key, url, cachedSize, onStatus) {
+  try {
+    const head = await fetch(url, { method: 'HEAD' });
+    const len = Number(head.headers.get('content-length') || 0);
+    if (!len || len === cachedSize) return;
+    onStatus?.('mise à jour voix…');
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.arrayBuffer();
+    idbPut({ key, data, size: data.byteLength, savedAt: Date.now() });
+    const ort = await loadStack();
+    const O = ort.InferenceSession ? ort : ort.default;
+    sessions.set(key, await O.InferenceSession.create(data, { executionProviders: ['wasm'] }));
+    onStatus?.('voix à jour.');
+  } catch {}
+}
+
+const IDB_DB = 'piper-bank', IDB_STORE = 'voices', IDB_MAX = 15;
+
+function idb() {
+  return new Promise((resolve, reject) => {
+    try {
+      const req = indexedDB.open(IDB_DB, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE, { keyPath: 'key' });
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    } catch (e) { reject(e); }
+  });
+}
+
+async function idbGet(key) {
+  try {
+    const db = await idb();
+    return await new Promise((resolve, reject) => {
+      const rq = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key);
+      rq.onsuccess = () => resolve(rq.result || null);
+      rq.onerror = () => reject(rq.error);
+    });
+  } catch { return null; }
+}
+
+async function idbPut(entry) {
+  try {
+    const db = await idb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      const store = tx.objectStore(IDB_STORE);
+      store.put(entry);
+      const all = store.getAll();
+      all.onsuccess = () => {
+        const rows = (all.result || []).sort((a, b) => a.savedAt - b.savedAt);
+        while (rows.length > IDB_MAX) store.delete(rows.shift().key);
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {}
 }
 
 export function phonemizeText(text, idMap) {
