@@ -130,12 +130,15 @@ ICONS = {
  'portal': 'icons/portal.svg', 'tf2': 'icons/tf2.svg', 'valorant': 'icons/valorant.svg',
  'hal': 'icons/hal9000.svg', 'starwars': 'icons/ahsoka.svg', 'fortune': 'icons/fortune.svg',
  'counter-strike': 'icons/counter-strike.svg', 'kurmanci': 'icons/kurmanci.svg',
+ 'fuze': 'icons/fuze.svg', 'dota': 'icons/dota2.svg',
 }
 REPO_UNIVERSE = [
  ('fox3000foxy/piper-checkpoints-fortune', 'fortune', '🔮', 300),
  ('fox3000foxy/piper-checkpoints-glados', 'portal', '🌀', 265),
  ('fox3000foxy/piper-checkpoints-wheatley', 'portal', '🌀', 265),
  ('fox3000foxy/piper-checkpoints-css', 'counter-strike', '💣', 35),
+ ('fox3000foxy/piper-checkpoints-fuzeiii', 'fuze', '⚡', 0),
+ ('fox3000foxy/piper-checkpoints-dota2', 'dota', '🎮', 8),
  ('fox3000foxy/piper-checkpoints-', 'valorant', '🎯', 350),
  ('RoxasYTB/css-radio', 'counter-strike', '💣', 35),
  ('RoxasYTB/glados', 'portal', '🌀', 265),
@@ -171,6 +174,8 @@ NAME_UNIVERSE = [
  ('fortune', [r'fortune', r'itsrealfortune'], '🔮', 300),
  ('counter-strike', [r'counter.?strike', r'\bcss\b', r'\bannonceur\b', r'\bradio\b'], '💣', 35),
  ('kurmanci', [r'kurmanci', r'kurdish \(kmr\)'], '🦚', 45),
+ ('fuze', [r'\bfuze\b'], '⚡', 0),
+ ('dota', [r'\bdota\b'], '🎮', 8),
 ]
 
 def avatar_of(name, repo, certified=False):
