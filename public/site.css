@@ -2289,7 +2289,7 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
 }
 .synthesis-player {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr) 42px;
   align-items: center;
   gap: 16px;
   width: 100%;
@@ -2308,6 +2308,11 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
   box-shadow: none;
 }
 .synthesis-player #synthesis-toggle:hover { filter: brightness(.95); }
+.synthesis-player #synthesis-download {
+  width: 42px;
+  height: 42px;
+  text-decoration: none;
+}
 .synthesis-track { min-width: 0; }
 .synthesis-wave {
   position: relative;
