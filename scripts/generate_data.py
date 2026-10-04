@@ -125,24 +125,30 @@ def get_speakers(m):
 with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_speakers, need))
 
-# Dates de mise à jour HF (badges fraîcheur). Cache 7 jours.
+# Dates de mise à jour HF (badges fraîcheur) : date du dernier commit du
+# fichier ONNX lui-même (le lastModified du repo bouge pour un rien).
+# Cache 7 jours.
 UCACHE = os.path.join(OUT, 'updated_cache.json')
 try: ucache = json.load(open(UCACHE))
 except Exception: ucache = {}
 def get_updated(m):
-    repo = m['repo']
-    ent = ucache.get(repo) or {}
+    key = m['repo'] + '|' + m['onnx']
+    ent = ucache.get(key) or {}
     if ent.get('updated') and (time.time() - ent.get('fetched', 0)) < 7 * 86400:
         m['updated'] = ent['updated']
         return
     try:
-        req = urllib.request.Request(f"https://huggingface.co/api/models/{repo}",
-            headers={"User-Agent": "PiperBot/1.0", "Authorization": f"Bearer {HF_TOKEN}"})
-        d = json.load(urllib.request.urlopen(req, timeout=15))
-        ent = {'updated': (d.get('lastModified') or '')[:10], 'fetched': time.time()}
+        import json as _json
+        body = _json.dumps({"paths": [m['onnx']], "expand": True}).encode()
+        req = urllib.request.Request(f"https://huggingface.co/api/models/{m['repo']}/paths-info/main",
+            data=body, headers={"User-Agent": "PiperBot/1.0", "Authorization": f"Bearer {HF_TOKEN}",
+                                "Content-Type": "application/json"})
+        info = _json.load(urllib.request.urlopen(req, timeout=20))
+        date = (((info[0] if info else {}).get('lastCommit') or {}).get('date') or '')[:10]
+        ent = {'updated': date, 'fetched': time.time()}
     except Exception:
         ent = {'updated': ent.get('updated', ''), 'fetched': time.time()}
-    ucache[repo] = ent
+    ucache[key] = ent
     m['updated'] = ent['updated']
 with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_updated, need))
