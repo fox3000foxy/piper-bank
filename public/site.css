@@ -1160,7 +1160,9 @@ body:not(:has(.home-page)):not(:has(.catalog-page)) > .model-cols {
 }
 .tag.new-pill { background: var(--accent); color: var(--page); font-weight: 700; border: 0; border-radius: 999px; padding: 5px 12px; }
 .new-pill { background: var(--accent); color: var(--page); font: 9px var(--mono); font-weight: 700; white-space: nowrap; border-radius: 999px; padding: 3px 9px; }
-.voice-row-title .new-pill { margin-left: 8px; vertical-align: 1px; }
+.voice-row-title .new-pill { vertical-align: 1px; }
+.voice-row-title { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; }
+.voice-row-title small { flex-basis: 100%; }
 .tag.lang,
 .tag.q-high,
 .tag.q-medium,
