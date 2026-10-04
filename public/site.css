@@ -1158,9 +1158,9 @@ body:not(:has(.home-page)):not(:has(.catalog-page)) > .model-cols {
 .tag:last-child {
   border-right: 0;
 }
-.tag.new-pill { color: var(--accent); font-weight: 700; }
-.tag.new-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 6px; }
-.new-pill { color: var(--accent); font: 9px var(--mono); font-weight: 700; white-space: nowrap; }
+.tag.new-pill { background: var(--accent); color: var(--page); font-weight: 700; border: 0; border-radius: 999px; padding: 5px 12px; }
+.new-pill { background: var(--accent); color: var(--page); font: 9px var(--mono); font-weight: 700; white-space: nowrap; border-radius: 999px; padding: 3px 9px; }
+.row-date { color: var(--ink-muted); font: 9px var(--mono); white-space: nowrap; }
 .tag.lang,
 .tag.q-high,
 .tag.q-medium,
