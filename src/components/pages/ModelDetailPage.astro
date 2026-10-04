@@ -9,6 +9,9 @@ const avatar = m.avatar || { emoji: '?', hue: 260, icon: null };
 const voicePairs = (m.voiceNames || []).map((vn, i) => ({
   name: vn, sid: (m.voiceIds || [])[i] ?? i,
 }));
+const updatedDate = m.updated ? new Date(m.updated + 'T00:00:00Z') : null;
+const isFresh = !!updatedDate && (Date.now() - updatedDate.getTime()) < 14 * 864e5;
+const updatedLabel = updatedDate ? updatedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 const waveformPath = (seed: number) => {
   let state = (Math.abs(Math.trunc(seed)) || 1) >>> 0;
   let height = 4;
@@ -52,6 +55,8 @@ const waveformPath = (seed: number) => {
         : <span class="tag q-medium">{t(locale, 'detail.noDataset')}</span>}
       <span class="tag type">{m.phonemeType === 'text' ? `${t(locale, 'detail.phonemes')}: ${locale === 'fr' ? 'texte' : 'text'}` : `${t(locale, 'detail.phonemes')}: ${((m.configs || {}).espeak || {}).voice || 'espeak'}`}</span>
       <span class="tag">{formatNumber(locale, m.sampleRate)} Hz</span>
+      {isFresh && <span class="tag new-pill">{t(locale, 'common.new')}</span>}
+      {isFresh && <span class="tag">{t(locale, 'detail.updatedOn', { date: updatedLabel })}</span>}
     </section>
 
     <div class="model-cols">
@@ -81,6 +86,26 @@ const waveformPath = (seed: number) => {
       </div>
       <audio id="player" preload="none" hidden></audio>
     </section>
+
+    {voicePairs.length > 1 && (
+    <section class="sec">
+      <h2>{t(locale, 'detail.compareVoices')}</h2>
+      <p class="dim">{t(locale, 'detail.compareHelp')}</p>
+      <div class="cmp-selects">
+        {['cmp-a', 'cmp-b', 'cmp-c'].map((id, k) => (
+          <label>{t(locale, 'detail.compareSlot', { letter: 'ABC'[k] })}
+            <select id={id}>
+              {k > 0 && <option value="">-</option>}
+              {voicePairs.map((voice, vi) => <option value={voice.sid} selected={(k === 0 && vi === 0) || (k === 1 && vi === 1)}>{voice.name}</option>)}
+            </select>
+          </label>
+        ))}
+        <button id="cmp-go" class="btn-dl">{t(locale, 'detail.compareRun')}</button>
+      </div>
+      <div id="cmp-status" class="dim" aria-live="polite"></div>
+      <div id="cmp-results" class="cmp-results"></div>
+    </section>
+    )}
 
       <section class="sec">
         <h2>{t(locale, 'detail.information')}</h2>
@@ -174,7 +199,7 @@ const waveformPath = (seed: number) => {
     </div>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
-    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), loading: t(locale, 'detail.loading'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure') } })} />
+    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), loading: t(locale, 'detail.loading'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus') } })} />
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
     <script type="module">
       const model = JSON.parse(document.getElementById('model-data').textContent);
@@ -419,5 +444,62 @@ const waveformPath = (seed: number) => {
         } catch (e) { status.textContent = message(ui.labels.synthFailure, { message: e.message || e }); }
         finally { go.disabled = false; }
       });
+      const cmpGo = document.getElementById('cmp-go');
+      if (cmpGo) {
+        const cmpRes = document.getElementById('cmp-results');
+        const cmpStatus = document.getElementById('cmp-status');
+        const cmpNames = Object.fromEntries([...document.getElementById('voice-select').options].map((o) => [o.value, o.text]));
+        let cmpCurrent = null;
+        cmpGo.addEventListener('click', async () => {
+          const text = document.getElementById('text').value.trim();
+          const status = document.getElementById('status');
+          if (!text) { status.textContent = ui.labels.enterText; return; }
+          const sids = ['cmp-a', 'cmp-b', 'cmp-c']
+            .map((id) => document.getElementById(id).value)
+            .filter((v, i, a) => v !== '' && a.indexOf(v) === i);
+          if (!sids.length) return;
+          cmpGo.disabled = true;
+          cmpRes.innerHTML = '';
+          if (cmpCurrent) { cmpCurrent.pause(); cmpCurrent = null; }
+          let done = 0;
+          for (const sid of sids) {
+            cmpStatus.textContent = message(ui.labels.compareStatus, { done: done + 1, total: sids.length, name: cmpNames[sid] || sid });
+            try {
+              const blob = await synthesize({
+                repo: model.repo, onnx: model.onnx, configs: model.configs,
+                phonemeType: model.phonemeType, phonemeIdMap: model.phonemeIdMap,
+                sampleRate: model.sampleRate, text, speakerId: Number(sid),
+                lengthScale: parseFloat(document.getElementById('len').value) || undefined,
+                noiseScale: parseFloat(document.getElementById('noise').value) || undefined,
+              });
+              const url = URL.createObjectURL(blob);
+              const row = document.createElement('div');
+              row.className = 'cmp-row';
+              row.innerHTML = `<button class="sample-play cmp-toggle" type="button" aria-label="play"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5 14 10l-8 5.5z" fill="currentColor" stroke="none"/></svg></button><span class="cmp-name"></span><audio preload="none"></audio>`;
+              row.querySelector('.cmp-name').textContent = cmpNames[sid] || ('sp' + sid);
+              const audio = row.querySelector('audio');
+              audio.src = url;
+              const dl = document.createElement('a');
+              dl.className = 'synthesis-dl';
+              dl.href = url;
+              dl.download = `${model.slug}-sp${sid}-compare.wav`;
+              dl.setAttribute('aria-label', ui.labels.downloadSample);
+              dl.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 17h12"/></svg>';
+              row.append(dl);
+              row.querySelector('.cmp-toggle').addEventListener('click', () => {
+                if (audio.paused) {
+                  if (cmpCurrent && cmpCurrent !== audio) cmpCurrent.pause();
+                  cmpCurrent = audio;
+                  audio.play().catch(() => {});
+                } else audio.pause();
+              });
+              cmpRes.append(row);
+            } catch { /* on garde les autres voix */ }
+            done++;
+          }
+          cmpStatus.textContent = '';
+          cmpGo.disabled = false;
+        });
+      }
     </script>
 </Layout>

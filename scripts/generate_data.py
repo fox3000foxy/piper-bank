@@ -125,6 +125,30 @@ def get_speakers(m):
 with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_speakers, need))
 
+# Dates de mise à jour HF (badges fraîcheur). Cache 7 jours.
+UCACHE = os.path.join(OUT, 'updated_cache.json')
+try: ucache = json.load(open(UCACHE))
+except Exception: ucache = {}
+def get_updated(m):
+    repo = m['repo']
+    ent = ucache.get(repo) or {}
+    if ent.get('updated') and (time.time() - ent.get('fetched', 0)) < 7 * 86400:
+        m['updated'] = ent['updated']
+        return
+    try:
+        req = urllib.request.Request(f"https://huggingface.co/api/models/{repo}",
+            headers={"User-Agent": "PiperBot/1.0", "Authorization": f"Bearer {HF_TOKEN}"})
+        d = json.load(urllib.request.urlopen(req, timeout=15))
+        ent = {'updated': (d.get('lastModified') or '')[:10], 'fetched': time.time()}
+    except Exception:
+        ent = {'updated': ent.get('updated', ''), 'fetched': time.time()}
+    ucache[repo] = ent
+    m['updated'] = ent['updated']
+with concurrent.futures.ThreadPoolExecutor(24) as ex:
+    list(ex.map(get_updated, need))
+json.dump(ucache, open(UCACHE, 'w'))
+print(f"dates: {sum(1 for m in need if m.get('updated'))}/{len(need)}")
+
 # Classement par repo d'abord (exact), puis par mots entiers du NOM (pas le repo).
 ICONS = {
  'portal': 'icons/portal.svg', 'tf2': 'icons/tf2.svg', 'valorant': 'icons/valorant.svg',

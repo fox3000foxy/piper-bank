@@ -142,6 +142,12 @@ const fr = {
   'detail.pauseVoice': 'Mettre en pause l’extrait de {name}',
   'detail.sampleN': 'Extrait {number}',
   'detail.downloadSample': 'Télécharger cet extrait',
+  'detail.compareVoices': 'Comparer les voix',
+  'detail.compareHelp': 'Même texte, plusieurs voix : choisissez jusqu’à trois locuteurs puis lancez la comparaison.',
+  'detail.compareSlot': 'Voix {letter}',
+  'detail.compareRun': 'Comparer',
+  'detail.compareStatus': 'Comparaison {done}/{total} : {name}…',
+  'detail.updatedOn': 'Mis à jour le {date}',
   'detail.samplePosition': 'Position dans l’extrait de {name}',
   'detail.sampleUnavailable': 'Extrait indisponible',
   'detail.loading': 'Chargement…',
@@ -167,6 +173,7 @@ const fr = {
   'common.none': 'Non renseigné',
   'common.unknown': 'Non renseignée',
   'common.oneSpeaker': '1 locuteur',
+  'common.new': 'Nouveau',
   'common.year': 'ans',
 } as const;
 
@@ -312,6 +319,12 @@ const en: Record<keyof typeof fr, string> = {
   'detail.pauseVoice': 'Pause sample for {name}',
   'detail.sampleN': 'Sample {number}',
   'detail.downloadSample': 'Download this sample',
+  'detail.compareVoices': 'Compare voices',
+  'detail.compareHelp': 'Same text, several voices: pick up to three speakers, then run the comparison.',
+  'detail.compareSlot': 'Voice {letter}',
+  'detail.compareRun': 'Compare',
+  'detail.compareStatus': 'Comparing {done}/{total}: {name}…',
+  'detail.updatedOn': 'Updated {date}',
   'detail.samplePosition': 'Sample position for {name}',
   'detail.sampleUnavailable': 'Sample unavailable',
   'detail.loading': 'Loading…',
@@ -337,6 +350,7 @@ const en: Record<keyof typeof fr, string> = {
   'common.none': 'Not listed',
   'common.unknown': 'Unspecified',
   'common.oneSpeaker': '1 speaker',
+  'common.new': 'New',
   'common.year': 'years',
 };
 
