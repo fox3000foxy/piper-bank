@@ -2191,6 +2191,10 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
 .synthesis-voice option { background: var(--surface); color: var(--ink); }
 .ex-sw { display: flex; flex: 0 0 auto; align-items: center; }
 .ptime { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+.pdl { display: inline-grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: var(--ink-muted); cursor: pointer; }
+.pdl:hover { color: var(--accent); }
+.pdl:disabled { opacity: .4; cursor: default; }
+.pdl svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .editor-submit { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:14px; }
 .editor-submit #status { margin:0; }
 .editor-submit #go { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-width:165px; }

@@ -231,6 +231,8 @@ def _dataset_link(repo, thread_id):
                 return {'name': d['thread_name'], 'slug': _DS_SLUG.get(d['thread_name']), 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
         if 'wheatley' in dr and 'wheatley' in rl:
             return {'name': d['thread_name'], 'slug': _DS_SLUG.get(d['thread_name']), 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
+        if 'fuze-eleven-v4-piper' in dr and 'fuzeiii' in rl:
+            return {'name': d['thread_name'], 'slug': _DS_SLUG.get(d['thread_name']), 'repo': d['hf_repo'], 'source': d['source'], 'lang': d['language']}
     return None
 
 for mm in models:

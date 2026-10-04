@@ -147,6 +147,9 @@ const waveformPath = (seed: number) => {
                   <button class="ex on" data-n="0" title={t(locale, 'detail.sampleN', { number: 1 })}>1</button><button class="ex" data-n="1" title={t(locale, 'detail.sampleN', { number: 2 })}>2</button>
                 </span>
                 <span class="ptime">0:00</span>
+                <button class="pdl" data-dl aria-label={t(locale, 'detail.downloadSample')} title={t(locale, 'detail.downloadSample')}>
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 17h12"/></svg>
+                </button>
               </div>
               <div class="pwave">
                 <svg class="pwave-svg" viewBox="0 0 540 56" preserveAspectRatio="none" aria-hidden="true">
@@ -189,6 +192,16 @@ const waveformPath = (seed: number) => {
       const voiceSelect = document.getElementById('voice-select');
       if (voiceSelect) window.__selSid = Number(voiceSelect.value);
       voiceSelect?.addEventListener('change', () => { window.__selSid = Number(voiceSelect.value); });
+      try {
+        const params = new URLSearchParams(location.search);
+        const preText = params.get('text');
+        if (preText) document.getElementById('text').value = preText;
+        const preSid = params.get('sid');
+        if (preSid !== null && voiceSelect && [...voiceSelect.options].some((o) => o.value === preSid)) {
+          voiceSelect.value = preSid;
+          voiceSelect.dispatchEvent(new Event('change'));
+        }
+      } catch {}
       const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
       const resetCard = (card) => {
         if (!card) return;
@@ -280,6 +293,22 @@ const waveformPath = (seed: number) => {
           event.stopPropagation();
           void play(n);
         }));
+        card.querySelector('[data-dl]').addEventListener('click', async (event) => {
+          event.stopPropagation();
+          const dl = event.currentTarget;
+          dl.disabled = true;
+          try {
+            const res = await fetch(sampleUrl(sid, idx));
+            if (!res.ok) throw new Error(res.status);
+            const url = URL.createObjectURL(await res.blob());
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${model.slug}-sp${sid}_${idx}.wav`;
+            document.body.append(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+          } catch { time.textContent = ui.labels.sampleUnavailable; }
+          finally { dl.disabled = false; }
+        });
         seek.addEventListener('input', () => {
           const a = audio();
           if (Number.isFinite(a.duration) && a.duration > 0) {
@@ -354,6 +383,12 @@ const waveformPath = (seed: number) => {
         const text = document.getElementById('text').value.trim();
         const status = document.getElementById('status');
         if (!text) { status.textContent = ui.labels.enterText; return; }
+        try {
+          const params = new URLSearchParams();
+          params.set('text', text);
+          if (window.__selSid !== null && window.__selSid !== undefined) params.set('sid', String(window.__selSid));
+          history.replaceState(null, '', `${location.pathname}?${params}`);
+        } catch {}
         synthesisAudio.pause();
         synthesisAudio.removeAttribute('src');
         synthesisAudio.load();
