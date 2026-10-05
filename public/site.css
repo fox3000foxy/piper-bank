@@ -906,7 +906,6 @@ textarea {
 }
 .filter-select select option,
 .sort-select select option,
-.locale-picker select option,
 .synthesis-voice select option {
   background-color: var(--surface);
   color: var(--ink);
@@ -2447,27 +2446,15 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
 :root:has(#theme-toggle:checked) .sample-card figcaption a:hover,
 :root:has(#theme-toggle:checked) .sample-topline a:hover { color: hsl(var(--model-hue, 260) 84% 88%); }
 
-.locale-picker { display: inline-flex; align-items: center; }
-.locale-picker select {
-  min-width: 104px;
-  min-height: 34px;
-  padding: 0 27px 0 10px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-  color-scheme: light;
-  font: 11px var(--sans);
-  cursor: pointer;
-}
-.locale-picker select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.locale-picker { display: inline-flex; align-items: center; gap: 6px; }
+.locale-picker a { color: var(--ink-muted); font: 11px var(--sans); text-decoration: none; padding: 4px 2px; }
+.locale-picker a:hover { color: var(--ink); }
+.locale-picker a[aria-current="page"] { color: var(--ink); font-weight: 700; }
 @media (max-width: 760px) {
   .header-end { gap: 10px; }
-  .locale-picker select { min-width: 94px; }
 }
 @media (max-width: 360px) {
   .site-header { padding-inline: 14px; }
-  .locale-picker select { min-width: 84px; padding-left: 8px; }
 }
 
 /* Pastel violet for trust and navigation cues on voice detail pages. */
@@ -2501,7 +2488,6 @@ body:has(.model-hero) .model-hero ~ .tags a.tag:hover {
 /* Keep every native dropdown in the same tonal family as voice search filters. */
 .filter-select select,
 .sort-select select,
-.locale-picker select,
 .synthesis-voice select {
   appearance: none;
   -webkit-appearance: none;
@@ -2527,27 +2513,22 @@ body:has(.model-hero) .model-hero ~ .tags a.tag:hover {
   font-size: 11px;
 }
 .sort-select select,
-.locale-picker select,
 .synthesis-voice select {
   min-height: 40px;
   padding: 0 32px 0 12px;
 }
 .sort-select select { font-size: 11px; }
-.locale-picker select { min-width: 112px; font: 11px var(--sans); }
 .synthesis-voice select { width: min(100%, 380px); font: 12px var(--sans); }
 .filter-select:focus-within { border-color: var(--accent); }
-.sort-select select:hover,
-.locale-picker select:hover,
+.sort-select select:hover:hover,
 .synthesis-voice select:hover { border-color: var(--line-strong); }
-.sort-select select:focus-visible,
-.locale-picker select:focus-visible,
+.sort-select select:focus-visible:focus-visible,
 .synthesis-voice select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 .filter-select select option,
 .sort-select select option,
-.locale-picker select option,
 .synthesis-voice select option {
   background: var(--surface);
   color: var(--ink);

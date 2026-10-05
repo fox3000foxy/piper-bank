@@ -29,7 +29,7 @@ const hasModel = datasets.filter((d) => d.modelSlug);
         <button class="filter-option" data-f="with">{t(locale, 'datasets.withModel')} <span>{formatNumber(locale, hasModel.length)}</span></button>
         <button class="filter-option" data-f="without">{t(locale, 'datasets.toTrain')} <span>{formatNumber(locale, noModel.length)}</span></button>
       </div>
-      <span id="count" class="count" data-template={t(locale, 'datasets.results')} data-number-locale={locale === 'fr' ? 'fr-FR' : 'en-US'}></span>
+      <span id="count" class="count" data-template={t(locale, 'datasets.results')} data-number-locale={locale === 'fr' ? 'fr-FR' : 'en-US'}>{t(locale, 'datasets.results', { visible: formatNumber(locale, datasets.length), total: formatNumber(locale, datasets.length) })}</span>
     </section>
 
     <main id="grid" class="grid">

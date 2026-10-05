@@ -53,13 +53,11 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
       </nav>
       <div class="header-end">
         <a class="header-project" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'nav.project')} <span aria-hidden="true">↗</span></a>
-        <label class="locale-picker">
-          <span class="sr-only">{t(locale, 'language.label')}</span>
-          <select aria-label={t(locale, 'language.label')} data-fr={localizedPath(base, 'fr', pageUrl || '/')} data-en={localizedPath(base, 'en', pageUrl || '/') }>
-            <option value="fr" selected={locale === 'fr'}>{t(locale, 'language.french')}</option>
-            <option value="en" selected={locale === 'en'}>{t(locale, 'language.english')}</option>
-          </select>
-        </label>
+        <nav class="locale-picker" aria-label={t(locale, 'language.label')}>
+          <a href={localizedPath(base, 'fr', pageUrl || '/')} aria-current={locale === 'fr' ? 'page' : undefined}>FR</a>
+          <span aria-hidden="true">·</span>
+          <a href={localizedPath(base, 'en', pageUrl || '/')} aria-current={locale === 'en' ? 'page' : undefined}>EN</a>
+        </nav>
         <label class="theme-toggle" for="theme-toggle" aria-label={t(locale, 'theme.change')} title={t(locale, 'theme.change')}>
           <input type="checkbox" id="theme-toggle" class="theme-checkbox" />
           <svg class="icon-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.4"/><path d="M10 1.75v2M10 16.25v2M18.25 10h-2M3.75 10h-2m14.08-5.83-1.41 1.41M5.58 14.42l-1.41 1.41m11.66 0-1.41-1.41M5.58 5.58 4.17 4.17"/></svg>
@@ -96,11 +94,6 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
       <span class="footer-note">{t(locale, 'footer.local')}</span>
     </footer>
     <script is:inline define:vars={{ swUrl: `${base}sw.js` }}>
-      const localePicker = document.querySelector('.locale-picker select');
-      localePicker?.addEventListener('change', () => {
-        const destination = localePicker.dataset[localePicker.value];
-        if (destination) window.location.assign(destination);
-      });
       if ('serviceWorker' in navigator) window.addEventListener('load', () => {
         navigator.serviceWorker.register(swUrl).catch(() => {});
       });
