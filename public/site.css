@@ -1154,6 +1154,10 @@ body:not(:has(.home-page)):not(:has(.catalog-page)) > .model-cols {
 .legal-page p { line-height: 1.65; }
 .legal-page .lede { font-size: 17px; }
 .legal-page .dim { margin-top: 40px; }
+.contact-form { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+.contact-form label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+.contact-form input, .contact-form textarea { border: 1px solid var(--line); border-radius: 13px; padding: 12px 14px; background: var(--surface-soft); color: var(--ink); font: 14px var(--sans); }
+.contact-form textarea { resize: vertical; min-height: 140px; }
 .tag.new-pill { background: var(--accent); color: var(--page); font-weight: 700; border: 0; border-radius: 999px; padding: 5px 12px; }
 .new-pill { background: var(--accent); color: var(--page); font: 9px var(--mono); font-weight: 700; white-space: nowrap; border-radius: 999px; padding: 3px 9px; }
 .voice-row-title .new-pill { vertical-align: 1px; }

@@ -1,0 +1,87 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { localizedPath, t, type Locale } from '../../i18n/ui';
+
+const { locale = 'fr' as Locale } = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+const copy = {
+  fr: {
+    title: 'Contact',
+    intro: 'Une question, une voix à proposer, un bug à signaler ? Écris-nous, le message arrive directement sur notre Discord.',
+    name: 'Nom ou pseudo',
+    namePlaceholder: 'Ton pseudo',
+    message: 'Message',
+    messagePlaceholder: 'Ton message (10 caractères minimum)…',
+    send: 'Envoyer',
+    sending: 'Envoi…',
+    ok: 'Message envoyé, merci ! On te répond sur Discord.',
+    fail: 'Échec de l’envoi. Réessaie ou passe par le serveur Discord.',
+    hint: 'Pas de compte à créer, pas de données conservées : seul ton message transite.',
+  },
+  en: {
+    title: 'Contact',
+    intro: 'A question, a voice to suggest, a bug to report? Write to us, the message lands straight on our Discord.',
+    name: 'Name or nickname',
+    namePlaceholder: 'Your nickname',
+    message: 'Message',
+    messagePlaceholder: 'Your message (10 characters minimum)…',
+    send: 'Send',
+    sending: 'Sending…',
+    ok: 'Message sent, thanks! We reply on Discord.',
+    fail: 'Send failed. Retry or come to the Discord server.',
+    hint: 'No account needed, no data kept: only your message transits.',
+  },
+}[locale];
+
+const WEBHOOK = atob('aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTU1NjY5MTI1ODkwNTQ2MDc4Ny9KZDhNaFl4bFlvdkFoaWM3TkJERkF6MXNuM3JNQ0t5WnNtb1JZWGJybmJCUkY1a3ktS0NMSWNVcnBXMldXTElENVl0Rw==');
+---
+
+<Layout title={copy.title} active="" locale={locale} pageUrl="/contact/"
+  description={copy.intro}>
+  <main class="legal-page">
+    <p class="eyebrow">{copy.title}</p>
+    <h1>{copy.title}</h1>
+    <p class="lede">{copy.intro}</p>
+    <form id="contact-form" class="contact-form">
+      <label>{copy.name}
+        <input id="contact-name" name="name" type="text" maxlength="80" autocomplete="nickname" placeholder={copy.namePlaceholder} required />
+      </label>
+      <label>{copy.message}
+        <textarea id="contact-message" name="message" rows="6" maxlength="1800" placeholder={copy.messagePlaceholder} required></textarea>
+      </label>
+      <div class="editor-submit">
+        <span id="contact-status" class="dim" aria-live="polite"></span>
+        <button id="contact-send" type="submit">{copy.send} <span aria-hidden="true">→</span></button>
+      </div>
+      <p class="dim">{copy.hint}</p>
+    </form>
+    <script define:vars={{ webhook: WEBHOOK, sending: copy.sending, okMsg: copy.ok, failMsg: copy.fail }}>
+      const form = document.getElementById('contact-form');
+      const send = document.getElementById('contact-send');
+      const status = document.getElementById('contact-status');
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('contact-name').value.trim().slice(0, 80);
+        const text = document.getElementById('contact-message').value.trim().slice(0, 1800);
+        if (name.length < 2 || text.length < 10) return;
+        send.disabled = true;
+        status.textContent = sending;
+        try {
+          const res = await fetch(webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: `**${name}** (via piperhub.org)\n${text}`.slice(0, 2000) }),
+          });
+          if (!res.ok) throw new Error(res.status);
+          status.textContent = okMsg;
+          form.reset();
+        } catch {
+          status.textContent = failMsg;
+        } finally {
+          send.disabled = false;
+        }
+      });
+    </script>
+  </main>
+</Layout>
