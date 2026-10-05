@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 // GH Pages (project site) => base '/huggingface-crawler/' via SITE_BASE env.
 // Local/dev + static preview => base '/'.
-const SITE = 'https://piper-bank.fox3000foxy.com';
+const SITE = 'https://piperhub.org';
 
 // lastmod par page modèle depuis les données (dates de commit ONNX).
 const rootDir = dirname(fileURLToPath(import.meta.url));
