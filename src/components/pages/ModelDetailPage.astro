@@ -15,8 +15,16 @@ const updatedLabel = updatedDate ? updatedDate.toLocaleDateString(locale === 'fr
 const HF_SAMPLES = 'https://huggingface.co/datasets/fox3000foxy/piper-samples/resolve/main/';
 const sampleBaseSrv = (m.repo.replace('/', '--') + '__' + m.onnx.replace('/', '_').replace(/\.onnx$/, '')).replace(/[^a-zA-Z0-9\-_.]/g, '_');
 const sampleUrlSrv = (sid, n) => `${HF_SAMPLES}${sampleBaseSrv}__sp${sid}__${n}.wav`;
-const waveformPath = (seed: number) => {
-  let state = (Math.abs(Math.trunc(seed)) || 1) >>> 0;
+const seedOf = (slug: string, sid: number) => {
+  let h = 0x811c9dc5;
+  const s = `${slug}:${sid}`;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+};
+const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)) || 1) >>> 0;
   let height = 4;
   return Array.from({ length: 68 }, (_, i) => {
     state = (state * 1664525 + 1013904223) >>> 0;
@@ -176,7 +184,7 @@ const waveformPath = (seed: number) => {
                 <span class="ptime"></span>
               </div>
               <div class="pwave">
-                <svg class="pwave-svg" data-seed={Number(v.sid) + i * 97 + 1} viewBox="0 0 540 56" preserveAspectRatio="none" aria-hidden="true">
+                <svg class="pwave-svg" data-seed={seedOf(m.slug, v.sid)} viewBox="0 0 540 56" preserveAspectRatio="none" aria-hidden="true">
                   <defs><clipPath id={clipId} clipPathUnits="userSpaceOnUse"><rect class="pwave-progress" x="0" y="0" width="0" height="56" /></clipPath></defs>
                   <path class="pwave-rest" d="" />
                   <path class="pwave-played" d="" clip-path={`url(#${clipId})`} />
