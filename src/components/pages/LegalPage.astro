@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { formatNumber, localizedPath, t, type Locale } from '../../i18n/ui';
 
-const { locale = 'fr' as Locale, doc = 'privacy' as 'privacy' | 'terms' } = Astro.props;
+const { locale = 'fr' as Locale, doc = 'privacy' as 'privacy' | 'terms' | 'legal' } = Astro.props;
 const base = import.meta.env.BASE_URL;
 
 const copy = {
@@ -16,13 +16,21 @@ const copy = {
     privacyContactTitle: 'Contact',
     privacyContact: 'Une question sur ces règles ? Ouvre un sujet sur le dépôt GitHub du site.',
     termsTitle: 'Conditions d’utilisation',
-    termsIntro: 'Piper Bank est un annuaire de voix pour Piper TTS, avec démonstration de synthèse directement dans le navigateur.',
+    termsIntro: 'PiperHub est un annuaire de voix pour Piper TTS, avec démonstration de synthèse directement dans le navigateur.',
     termsVoicesTitle: 'Licences des voix',
     termsVoices: 'Chaque voix appartient à son auteur et garde sa propre licence (indiquée sur sa fiche et son dépôt). Vérifie-la avant tout usage, surtout commercial. En cas de doute, demande à l’auteur.',
     termsUseTitle: 'Usage loyal',
     termsUse: 'La synthèse tourne entièrement dans ton navigateur : les textes saisis n’en sortent jamais. Utilise le site pour écouter, comparer et créer, sans nuire aux auteurs ni au service.',
     termsWarrantyTitle: 'Garanties',
     termsWarranty: 'Site fourni tel quel, sans garantie de disponibilité ni d’exactitude. Les modèles évoluent ; un rendu peut changer d’une version à l’autre.',
+    legalTitle: 'Mentions légales',
+    legalIntro: 'Informations requises par la loi française pour tout site publié.',
+    legalEditorTitle: 'Éditeur',
+    legalEditor: 'Site édité par fox3000foxy. Contact : contact@fox3000foxy.com.',
+    legalHostTitle: 'Hébergement',
+    legalHost: 'Site hébergé par GitHub Pages, service de GitHub, Inc., 88 Colin P Kelly Jr Street, San Francisco, CA 94107, États-Unis.',
+    legalIpTitle: 'Propriété intellectuelle',
+    legalIp: 'Le design et le code du site suivent la licence du dépôt. Les voix, extraits et jeux de données appartiennent à leurs auteurs respectifs, sous leurs propres licences.',
     effective: 'En vigueur le 5 octobre 2026.',
   },
   en: {
@@ -35,23 +43,31 @@ const copy = {
     privacyContactTitle: 'Contact',
     privacyContact: 'Questions about these rules? Open an issue on the site repository.',
     termsTitle: 'Terms of use',
-    termsIntro: 'Piper Bank is a directory of voices for Piper TTS, with synthesis demos right in the browser.',
+    termsIntro: 'PiperHub is a directory of voices for Piper TTS, with synthesis demos right in the browser.',
     termsVoicesTitle: 'Voice licenses',
     termsVoices: 'Each voice belongs to its author and keeps its own license (shown on its page and repository). Check it before any use, especially commercial. When in doubt, ask the author.',
     termsUseTitle: 'Fair use',
     termsUse: 'Synthesis runs entirely in your browser: entered texts never leave it. Use the site to listen, compare, and create, without harming authors or the service.',
     termsWarrantyTitle: 'Warranties',
     termsWarranty: 'Site provided as is, with no uptime or accuracy warranty. Models evolve; rendering may change between versions.',
+    legalTitle: 'Legal notice',
+    legalIntro: 'Information required by French law for any published website.',
+    legalEditorTitle: 'Publisher',
+    legalEditor: 'Site published by fox3000foxy. Contact: contact@fox3000foxy.com.',
+    legalHostTitle: 'Hosting',
+    legalHost: 'Site hosted by GitHub Pages, a service of GitHub, Inc., 88 Colin P Kelly Jr Street, San Francisco, CA 94107, United States.',
+    legalIpTitle: 'Intellectual property',
+    legalIp: 'The site design and code follow the repository license. Voices, samples, and datasets belong to their respective authors, under their own licenses.',
     effective: 'Effective October 5, 2026.',
   },
 }[locale];
 ---
 
-<Layout title={doc === 'privacy' ? copy.privacyTitle : copy.termsTitle} active="" locale={locale} pageUrl={`/${doc}/`}
-  description={doc === 'privacy' ? copy.privacyIntro : copy.termsIntro}>
+<Layout title={doc === 'privacy' ? copy.privacyTitle : doc === 'terms' ? copy.termsTitle : copy.legalTitle} active="" locale={locale} pageUrl={`/${doc}/`}
+  description={doc === 'privacy' ? copy.privacyIntro : doc === 'terms' ? copy.termsIntro : copy.legalIntro}>
   <main class="legal-page">
-    <p class="eyebrow">{doc === 'privacy' ? copy.privacyTitle : copy.termsTitle}</p>
-    <h1>{doc === 'privacy' ? copy.privacyTitle : copy.termsTitle}</h1>
+    <p class="eyebrow">{doc === 'privacy' ? copy.privacyTitle : doc === 'terms' ? copy.termsTitle : copy.legalTitle}</p>
+    <h1>{doc === 'privacy' ? copy.privacyTitle : doc === 'terms' ? copy.termsTitle : copy.legalTitle}</h1>
     {doc === 'privacy' ? (
       <>
         <p class="lede">{copy.privacyIntro}</p>
@@ -63,7 +79,7 @@ const copy = {
         <p>{copy.privacyContact} <a href="https://github.com/fox3000foxy/piper-bank">GitHub ↗</a></p>
         <p class="dim">{copy.effective}</p>
       </>
-    ) : (
+    ) : doc === 'terms' ? (
       <>
         <p class="lede">{copy.termsIntro}</p>
         <h2>{copy.termsVoicesTitle}</h2>
@@ -74,6 +90,17 @@ const copy = {
         <p>{copy.termsWarranty}</p>
         <p class="dim">{copy.effective}</p>
       </>
-    )}
+    ) : doc === 'legal' ? (
+      <>
+        <p class="lede">{copy.legalIntro}</p>
+        <h2>{copy.legalEditorTitle}</h2>
+        <p>{copy.legalEditor}</p>
+        <h2>{copy.legalHostTitle}</h2>
+        <p>{copy.legalHost}</p>
+        <h2>{copy.legalIpTitle}</h2>
+        <p>{copy.legalIp}</p>
+        <p class="dim">{copy.effective}</p>
+      </>
+    ) : null}
   </main>
 </Layout>

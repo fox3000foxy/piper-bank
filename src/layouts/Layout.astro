@@ -15,7 +15,7 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#ffffff" />
-    <title>{title} · Piper Bank</title>
+    <title>{title} · PiperHub</title>
     <meta name="description" content={desc} />
     <link rel="icon" type="image/png" href={`${base}logo.png`} />
     <link rel="preload" href={`${base}fonts/archivo-latin.woff2`} as="font" type="font/woff2" crossorigin />
@@ -23,8 +23,8 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <link rel="preconnect" href="https://huggingface.co" crossorigin />
     <link rel="stylesheet" href={`${base}site.css`} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Piper Bank" />
-    <meta property="og:title" content={`${title} · Piper Bank`} />
+    <meta property="og:site_name" content="PiperHub" />
+    <meta property="og:title" content={`${title} · PiperHub`} />
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={url} />
     <meta property="og:image" content={img} />
@@ -32,13 +32,13 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <link rel="alternate" hreflang="fr" href={frenchUrl} />
     <link rel="alternate" hreflang="en" href={englishUrl} />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content={`${title} · Piper Bank`} />
+    <meta name="twitter:title" content={`${title} · PiperHub`} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={img} />
   </head>
   <body>
     <header class="site-header">
-      <a class="wordmark" href={localizedPath(base, locale, '/')} aria-label={`Piper Bank, ${t(locale, 'nav.home').toLowerCase()}`}><img src={`${base}logo.png`} alt="" /><span class="wordmark-name"><span class="wordmark-piper">Piper</span><span class="wordmark-bank">Bank</span></span></a>
+      <a class="wordmark" href={localizedPath(base, locale, '/')} aria-label={`PiperHub, ${t(locale, 'nav.home').toLowerCase()}`}><img src={`${base}logo.png`} alt="" /><span class="wordmark-name"><span class="wordmark-piper">Piper</span><span class="wordmark-bank">Hub</span></span></a>
       <nav class="topnav" aria-label={t(locale, 'nav.main')}>
         <a class={active === 'home' ? 'nav-on' : ''} href={localizedPath(base, locale, '/')}>{t(locale, 'nav.home')}</a>
         <a class={active === 'voices' ? 'nav-on' : ''} href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a>
@@ -78,13 +78,14 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     </script>
     <slot />
     <footer class="site-footer">
-      <a class="wordmark footer-mark" href={localizedPath(base, locale, '/')}><img src={`${base}logo.png`} alt="" /><span class="wordmark-name"><span class="wordmark-piper">Piper</span><span class="wordmark-bank">Bank</span></span></a>
+      <a class="wordmark footer-mark" href={localizedPath(base, locale, '/')}><img src={`${base}logo.png`} alt="" /><span class="wordmark-name"><span class="wordmark-piper">Piper</span><span class="wordmark-bank">Hub</span></span></a>
       <p>{t(locale, 'footer.description')}<br />{t(locale, 'footer.licenses')}</p>
       <nav aria-label={t(locale, 'nav.footerLinks')}>
         <a href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a>
         <a href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'nav.datasets')}</a>
         <a href={localizedPath(base, locale, '/privacy/')}>{t(locale, 'footer.privacy')}</a>
         <a href={localizedPath(base, locale, '/terms/')}>{t(locale, 'footer.terms')}</a>
+          <a href={localizedPath(base, locale, '/legal/')}>{t(locale, 'footer.legal')}</a>
         <a href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'footer.source')} ↗</a>
       </nav>
       <span class="footer-note">{t(locale, 'footer.local')}</span>
