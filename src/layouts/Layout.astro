@@ -14,10 +14,26 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#ffffff" />
     <title>{title} · PiperHub</title>
     <meta name="description" content={desc} />
-    <link rel="icon" type="image/png" href={`${base}logo.png`} />
+    <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
+    <link rel="icon" type="image/png" sizes="16x16" href={`${base}favicon-16x16.png`} />
+    <link rel="icon" type="image/png" sizes="96x96" href={`${base}favicon-96x96.png`} />
+    <link rel="icon" type="image/png" sizes="192x192" href={`${base}android-icon-192x192.png`} />
+    <link rel="apple-touch-icon" sizes="57x57" href={`${base}apple-icon-57x57.png`} />
+    <link rel="apple-touch-icon" sizes="60x60" href={`${base}apple-icon-60x60.png`} />
+    <link rel="apple-touch-icon" sizes="72x72" href={`${base}apple-icon-72x72.png`} />
+    <link rel="apple-touch-icon" sizes="76x76" href={`${base}apple-icon-76x76.png`} />
+    <link rel="apple-touch-icon" sizes="114x114" href={`${base}apple-icon-114x114.png`} />
+    <link rel="apple-touch-icon" sizes="120x120" href={`${base}apple-icon-120x120.png`} />
+    <link rel="apple-touch-icon" sizes="144x144" href={`${base}apple-icon-144x144.png`} />
+    <link rel="apple-touch-icon" sizes="152x152" href={`${base}apple-icon-152x152.png`} />
+    <link rel="apple-touch-icon" sizes="180x180" href={`${base}apple-icon-180x180.png`} />
+    <link rel="apple-touch-icon" href={`${base}apple-icon.png`} />
+    <link rel="manifest" href={`${base}manifest.json`} />
+    <meta name="msapplication-TileColor" content="#7c3aed" />
+    <meta name="msapplication-TileImage" content={`${base}ms-icon-144x144.png`} />
+    <meta name="theme-color" content="#7c3aed" />
     <link rel="preload" href={`${base}fonts/archivo-latin.woff2`} as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://huggingface.co" />
     <link rel="preconnect" href="https://huggingface.co" crossorigin />
@@ -67,12 +83,8 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
         try { saved = localStorage.getItem('piper-theme'); } catch {}
         const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
         box.checked = dark;
-        const meta = document.querySelector('meta[name="theme-color"]');
-        const paint = () => meta?.setAttribute('content', box.checked ? '#000000' : '#ffffff');
-        paint();
         box.addEventListener('change', () => {
           try { localStorage.setItem('piper-theme', box.checked ? 'dark' : 'light'); } catch {}
-          paint();
         });
       })();
     </script>
