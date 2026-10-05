@@ -460,6 +460,12 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
         const cmpStatus = document.getElementById('cmp-status');
         const cmpNames = Object.fromEntries([...document.getElementById('voice-select').options].map((o) => [o.value, o.text]));
         let cmpCurrent = null;
+        const cmpUrls = [];
+        const clearCmp = () => {
+          cmpUrls.forEach((u) => URL.revokeObjectURL(u));
+          cmpUrls.length = 0;
+          cmpRes.innerHTML = '';
+        };
         cmpGo.addEventListener('click', async () => {
           const text = document.getElementById('text').value.trim();
           const status = document.getElementById('status');
@@ -469,7 +475,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
             .filter((v, i, a) => v !== '' && a.indexOf(v) === i);
           if (!sids.length) return;
           cmpGo.disabled = true;
-          cmpRes.innerHTML = '';
+          clearCmp();
           if (cmpCurrent) { cmpCurrent.pause(); cmpCurrent = null; }
           let done = 0;
           for (const sid of sids) {
@@ -483,6 +489,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
                 noiseScale: parseFloat(document.getElementById('noise').value) || undefined,
               });
               const url = URL.createObjectURL(blob);
+              cmpUrls.push(url);
               const row = document.createElement('div');
               row.className = 'cmp-row';
               row.innerHTML = `<button class="sample-play cmp-toggle" type="button" aria-label="play"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5 14 10l-8 5.5z" fill="currentColor" stroke="none"/></svg></button><span class="cmp-name"></span><audio preload="none"></audio>`;
