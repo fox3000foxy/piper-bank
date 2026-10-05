@@ -1990,7 +1990,7 @@ body:has(.dataset-filters) .dataset-intro .catalog-description {
 .player .pbar::-moz-range-thumb { width: 11px; height: 11px; border: 2px solid var(--surface); border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .player .pbar:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .wordmark { display: inline-flex; align-items: center; gap: 9px; }
-.wordmark img { width: 30px; height: 30px; object-fit: cover; border: 1px solid var(--line); border-radius: 10px; }
+.wordmark img { width: 30px; height: 30px; object-fit: cover; border-radius: 10px; }
 .footer-mark img { width: 27px; height: 27px; }
 .voice-row-avatar { width: 44px; height: 44px; border-radius: 15px; }
 @media (max-width: 760px) { .player { padding: 10px; border-radius: 14px; } .voice-row-avatar { width: 38px; height: 38px; border-radius: 13px; } }
