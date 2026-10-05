@@ -158,7 +158,6 @@ const waveformPath = (seed: number) => {
       <div id="voice-list" class="voice-list">
         {voicePairs.slice(0, 120).map((v, i) => {
           const clipId = `voice-progress-${m.slug}-${i}`;
-          const waveform = waveformPath(Number(v.sid) + i * 97 + 1);
           return (
           <div class="player" style={`--voice-hue:${(i * 51.43 + 18) % 360}`} data-sid={v.sid} data-vname={v.name}>
             <button class="pp" aria-label={t(locale, 'detail.listenVoice', { name: v.name })}>
@@ -171,16 +170,13 @@ const waveformPath = (seed: number) => {
                 <span class="ex-sw">
                   <button class="ex on" data-n="0" title={t(locale, 'detail.sampleN', { number: 1 })}>1</button><button class="ex" data-n="1" title={t(locale, 'detail.sampleN', { number: 2 })}>2</button>
                 </span>
-                <span class="ptime">0:00</span>
-                <button class="pdl" data-dl aria-label={t(locale, 'detail.downloadSample')} title={t(locale, 'detail.downloadSample')}>
-                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 17h12"/></svg>
-                </button>
+                <span class="ptime"></span>
               </div>
               <div class="pwave">
-                <svg class="pwave-svg" viewBox="0 0 540 56" preserveAspectRatio="none" aria-hidden="true">
+                <svg class="pwave-svg" data-seed={Number(v.sid) + i * 97 + 1} viewBox="0 0 540 56" preserveAspectRatio="none" aria-hidden="true">
                   <defs><clipPath id={clipId} clipPathUnits="userSpaceOnUse"><rect class="pwave-progress" x="0" y="0" width="0" height="56" /></clipPath></defs>
-                  <path class="pwave-rest" d={waveform} />
-                  <path class="pwave-played" d={waveform} clip-path={`url(#${clipId})`} />
+                  <path class="pwave-rest" d="" />
+                  <path class="pwave-played" d="" clip-path={`url(#${clipId})`} />
                 </svg>
                 <input class="pbar" type="range" min="0" max="1000" value="0" aria-label={t(locale, 'detail.samplePosition', { name: v.name })} />
               </div>
@@ -199,7 +195,7 @@ const waveformPath = (seed: number) => {
     </div>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
-    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), loading: t(locale, 'detail.loading'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus') } })} />
+    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus') } })} />
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
     <script type="module">
       const model = JSON.parse(document.getElementById('model-data').textContent);
@@ -212,6 +208,22 @@ const waveformPath = (seed: number) => {
       const sampleBase = safe(model.repo.replace('/', '--') + '__' + model.onnx.replace('/', '_').replace(/\.onnx$/, ''));
       const sampleUrl = (sid, n) => `${HF_SAMPLES}${sampleBase}__sp${sid}__${n}.wav`;
 
+      // Waveforms décoratives générées côté client (même PRNG que le build).
+      const wavePath = (seed) => {
+        let state = (Math.abs(Math.trunc(seed)) || 1) >>> 0, height = 4;
+        const out = [];
+        for (let i = 0; i < 68; i++) {
+          state = (state * 1664525 + 1013904223) >>> 0;
+          height = Math.round(height * 0.52 + (3 + (state % 23)) * 0.48);
+          out.push(`M${4 + i * 8} ${28 - height / 2}v${height}`);
+        }
+        return out.join(' ');
+      };
+      document.querySelectorAll('.pwave-svg[data-seed]').forEach((svg) => {
+        const d = wavePath(Number(svg.dataset.seed));
+        svg.querySelector('.pwave-rest')?.setAttribute('d', d);
+        svg.querySelector('.pwave-played')?.setAttribute('d', d);
+      });
       // Keep one preview active and expose seeking through a native range control.
       let currentAudio = null, currentCard = null, progressFrame = 0;
       const voiceSelect = document.getElementById('voice-select');
@@ -259,7 +271,6 @@ const waveformPath = (seed: number) => {
           seek.value = String(Math.round(progress * Number(seek.max)));
           waveformProgress.setAttribute('width', String(540 * progress));
           seek.setAttribute('aria-valuetext', d ? message(ui.labels.durationPair, { current: fmt(c), duration: fmt(d) }) : fmt(c));
-          time.textContent = d ? `${fmt(c)} / ${fmt(d)}` : fmt(c);
         };
         const animateProgress = () => {
           if (currentAudio !== audio() || audio().paused) return;
@@ -295,7 +306,7 @@ const waveformPath = (seed: number) => {
         audios.forEach((a) => {
           a.addEventListener('timeupdate', () => { if (a === audio()) paint(); });
           a.addEventListener('loadedmetadata', () => { if (a === audio()) paint(); });
-          a.addEventListener('waiting', () => { if (a === audio()) { card.classList.add('loading'); time.textContent = ui.labels.loading; } });
+          a.addEventListener('waiting', () => { if (a === audio()) card.classList.add('loading'); });
           a.addEventListener('playing', () => { if (a === audio()) { card.classList.remove('loading'); paint(); } });
           a.addEventListener('pause', () => {
             if (a === currentAudio && !a.ended) {
@@ -318,22 +329,6 @@ const waveformPath = (seed: number) => {
           event.stopPropagation();
           void play(n);
         }));
-        card.querySelector('[data-dl]').addEventListener('click', async (event) => {
-          event.stopPropagation();
-          const dl = event.currentTarget;
-          dl.disabled = true;
-          try {
-            const res = await fetch(sampleUrl(sid, idx));
-            if (!res.ok) throw new Error(res.status);
-            const url = URL.createObjectURL(await res.blob());
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${model.slug}-sp${sid}_${idx}.wav`;
-            document.body.append(a); a.click(); a.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
-          } catch { time.textContent = ui.labels.sampleUnavailable; }
-          finally { dl.disabled = false; }
-        });
         seek.addEventListener('input', () => {
           const a = audio();
           if (Number.isFinite(a.duration) && a.duration > 0) {

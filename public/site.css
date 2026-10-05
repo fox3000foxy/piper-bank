@@ -2199,6 +2199,8 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
 .hero.model-hero h1 { overflow-wrap: anywhere; }
 .player.loading .ptime { color: var(--accent); }
 .player.loading .pbar { opacity: .65; }
+.player.loading .pp { animation: pp-pulse 0.9s ease-in-out infinite; }
+@keyframes pp-pulse { 50% { opacity: .4; } }
 .pbody { flex: 1 1 auto; min-width: 0; }
 .prow { display: flex; min-width: 0; align-items: center; gap: 8px; }
 .pname { min-width: 0; overflow: hidden; flex: 1 1 auto; padding: 0; border: 0; background: transparent; color: var(--ink); text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
@@ -2207,10 +2209,7 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
 .synthesis-voice option { background: var(--surface); color: var(--ink); }
 .ex-sw { display: flex; flex: 0 0 auto; align-items: center; }
 .ptime { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
-.pdl { display: inline-grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: var(--ink-muted); cursor: pointer; }
-.pdl:hover { color: var(--accent); }
-.pdl:disabled { opacity: .4; cursor: default; }
-.pdl svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ptime:empty { display: none; }
 .cmp-selects { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 12px 0; }
 .cmp-selects label { display: flex; flex-direction: column; gap: 6px; color: var(--ink-soft); font: 12px var(--sans); }
 .cmp-selects select { min-height: 42px; border: 1px solid var(--line); border-radius: 13px; padding: 0 10px; background: var(--surface-soft); color: var(--ink); font: 13px var(--sans); max-width: 180px; }
