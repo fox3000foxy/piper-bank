@@ -352,6 +352,15 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
 
       const { synthesize } = await new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
       const go = document.getElementById('go');
+      let warmed = false;
+      const warmSession = () => {
+        if (warmed) return; warmed = true;
+        new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js')
+          .then((m) => m.getSession(model.repo, model.onnx).catch(() => {}))
+          .catch(() => {});
+      };
+      document.getElementById('text').addEventListener('input', warmSession);
+      document.getElementById('voice-select')?.addEventListener('change', warmSession);
       document.getElementById('text').addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); go.click(); }
       });

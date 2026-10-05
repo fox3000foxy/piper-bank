@@ -43,6 +43,14 @@ const base = import.meta.env.BASE_URL;
     const reset = document.getElementById('reset-filters');
     const sort = document.getElementById('sort');
     const rows = [...grid.querySelectorAll('.voice-row')];
+    const prefetched = new Set();
+    const prefetch = (a) => {
+      if (!a || prefetched.has(a.href)) return;
+      prefetched.add(a.href);
+      fetch(a.href).catch(() => {});
+    };
+    grid.addEventListener('pointerover', (e) => { const a = e.target.closest('a.voice-row'); if (a) prefetch(a); });
+    grid.addEventListener('focusin', (e) => { const a = e.target.closest('a.voice-row'); if (a) prefetch(a); });
     const state = new URLSearchParams(location.search);
     search.value = state.get('q') || '';
     langFilter.value = state.get('lang') || '';
