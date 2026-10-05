@@ -15,6 +15,7 @@ const copy = {
     messagePlaceholder: 'Ton message (10 caractères minimum)…',
     send: 'Envoyer',
     sending: 'Envoi…',
+    err: 'Nom : 2 caractères minimum. Message : 10 caractères minimum.',
     ok: 'Message envoyé, merci ! On te répond sur Discord.',
     fail: 'Échec de l’envoi. Réessaie ou passe par le serveur Discord.',
     hint: 'Pas de compte à créer, pas de données conservées : seul ton message transite.',
@@ -28,6 +29,7 @@ const copy = {
     messagePlaceholder: 'Your message (10 characters minimum)…',
     send: 'Send',
     sending: 'Sending…',
+    err: 'Name: 2 characters minimum. Message: 10 characters minimum.',
     ok: 'Message sent, thanks! We reply on Discord.',
     fail: 'Send failed. Retry or come to the Discord server.',
     hint: 'No account needed, no data kept: only your message transits.',
@@ -56,15 +58,23 @@ const WEBHOOK_B64 = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTU1NjY5MTI1ODk
       </div>
       <p class="dim">{copy.hint}</p>
     </form>
-    <script define:vars={{ webhook: WEBHOOK_B64, sending: copy.sending, okMsg: copy.ok, failMsg: copy.fail }}>
+    <script define:vars={{ webhook: WEBHOOK_B64, sending: copy.sending, okMsg: copy.ok, failMsg: copy.fail, errMsg: copy.err }}>
       const form = document.getElementById('contact-form');
       const send = document.getElementById('contact-send');
       const status = document.getElementById('contact-status');
       form?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = document.getElementById('contact-name').value.trim().slice(0, 80);
-        const text = document.getElementById('contact-message').value.trim().slice(0, 1800);
-        if (name.length < 2 || text.length < 10) return;
+        const nameField = document.getElementById('contact-name');
+        const msgField = document.getElementById('contact-message');
+        const name = nameField.value.trim().slice(0, 80);
+        const text = msgField.value.trim().slice(0, 1800);
+        if (name.length < 2 || text.length < 10) {
+          status.textContent = errMsg;
+          status.classList.add('is-error');
+          (name.length < 2 ? nameField : msgField).focus();
+          return;
+        }
+        status.classList.remove('is-error');
         send.disabled = true;
         status.textContent = sending;
         try {
@@ -77,9 +87,11 @@ const WEBHOOK_B64 = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTU1NjY5MTI1ODk
             }),
           });
           if (!res.ok) throw new Error(res.status);
+          status.classList.remove('is-error');
           status.textContent = okMsg;
           form.reset();
         } catch {
+          status.classList.add('is-error');
           status.textContent = failMsg;
         } finally {
           send.disabled = false;
