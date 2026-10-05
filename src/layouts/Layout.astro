@@ -1,6 +1,5 @@
 ---
 import { localizedPath, t, type Locale } from '../i18n/ui';
-import { ClientRouter } from 'astro:transitions';
 
 const { title, active, description, pageUrl, image, locale = 'fr' as Locale } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -11,7 +10,7 @@ const img = image ? site + image : site + base + 'logo.png';
 const frenchUrl = site + localizedPath(base, 'fr', pageUrl || '/');
 const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
 ---
-<html lang={locale} data-theme="light">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,16 +19,6 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <meta name="description" content={desc} />
     <link rel="icon" type="image/png" href={`${base}logo.png`} />
     <link rel="preload" href={`${base}fonts/archivo-latin.woff2`} as="font" type="font/woff2" crossorigin />
-    <script is:inline>
-      (() => {
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        let saved = null;
-        try { saved = localStorage.getItem('piper-theme'); } catch {}
-        const theme = saved || (systemDark ? 'dark' : 'light');
-        document.documentElement.dataset.theme = theme;
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
-      })();
-    </script>
     <link rel="stylesheet" href={`${base}site.css`} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Piper Bank" />
@@ -50,7 +39,6 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
         if (saved === 'dark' || saved === 'light') document.documentElement.dataset.theme = saved;
       } catch {}
     </script>
-    <ClientRouter />
   </head>
   <body>
     <header class="site-header">
@@ -70,12 +58,30 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
             <option value="en" selected={locale === 'en'}>{t(locale, 'language.english')}</option>
           </select>
         </label>
-        <button class="theme-toggle" type="button" aria-label={t(locale, 'theme.change')} title={t(locale, 'theme.change')}>
+        <label class="theme-toggle" for="theme-toggle" aria-label={t(locale, 'theme.change')} title={t(locale, 'theme.change')}>
+          <input type="checkbox" id="theme-toggle" class="theme-checkbox" />
           <svg class="icon-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.4"/><path d="M10 1.75v2M10 16.25v2M18.25 10h-2M3.75 10h-2m14.08-5.83-1.41 1.41M5.58 14.42l-1.41 1.41m11.66 0-1.41-1.41M5.58 5.58 4.17 4.17"/></svg>
           <svg class="icon-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.8 12.4A7 7 0 0 1 7.6 3.2a7.2 7.2 0 1 0 9.2 9.2Z"/></svg>
-        </button>
+        </label>
       </div>
     </header>
+    <script is:inline>
+      (() => {
+        const box = document.getElementById('theme-toggle');
+        if (!(box instanceof HTMLInputElement)) return;
+        let saved = null;
+        try { saved = localStorage.getItem('piper-theme'); } catch {}
+        const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        box.checked = dark;
+        const meta = document.querySelector('meta[name="theme-color"]');
+        const paint = () => meta?.setAttribute('content', box.checked ? '#000000' : '#ffffff');
+        paint();
+        box.addEventListener('change', () => {
+          try { localStorage.setItem('piper-theme', box.checked ? 'dark' : 'light'); } catch {}
+          paint();
+        });
+      })();
+    </script>
     <slot />
     <footer class="site-footer">
       <a class="wordmark footer-mark" href={localizedPath(base, locale, '/')}><img src={`${base}logo.png`} alt="" /><span class="wordmark-name"><span class="wordmark-piper">Piper</span><span class="wordmark-bank">Bank</span></span></a>
@@ -92,19 +98,6 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
       localePicker?.addEventListener('change', () => {
         const destination = localePicker.dataset[localePicker.value];
         if (destination) window.location.assign(destination);
-      });
-      if (!window.__themeSwapHook) {
-        window.__themeSwapHook = true;
-        document.addEventListener('astro:before-swap', (event) => {
-          event.newDocument.documentElement.dataset.theme = document.documentElement.dataset.theme;
-        });
-      }
-      const themeButton = document.querySelector('.theme-toggle');
-      themeButton?.addEventListener('click', () => {
-        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-        document.documentElement.dataset.theme = next;
-        try { localStorage.setItem('piper-theme', next); } catch {}
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#000000' : '#ffffff');
       });
     </script>
   </body>
