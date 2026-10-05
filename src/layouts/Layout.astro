@@ -36,6 +36,13 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <meta name="msapplication-TileColor" content="#7c3aed" />
     <meta name="msapplication-TileImage" content={`${base}ms-icon-144x144.png`} />
     <meta name="theme-color" content="#7c3aed" />
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('piper-theme');
+        const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.dataset.theme = 'dark';
+      } catch {}
+    </script>
     <link rel="preload" href={`${base}fonts/archivo-latin.woff2`} as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://huggingface.co" />
     <link rel="preconnect" href="https://huggingface.co" crossorigin />
@@ -85,8 +92,11 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
         try { saved = localStorage.getItem('piper-theme'); } catch {}
         const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
         box.checked = dark;
+        const sync = () => { document.documentElement.dataset.theme = box.checked ? 'dark' : 'light'; };
+        sync();
         box.addEventListener('change', () => {
           try { localStorage.setItem('piper-theme', box.checked ? 'dark' : 'light'); } catch {}
+          sync();
         });
       })();
     </script>
