@@ -6,6 +6,539 @@ let phonemizeFactory = null;
 const sessions = new Map(); // key -> InferenceSession
 const ASSET_BASE = HERE;
 
+// ── Hébreu ────────────────────────────────────────────────────────────────
+// Port de hebrew/__init__.py + hebrew_ipa.py (piper1-gpl, GPL-3.0-or-later)
+// via pipertts. Modèle nakdimon.onnx : MIT (elazarg/nakdimon).
+// Données : public/piper-data/hebrew/nakdimon.onnx.
+/**
+ * Hebrew phonemizer (MVP).
+ *
+ * TypeScript port of piper1-gpl `src/piper/phonemize_hebrew.py`,
+ * `src/piper/hebrew/__init__.py` (Nakdimon) and
+ * `src/piper/hebrew/hebrew_ipa.py` (GPL-3.0-or-later; Nakdimon model MIT).
+ * Model (`nakdimon.onnx`) downloads on demand, see `data.ts`.
+ */
+// ---------- Nakdimon tables (vendored) ----------
+const RAFE = "ֿ";
+const HEBREW_LETTERS = Array.from({ length: 0x05ea - 0x05d0 + 1 }, (_, i) => String.fromCharCode(0x05d0 + i));
+const NIQQUD_TABLE = [
+    RAFE,
+    ...Array.from({ length: 0x05bc - 0x05b0 + 1 }, (_, i) => String.fromCharCode(0x05b0 + i)),
+    "ַ",
+];
+const SHIN_YEMANIT = "ׁ";
+const SHIN_SMALIT = "ׂ";
+const NIQQUD_SIN = [RAFE, SHIN_YEMANIT, SHIN_SMALIT];
+const DAGESH_LETTER = "ּ";
+const DAGESH_TABLE = [RAFE, DAGESH_LETTER];
+const VALID_LETTERS = [
+    " ",
+    "!",
+    '"',
+    "'",
+    "(",
+    ")",
+    ",",
+    "-",
+    ".",
+    ":",
+    ";",
+    "?",
+    ...HEBREW_LETTERS,
+];
+const SPECIAL_TOKENS = ["H", "O", "5"];
+const ENDINGS_TO_REGULAR = new Map([..."ךםןףץ"].map((c, i) => [c, [..."כמנפצ"][i]]));
+const LETTER_CHARS = ["", ...SPECIAL_TOKENS, ...VALID_LETTERS];
+const VALID_LETTER_SET = new Set(VALID_LETTERS);
+const NIQQUD_CHARS = ["", ...NIQQUD_TABLE];
+const DAGESH_CHARS = ["", ...DAGESH_TABLE];
+const SIN_CHARS = ["", ...NIQQUD_SIN];
+const CHAR_TO_ID = new Map(LETTER_CHARS.map((c, i) => [c, i]));
+const NIQQUD_DETECT = /[ְ-ׇּֿׁׂ]/;
+function removeNiqqud(text) {
+    return text.replace(NIQQUD_DETECT, "");
+}
+function normalizeChar(c) {
+    if (VALID_LETTER_SET.has(c)) {
+        return c;
+    }
+    const ending = ENDINGS_TO_REGULAR.get(c);
+    if (ending) {
+        return ending;
+    }
+    if (c === "\n" || c === "\t") {
+        return " ";
+    }
+    if ("־‒–—―−".includes(c)) {
+        return "-";
+    }
+    if (c === "[") {
+        return "(";
+    }
+    if (c === "]") {
+        return ")";
+    }
+    if ("´‘’".includes(c)) {
+        return "'";
+    }
+    if ("“”״".includes(c)) {
+        return '"';
+    }
+    if (/\d/.test(c)) {
+        return "5";
+    }
+    if (c === "…") {
+        return ",";
+    }
+    if ("ײװױ".includes(c)) {
+        return "H";
+    }
+    return "O";
+}
+function canDagesh(letter) {
+    return DAGESHABLE.has(letter);
+}
+function canSin(letter) {
+    return letter === "ש";
+}
+function canNiqqud(letter) {
+    return NIQQUDABLE.has(letter);
+}
+const DAGESHABLE = new Set([..."בגדהוזטיכלמנספצקשתךף"]);
+const NIQQUDABLE = new Set([..."אבגדהוזחטיכלמנסעפצקרשתךן"]);
+/** Nakdimon ONNX diacritizer restoring Hebrew niqqud. Port of hebrew/__init__.py.
+ * Version navigateur : session onnxruntime-web, modèle fetché une fois. */
+let nakSession = null, nakInput = '';
+async function nakLoad(O) {
+  if (nakSession) return;
+  const res = await fetch(ASSET_BASE + 'piper-data/hebrew/nakdimon.onnx');
+  if (!res.ok) throw new Error('nakdimon.onnx introuvable');
+  const bytes = await res.arrayBuffer();
+  nakSession = await O.InferenceSession.create(bytes, { executionProviders: ['wasm'] });
+  nakInput = nakSession.inputNames[0];
+  if (!nakInput) throw new Error('nakdimon.onnx sans entrée.');
+}
+async function nakDiacritize(O, text) {
+  await nakLoad(O);
+  const bare = removeNiqqud(text);
+  const letters = [...bare];
+  if (letters.length === 0) return text;
+  const ids = letters.map((c) => CHAR_TO_ID.get(normalizeChar(c)) ?? 0);
+  const feeds = { [nakInput]: new O.Tensor('float32', Float32Array.from(ids), [1, ids.length]) };
+  const results = await nakSession.run(feeds);
+  const nOut = Array.from(results.N?.data ?? []);
+  const dOut = Array.from(results.D?.data ?? []);
+  const sOut = Array.from(results.S?.data ?? []);
+  const n = letters.length;
+  const argmax = (data, classes, row) => {
+    let best = 0, bestV = -Infinity;
+    for (let c = 0; c < classes; c++) {
+      const v = data[row * classes + c];
+      if (v > bestV) { bestV = v; best = c; }
+    }
+    return best;
+  };
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const letter = letters[i];
+    out.push(letter);
+    if (canDagesh(letter)) out.push(DAGESH_CHARS[argmax(dOut, 3, i)]);
+    if (canSin(letter)) out.push(SIN_CHARS[argmax(sOut, 4, i)]);
+    if (canNiqqud(letter)) out.push(NIQQUD_CHARS[argmax(nOut, 16, i)]);
+  }
+  return out.join('').replaceAll(RAFE, '');
+}
+async function phonemizeHebrew(O, text, idMap) {
+  let dotted = text;
+  if (!NIQQUD_DETECT.test(text)) dotted = await nakDiacritize(O, text);
+  const ipa = hebrewToIpa(dotted);
+  const out = [];
+  for (const ch of ipa) {
+    const arr = idMap[ch];
+    if (arr) out.push(...arr);
+  }
+  return out;
+}
+// ---------- hebrew_ipa rules ----------
+const TAAMIM = /[֑-֯]/g;
+const DAGESH = "ּ";
+const SHIN_DOT = "ׁ";
+const SIN_DOT = "ׂ";
+const GERESH = "׳";
+const SHEVA = "ְ";
+const HATAF_SEGOL = "ֱ";
+const HATAF_PATAH = "ֲ";
+const HATAF_QAMATS = "ֳ";
+const HIRIQ = "ִ";
+const TSERE = "ֵ";
+const SEGOL = "ֶ";
+const PATAH = "ַ";
+const QAMATS = "ָ";
+const HOLAM = "ֹ";
+const QUBUTZ = "ֻ";
+const QAMATS_QATAN = "ׇ";
+const VOWEL_MARKS = new Set([
+    SHEVA,
+    HATAF_SEGOL,
+    HATAF_PATAH,
+    HATAF_QAMATS,
+    HIRIQ,
+    TSERE,
+    SEGOL,
+    PATAH,
+    QAMATS,
+    HOLAM,
+    QUBUTZ,
+    QAMATS_QATAN,
+]);
+const ALEF = "א";
+const BET = "ב";
+const GIMEL = "ג";
+const DALET = "ד";
+const HE = "ה";
+const VAV = "ו";
+const ZAYIN = "ז";
+const HET = "ח";
+const TET = "ט";
+const YOD = "י";
+const KAF = "כ";
+const LAMED = "ל";
+const MEM = "מ";
+const NUN = "נ";
+const SAMEKH = "ס";
+const AYIN = "ע";
+const PE = "פ";
+const TSADI = "צ";
+const QOF = "ק";
+const RESH = "ר";
+const SHIN = "ש";
+const TAV = "ת";
+const FINAL_FORM_BASE = new Map([
+    ["ך", KAF],
+    ["ם", MEM],
+    ["ן", NUN],
+    ["ף", PE],
+    ["ץ", TSADI],
+]);
+const GERESH_DIGRAPHS = new Map([
+    [GIMEL + GERESH, "d͡ʒ"],
+    [ZAYIN + GERESH, "ʒ"],
+    [TSADI + GERESH, "t͡ʃ"],
+]);
+function isCombining(ch) {
+    return /\p{M}/u.test(ch);
+}
+function iterGlyphs(word) {
+    const clean = word.normalize("NFC").replace(TAAMIM, "");
+    const glyphs = [];
+    for (const ch of clean) {
+        if (isCombining(ch)) {
+            if (glyphs.length > 0) {
+                glyphs[glyphs.length - 1].marks.push(ch);
+            }
+        }
+        else {
+            glyphs.push({ base: ch, marks: [] });
+        }
+    }
+    return glyphs;
+}
+function applyGereshDigraphs(glyphs) {
+    const out = [];
+    let i = 0;
+    while (i < glyphs.length) {
+        const g = glyphs[i];
+        const nxt = glyphs[i + 1];
+        if (nxt && nxt.base === GERESH && GERESH_DIGRAPHS.has(g.base + GERESH)) {
+            out.push({
+                base: `<IPA:${GERESH_DIGRAPHS.get(g.base + GERESH)}>`,
+                marks: [],
+            });
+            i += 2;
+            continue;
+        }
+        out.push(g);
+        i += 1;
+    }
+    return out;
+}
+function mapConsonant(base, marks, isFinal) {
+    const b = FINAL_FORM_BASE.get(base) ?? base;
+    if (b === ALEF || b === AYIN) {
+        return "<GLT>";
+    }
+    if (b === HE) {
+        if (isFinal && !marks.includes(DAGESH)) {
+            return "";
+        }
+        return "h";
+    }
+    if (b === YOD) {
+        return "j";
+    }
+    if (b === VAV) {
+        return "v";
+    }
+    if (b === SHIN) {
+        if (marks.includes(SHIN_DOT)) {
+            return "ʃ";
+        }
+        if (marks.includes(SIN_DOT)) {
+            return "s";
+        }
+        return "ʃ";
+    }
+    if (b === BET) {
+        return marks.includes(DAGESH) ? "b" : "v";
+    }
+    if (b === KAF) {
+        return marks.includes(DAGESH) ? "k" : "χ";
+    }
+    if (b === PE) {
+        return marks.includes(DAGESH) ? "p" : "f";
+    }
+    if (b === GIMEL) {
+        return "g";
+    }
+    if (b === DALET) {
+        return "d";
+    }
+    if (b === HET) {
+        return "χ";
+    }
+    if (b === TET) {
+        return "t";
+    }
+    if (b === LAMED) {
+        return "l";
+    }
+    if (b === MEM) {
+        return "m";
+    }
+    if (b === NUN) {
+        return "n";
+    }
+    if (b === SAMEKH) {
+        return "s";
+    }
+    if (b === TSADI) {
+        return "t͡s";
+    }
+    if (b === QOF) {
+        return "k";
+    }
+    if (b === RESH) {
+        return "ʁ";
+    }
+    if (b === TAV) {
+        return "t";
+    }
+    if (b === ZAYIN) {
+        return "z";
+    }
+    return "";
+}
+function hasVowelMarks(marks) {
+    return marks.some((m) => VOWEL_MARKS.has(m));
+}
+function isHiriqYod(curr, nxt) {
+    return (curr.marks.includes(HIRIQ) &&
+        !!nxt &&
+        nxt.base === YOD &&
+        !hasVowelMarks(nxt.marks));
+}
+function isHolamMale(g) {
+    return g.base === VAV && g.marks.includes(HOLAM) && !g.marks.includes(DAGESH);
+}
+function isShuruk(curr) {
+    const nonVowel = [
+        HOLAM,
+        HIRIQ,
+        TSERE,
+        SEGOL,
+        PATAH,
+        QAMATS,
+        QUBUTZ,
+        QAMATS_QATAN,
+        SHEVA,
+        HATAF_SEGOL,
+        HATAF_PATAH,
+        HATAF_QAMATS,
+    ];
+    return (curr.base === VAV &&
+        curr.marks.includes(DAGESH) &&
+        !curr.marks.some((m) => nonVowel.includes(m)));
+}
+function mapBasicVowel(g) {
+    if (g.marks.includes(QAMATS_QATAN)) {
+        return ["o", true];
+    }
+    if (g.marks.includes(QUBUTZ)) {
+        return ["u", true];
+    }
+    if (g.marks.includes(HIRIQ)) {
+        return ["i", true];
+    }
+    if (g.marks.includes(TSERE)) {
+        return ["e", true];
+    }
+    if (g.marks.includes(SEGOL)) {
+        return ["e", true];
+    }
+    if (g.marks.includes(PATAH)) {
+        return ["a", true];
+    }
+    if (g.marks.includes(QAMATS)) {
+        return ["a", true];
+    }
+    if (g.marks.includes(HATAF_PATAH)) {
+        return ["a", true];
+    }
+    if (g.marks.includes(HATAF_SEGOL)) {
+        return ["e", true];
+    }
+    if (g.marks.includes(HATAF_QAMATS)) {
+        return ["o", true];
+    }
+    if (g.marks.includes(SHEVA)) {
+        return ["ə", false];
+    }
+    return ["", false];
+}
+function wordToSegments(word) {
+    const glyphs = applyGereshDigraphs(iterGlyphs(word));
+    const segs = [];
+    let onset = [];
+    let i = 0;
+    while (i < glyphs.length) {
+        const g = glyphs[i];
+        const nxt = glyphs[i + 1];
+        const isFinal = i === glyphs.length - 1;
+        if (isShuruk(g)) {
+            segs.push({ onset, nucleus: "u", coda: [], dagesh: false });
+            onset = [];
+            i += 1;
+            continue;
+        }
+        if (isHiriqYod(g, nxt)) {
+            const cons = mapConsonant(g.base, g.marks, false);
+            if (cons && cons !== "<GLT>") {
+                onset.push(cons);
+            }
+            segs.push({ onset, nucleus: "i", coda: [], dagesh: false });
+            onset = [];
+            i += 2;
+            continue;
+        }
+        if (isHolamMale(g)) {
+            segs.push({ onset, nucleus: "o", coda: [], dagesh: false });
+            onset = [];
+            i += 1;
+            continue;
+        }
+        const cons = mapConsonant(g.base, g.marks, isFinal);
+        const [v, isVoc] = mapBasicVowel(g);
+        if (isVoc) {
+            if (cons && cons !== "<GLT>") {
+                onset.push(cons);
+            }
+            segs.push({ onset, nucleus: v, coda: [], dagesh: false });
+            onset = [];
+        }
+        else if (g.marks.includes(SHEVA)) {
+            if (cons && cons !== "<GLT>") {
+                onset.push(cons);
+            }
+            segs.push({
+                onset,
+                nucleus: "ə",
+                coda: [],
+                dagesh: g.marks.includes(DAGESH),
+            });
+            onset = [];
+        }
+        else if (cons === "<GLT>") {
+            onset.push("ʔ");
+        }
+        else if (cons) {
+            onset.push(cons);
+        }
+        i += 1;
+    }
+    if (onset.length > 0 && segs.length > 0) {
+        segs[segs.length - 1].coda.push(...onset);
+    }
+    return segs;
+}
+function resolveShevaAndQamats(segs) {
+    let prevSilenced = false;
+    for (let i = 0; i < segs.length; i++) {
+        const s = segs[i];
+        if (s.nucleus !== "ə") {
+            prevSilenced = false;
+            continue;
+        }
+        const dageshChazak = s.dagesh && i > 0;
+        const na = i === 0 || dageshChazak || prevSilenced;
+        if (na) {
+            s.nucleus = "e";
+            prevSilenced = false;
+        }
+        else {
+            if (i - 1 >= 0) {
+                segs[i - 1].coda.push(...s.onset);
+            }
+            s.onset = [];
+            s.nucleus = "";
+            prevSilenced = true;
+        }
+    }
+    const merged = [];
+    for (const s of segs) {
+        if (s.nucleus === "") {
+            if (merged.length > 0) {
+                merged[merged.length - 1].coda.push(...s.onset);
+            }
+            else {
+                merged.push(s);
+            }
+            continue;
+        }
+        merged.push(s);
+    }
+    return merged;
+}
+function syllabifyToIpa(segs) {
+    let stressIndex = segs.length - 1;
+    if (segs.length === 2 &&
+        segs[segs.length - 1].coda.length > 0) {
+        stressIndex = 0;
+    }
+    const pieces = [];
+    segs.forEach((s, idx) => {
+        const before = s.onset.join("");
+        const after = s.coda.join("");
+        pieces.push(idx === stressIndex
+            ? `${before}ˈ${s.nucleus}${after}`
+            : `${before}${s.nucleus}${after}`);
+    });
+    return pieces.join("");
+}
+/** Convert one dotted Hebrew word to IPA. Port of hebrew/hebrew_ipa.py. */
+function hebrewWordToIpa(word) {
+    let ipa = syllabifyToIpa(resolveShevaAndQamats(wordToSegments(word)));
+    ipa = ipa
+        .replace(/ʔ(?=ˈ?[aeiouə])/g, "ʔ")
+        .replace(/^ʔ/, "ʔ")
+        .replace(/ʔ(?=[^aeiouəˈ]|$)/g, "");
+    return ipa.replace(/͡/g, "");
+}
+/** Convert dotted Hebrew text to space-joined word IPA. Port of hebrew/hebrew_ipa.py. */
+function hebrewToIpa(text) {
+    const clean = text.normalize("NFC").replace(TAAMIM, "");
+    return clean.split(/\s+/).filter(Boolean).map(hebrewWordToIpa).join(" ");
+}
+
 // ── Lituanien ─────────────────────────────────────────────────────────────
 // Port de phonemize_lithuanian.py (piper1-gpl, GPL-3.0-or-later) via pipertts.
 // Données : public/piper-data/lithuanian/*.tsv (CC-BY-4.0, OHF-Voice/piper1-gpl).
@@ -350,6 +883,8 @@ export async function synthesize(opts, onStatus) {
     ? phonemizeText(opts.text, idMap)
     : opts.phonemeType === 'lithuanian'
     ? await phonemizeLithuanian(opts.text, idMap)
+    : opts.phonemeType === 'hebrew'
+    ? await phonemizeHebrew(O, opts.text, idMap)
     : await phonemizeEspeakVoice(opts, idMap);
   onStatus?.('synthèse…');
   const inf = (opts.configs || {}).inference || {};
