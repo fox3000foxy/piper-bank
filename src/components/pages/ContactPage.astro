@@ -71,7 +71,10 @@ const WEBHOOK_B64 = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTU1NjY5MTI1ODk
           const res = await fetch(atob(webhook), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: `**${name}** (via piperhub.org)\n${text}`.slice(0, 2000) }),
+            body: JSON.stringify({
+              content: `**${name}** (via piperhub.org)\n${text}`.slice(0, 2000),
+              allowed_mentions: { parse: [] },
+            }),
           });
           if (!res.ok) throw new Error(res.status);
           status.textContent = okMsg;
