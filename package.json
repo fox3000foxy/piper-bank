@@ -11,6 +11,6 @@
   },
   "scripts": {
     "data": "python3 scripts/generate_data.py",
-    "build": "astro build && npx esbuild public/site.css --minify --outfile=dist/site.css && mkdir -p dist/data && cp src/data/models.json dist/data/models.json && cp src/data/datasets.json dist/data/datasets.json"
+    "build": "astro build && npx esbuild public/site.css --minify --outfile=dist/site.css"
   }
 }
