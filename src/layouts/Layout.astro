@@ -1,5 +1,6 @@
 ---
 import { localizedPath, t, type Locale } from '../i18n/ui';
+import { ClientRouter } from 'astro:transitions';
 
 const { title, active, description, pageUrl, image, locale = 'fr' as Locale } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -43,6 +44,7 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <meta name="twitter:title" content={`${title} · Piper Bank`} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={img} />
+    <ClientRouter />
   </head>
   <body>
     <header class="site-header">
