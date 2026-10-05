@@ -44,6 +44,12 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <meta name="twitter:title" content={`${title} · Piper Bank`} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={img} />
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('piper-theme');
+        if (saved === 'dark' || saved === 'light') document.documentElement.dataset.theme = saved;
+      } catch {}
+    </script>
     <ClientRouter />
   </head>
   <body>
@@ -87,6 +93,12 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
         const destination = localePicker.dataset[localePicker.value];
         if (destination) window.location.assign(destination);
       });
+      if (!window.__themeSwapHook) {
+        window.__themeSwapHook = true;
+        document.addEventListener('astro:before-swap', (event) => {
+          event.newDocument.documentElement.dataset.theme = document.documentElement.dataset.theme;
+        });
+      }
       const themeButton = document.querySelector('.theme-toggle');
       themeButton?.addEventListener('click', () => {
         const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';

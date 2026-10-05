@@ -8,6 +8,11 @@ const { locale = 'fr' as Locale } = Astro.props;
 const models = data.filter((m) => m.usable);
 const sample = models.find((m) => m.slug === 'glados-french-medium-voice');
 const totalVoices = models.reduce((sum, model) => sum + model.voices, 0);
+const freshCutoff = Date.now() - 14 * 864e5;
+const fresh = models
+  .filter((m) => m.updated && new Date(m.updated + 'T00:00:00Z').getTime() >= freshCutoff)
+  .sort((a, b) => (b.updated || '').localeCompare(a.updated || ''))
+  .slice(0, 8);
 const provenance = models.find((model) => model.dataset?.slug && model.avatar?.icon);
 const featured = [
   models.find((m) => m.slug === 'glados-french-medium-voice'),
@@ -58,6 +63,17 @@ const base = import.meta.env.BASE_URL;
         <a class="all-voices" href={localizedPath(base, locale, '/voices/')}>{t(locale, 'home.allCollection')} <span>{t(locale, 'home.modelCount', { count: formatNumber(locale, models.length) })}</span><b aria-hidden="true">↗</b></a>
       </div>
     </section>
+
+    {fresh.length > 0 && (
+    <section class="voices-preview" aria-labelledby="fresh-title">
+      <div class="section-heading preview-heading"><p class="eyebrow">{t(locale, 'home.freshEyebrow')}</p><h2 id="fresh-title">{t(locale, 'home.freshTitle')}</h2><p>{t(locale, 'home.freshCopy')}</p></div>
+      <div class="featured-list" aria-label={t(locale, 'home.freshEyebrow')}>
+        {fresh.map((m, i) => <a class="featured-row" href={localizedPath(base, locale, `/model/${m.slug}/`)} style={`--model-hue:${m.avatar?.hue ?? 260}`}>
+          <span class="row-number">0{i + 1}</span><span class="featured-avatar" style={`--h:${m.avatar?.hue ?? 260}`} aria-hidden="true">{m.avatar?.icon ? <img src={`${base}${m.avatar.icon}`} alt="" loading="lazy" /> : m.avatar?.universe === 'default' ? <svg class="avatar-wave" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 13v6m5-11v16m5-19v22m5-17v12m5-8v4" /></svg> : (m.avatar?.emoji || m.name[0])}</span><span class="row-name">{m.name.replace(/\s+(?:x[_\s]?)?(?:high|medium|low|unknown)$/i, '')}<small>{languageLabel(m.lang, m.langName, locale)} <i>·</i> {m.author}</small></span><span class="row-quality">{m.updated}</span><span class="row-arrow" aria-hidden="true">↗</span>
+        </a>)}
+      </div>
+    </section>
+    )}
 
     {provenance && <section class="source-feature" aria-labelledby="source-title" style={`--model-hue:${provenance.avatar?.hue ?? 260}`}>
       <div class="source-mark" style={`--h:${provenance.avatar?.hue ?? 260}`} aria-hidden="true"><img src={`${base}${provenance.avatar.icon}`} alt="" /></div>
