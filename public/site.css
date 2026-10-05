@@ -358,15 +358,7 @@ textarea {
   font: 10px var(--mono);
   letter-spacing: 0.015em;
 }
-.hero-margin-note {
-  position: absolute;
-  right: 36px;
-  top: 30%;
-  writing-mode: vertical-rl;
-  color: var(--ink-muted);
-  font: 9px var(--mono);
-  letter-spacing: 0.1em;
-}
+
 .sample-card {
   align-self: center;
   width: 100%;
@@ -400,16 +392,7 @@ textarea {
   gap: 12px;
   padding: 17px 0 14px;
 }
-.sample-monogram {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  font-size: 14px;
-  font-weight: 500;
-}
+
 .sample-voice strong,
 .sample-voice div > span {
   display: block;
@@ -1018,10 +1001,7 @@ textarea {
 .voice-row[hidden] {
   display: none;
 }
-.voice-row-number {
-  color: var(--ink-muted);
-  font: 9px var(--mono);
-}
+
 .voice-row-title {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -1358,10 +1338,7 @@ body:not(:has(.home-page)):not(:has(.catalog-page)) > .model-cols {
   border-radius: 0;
   background: var(--line);
 }
-.pfill {
-  border-radius: 0;
-  background: var(--ink);
-}
+
 #text,
 .opts input {
   border: 1px solid var(--line-strong);
@@ -1426,9 +1403,7 @@ body:has(.dataset-filters) .catalog-intro {
   max-width: 1248px;
   margin: 75px auto 38px;
 }
-.body.narrow {
-  max-width: none;
-}
+
 .dataset-filters {
   max-width: 1248px;
   display: grid;
@@ -1541,9 +1516,7 @@ body:has(.dataset-filters) .grid {
   color: var(--ink-muted);
   font-size: 13px;
 }
-.card.ds .meta-divider {
-  display: none;
-}
+
 .card.ds .badge:not(:first-child) {
   border-left: 1px solid var(--line);
   padding-left: 9px;
@@ -1563,9 +1536,7 @@ body:has(.dataset-filters) .grid {
     padding-right: 4%;
     padding-left: 4%;
   }
-  .hero-margin-note {
-    right: 11px;
-  }
+
   .source-feature {
     margin-right: -28px;
     margin-left: -28px;
@@ -1659,10 +1630,7 @@ body:has(.dataset-filters) .grid {
     max-width: none;
     margin: 10px 0 0 8%;
   }
-  .hero-margin-note {
-    top: 75px;
-    right: 1px;
-  }
+
   .home-statline {
     grid-template-columns: 1fr;
     gap: 0;
