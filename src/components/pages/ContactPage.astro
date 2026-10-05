@@ -11,28 +11,34 @@ const copy = {
     intro: 'Une question, une voix à proposer, un bug à signaler ? Écris-nous, le message arrive directement sur notre Discord.',
     name: 'Nom ou pseudo',
     namePlaceholder: 'Ton pseudo',
+    email: 'Email (optionnel)',
+    emailPlaceholder: 'pour te répondre hors Discord',
     message: 'Message',
     messagePlaceholder: 'Ton message (10 caractères minimum)…',
     send: 'Envoyer',
     sending: 'Envoi…',
     err: 'Nom : 2 caractères minimum. Message : 10 caractères minimum.',
+    errEmail: 'Adresse email invalide.',
     ok: 'Message envoyé, merci ! On te répond sur Discord.',
     fail: 'Échec de l’envoi. Réessaie ou passe par le serveur Discord.',
-    hint: 'Pas de compte à créer, pas de données conservées : seul ton message transite.',
+    hint: 'Pas de compte à créer, pas de suivi : seul ton message transite, et ton email n’est utilisé que pour te répondre.',
   },
   en: {
     title: 'Contact',
     intro: 'A question, a voice to suggest, a bug to report? Write to us, the message lands straight on our Discord.',
     name: 'Name or nickname',
     namePlaceholder: 'Your nickname',
+    email: 'Email (optional)',
+    emailPlaceholder: 'to reply outside Discord',
     message: 'Message',
     messagePlaceholder: 'Your message (10 characters minimum)…',
     send: 'Send',
     sending: 'Sending…',
     err: 'Name: 2 characters minimum. Message: 10 characters minimum.',
+    errEmail: 'Invalid email address.',
     ok: 'Message sent, thanks! We reply on Discord.',
     fail: 'Send failed. Retry or come to the Discord server.',
-    hint: 'No account needed, no data kept: only your message transits.',
+    hint: 'No account needed, no tracking: only your message transits, and your email is used solely to reply.',
   },
 }[locale];
 
@@ -45,9 +51,12 @@ const WEBHOOK_B64 = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTU1NjY5MTI1ODk
     <p class="eyebrow">{copy.title}</p>
     <h1>{copy.title}</h1>
     <p class="lede">{copy.intro}</p>
-    <form id="contact-form" class="contact-form">
+    <form id="contact-form" class="contact-form" novalidate>
       <label>{copy.name}
         <input id="contact-name" name="name" type="text" maxlength="80" autocomplete="nickname" placeholder={copy.namePlaceholder} required />
+      </label>
+      <label>{copy.email}
+        <input id="contact-email" name="email" type="email" maxlength="120" autocomplete="email" placeholder={copy.emailPlaceholder} />
       </label>
       <label>{copy.message}
         <textarea id="contact-message" name="message" rows="6" maxlength="1800" placeholder={copy.messagePlaceholder} required></textarea>
@@ -58,16 +67,24 @@ const WEBHOOK_B64 = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTU1NjY5MTI1ODk
       </div>
       <p class="dim">{copy.hint}</p>
     </form>
-    <script define:vars={{ webhook: WEBHOOK_B64, sending: copy.sending, okMsg: copy.ok, failMsg: copy.fail, errMsg: copy.err }}>
+    <script define:vars={{ webhook: WEBHOOK_B64, sending: copy.sending, okMsg: copy.ok, failMsg: copy.fail, errMsg: copy.err, errEmail: copy.errEmail }}>
       const form = document.getElementById('contact-form');
       const send = document.getElementById('contact-send');
       const status = document.getElementById('contact-status');
       form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const nameField = document.getElementById('contact-name');
+        const emailField = document.getElementById('contact-email');
         const msgField = document.getElementById('contact-message');
         const name = nameField.value.trim().slice(0, 80);
+        const email = emailField.value.trim().slice(0, 120);
         const text = msgField.value.trim().slice(0, 1800);
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+          status.textContent = errEmail;
+          status.classList.add('is-error');
+          emailField.focus();
+          return;
+        }
         if (name.length < 2 || text.length < 10) {
           status.textContent = errMsg;
           status.classList.add('is-error');
@@ -82,7 +99,7 @@ const WEBHOOK_B64 = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTU1NjY5MTI1ODk
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              content: `**${name}** (via piperhub.org)\n${text}`.slice(0, 2000),
+              content: `**${name}**${email ? ' · ' + email : ''} (via piperhub.org)\n${text}`.slice(0, 2000),
               allowed_mentions: { parse: [] },
             }),
           });
