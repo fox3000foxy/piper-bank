@@ -12,6 +12,9 @@ const voicePairs = (m.voiceNames || []).map((vn, i) => ({
 const updatedDate = m.updated ? new Date(m.updated + 'T00:00:00Z') : null;
 const isFresh = !!updatedDate && (Date.now() - updatedDate.getTime()) < 14 * 864e5;
 const updatedLabel = updatedDate ? updatedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+const HF_SAMPLES = 'https://huggingface.co/datasets/fox3000foxy/piper-samples/resolve/main/';
+const sampleBaseSrv = (m.repo.replace('/', '--') + '__' + m.onnx.replace('/', '_').replace(/\.onnx$/, '')).replace(/[^a-zA-Z0-9\-_.]/g, '_');
+const sampleUrlSrv = (sid, n) => `${HF_SAMPLES}${sampleBaseSrv}__sp${sid}__${n}.wav`;
 const waveformPath = (seed: number) => {
   let state = (Math.abs(Math.trunc(seed)) || 1) >>> 0;
   let height = 4;
@@ -181,8 +184,8 @@ const waveformPath = (seed: number) => {
                 <input class="pbar" type="range" min="0" max="1000" value="0" aria-label={t(locale, 'detail.samplePosition', { name: v.name })} />
               </div>
               <div class="psamples">
-                <audio preload="none" data-n="0"></audio>
-                <audio preload="none" data-n="1"></audio>
+                <audio preload="none" data-n="0" src={sampleUrlSrv(v.sid, 0)}></audio>
+                <audio preload="none" data-n="1" src={sampleUrlSrv(v.sid, 1)}></audio>
               </div>
             </div>
           </div>
@@ -203,10 +206,6 @@ const waveformPath = (seed: number) => {
       const message = (template, values = {}) => template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
       const formatCount = (n) => new Intl.NumberFormat(ui.locale === 'fr' ? 'fr-FR' : 'en-US').format(n);
       const siteBase = window.__BASE__;
-      const HF_SAMPLES = 'https://huggingface.co/datasets/fox3000foxy/piper-samples/resolve/main/';
-      const safe = (s) => s.replace(/[^a-zA-Z0-9\-_.]/g, '_');
-      const sampleBase = safe(model.repo.replace('/', '--') + '__' + model.onnx.replace('/', '_').replace(/\.onnx$/, ''));
-      const sampleUrl = (sid, n) => `${HF_SAMPLES}${sampleBase}__sp${sid}__${n}.wav`;
 
       // Waveforms décoratives générées côté client (même PRNG que le build).
       const wavePath = (seed) => {
@@ -262,7 +261,6 @@ const waveformPath = (seed: number) => {
         const waveformProgress = card.querySelector('.pwave-progress');
         const audios = [...card.querySelectorAll('audio')];
         const exBtns = [...card.querySelectorAll('.ex')];
-        audios.forEach((a, n) => { a.src = sampleUrl(sid, n); });
         let idx = 0;
         const audio = () => audios[idx];
         const paint = () => {
