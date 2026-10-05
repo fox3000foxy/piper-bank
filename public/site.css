@@ -1154,6 +1154,8 @@ body:not(:has(.home-page)):not(:has(.catalog-page)) > .model-cols {
 .voice-row-title .new-pill { vertical-align: 1px; }
 .voice-row-title { display: flex; flex-wrap: wrap; align-items: center; column-gap: 12px; }
 .voice-row-title small { flex-basis: 100%; }
+/* Listes longues : le navigateur saute le rendu hors-écran. */
+.voice-row, .player, .featured-row { content-visibility: auto; contain-intrinsic-size: auto 120px; }
 .tag.lang,
 .tag.q-high,
 .tag.q-medium,

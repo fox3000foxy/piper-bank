@@ -19,6 +19,8 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <meta name="description" content={desc} />
     <link rel="icon" type="image/png" href={`${base}logo.png`} />
     <link rel="preload" href={`${base}fonts/archivo-latin.woff2`} as="font" type="font/woff2" crossorigin />
+    <link rel="preconnect" href="https://huggingface.co" />
+    <link rel="preconnect" href="https://huggingface.co" crossorigin />
     <link rel="stylesheet" href={`${base}site.css`} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Piper Bank" />
@@ -93,11 +95,14 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
       </nav>
       <span class="footer-note">{t(locale, 'footer.local')}</span>
     </footer>
-    <script is:inline>
+    <script is:inline define:vars={{ swUrl: `${base}sw.js` }}>
       const localePicker = document.querySelector('.locale-picker select');
       localePicker?.addEventListener('change', () => {
         const destination = localePicker.dataset[localePicker.value];
         if (destination) window.location.assign(destination);
+      });
+      if ('serviceWorker' in navigator) window.addEventListener('load', () => {
+        navigator.serviceWorker.register(swUrl).catch(() => {});
       });
     </script>
   </body>
