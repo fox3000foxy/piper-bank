@@ -35,12 +35,6 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <meta name="twitter:title" content={`${title} · Piper Bank`} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={img} />
-    <script is:inline>
-      try {
-        const saved = localStorage.getItem('piper-theme');
-        if (saved === 'dark' || saved === 'light') document.documentElement.dataset.theme = saved;
-      } catch {}
-    </script>
   </head>
   <body>
     <header class="site-header">
@@ -89,6 +83,8 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
       <nav aria-label={t(locale, 'nav.footerLinks')}>
         <a href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a>
         <a href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'nav.datasets')}</a>
+        <a href={localizedPath(base, locale, '/privacy/')}>{t(locale, 'footer.privacy')}</a>
+        <a href={localizedPath(base, locale, '/terms/')}>{t(locale, 'footer.terms')}</a>
         <a href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'footer.source')} ↗</a>
       </nav>
       <span class="footer-note">{t(locale, 'footer.local')}</span>

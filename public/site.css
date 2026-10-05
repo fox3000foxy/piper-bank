@@ -1148,6 +1148,12 @@ body:not(:has(.home-page)):not(:has(.catalog-page)) > .model-cols {
 .tag:last-child {
   border-right: 0;
 }
+.legal-page { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+.legal-page h1 { font-size: clamp(34px, 5vw, 54px); margin: 12px 0 8px; }
+.legal-page h2 { font-size: 20px; margin: 32px 0 8px; }
+.legal-page p { line-height: 1.65; }
+.legal-page .lede { font-size: 17px; }
+.legal-page .dim { margin-top: 40px; }
 .tag.new-pill { background: var(--accent); color: var(--page); font-weight: 700; border: 0; border-radius: 999px; padding: 5px 12px; }
 .new-pill { background: var(--accent); color: var(--page); font: 9px var(--mono); font-weight: 700; white-space: nowrap; border-radius: 999px; padding: 3px 9px; }
 .voice-row-title .new-pill { vertical-align: 1px; }

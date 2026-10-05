@@ -1,0 +1,79 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { formatNumber, localizedPath, t, type Locale } from '../../i18n/ui';
+
+const { locale = 'fr' as Locale, doc = 'privacy' as 'privacy' | 'terms' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+const copy = {
+  fr: {
+    privacyTitle: 'Confidentialité',
+    privacyIntro: 'Ce site ne collecte rien. Pas de compte, pas de mesure d’audience, pas de cookies publicitaires, pas de revente de données.',
+    privacyLocalTitle: 'Stockage 100 % local',
+    privacyLocal: 'Tout reste sur ton appareil : la préférence de thème (localStorage), les voix téléchargées pour la synthèse (IndexedDB) et le cache hors-ligne (service worker). Rien de tout cela n’est transmis quelque part : il n’y a aucun serveur de notre côté.',
+    privacyThirdTitle: 'Tiers techniques',
+    privacyThird: 'Deux prestataires voient ton adresse IP comme n’importe quel serveur web : GitHub Pages (hébergement du site) et Hugging Face (voix, extraits audio et modèles). Consulte leurs politiques de confidentialité pour en savoir plus.',
+    privacyContactTitle: 'Contact',
+    privacyContact: 'Une question sur ces règles ? Ouvre un sujet sur le dépôt GitHub du site.',
+    termsTitle: 'Conditions d’utilisation',
+    termsIntro: 'Piper Bank est un annuaire de voix pour Piper TTS, avec démonstration de synthèse directement dans le navigateur.',
+    termsVoicesTitle: 'Licences des voix',
+    termsVoices: 'Chaque voix appartient à son auteur et garde sa propre licence (indiquée sur sa fiche et son dépôt). Vérifie-la avant tout usage, surtout commercial. En cas de doute, demande à l’auteur.',
+    termsUseTitle: 'Usage loyal',
+    termsUse: 'La synthèse tourne entièrement dans ton navigateur : les textes saisis n’en sortent jamais. Utilise le site pour écouter, comparer et créer, sans nuire aux auteurs ni au service.',
+    termsWarrantyTitle: 'Garanties',
+    termsWarranty: 'Site fourni tel quel, sans garantie de disponibilité ni d’exactitude. Les modèles évoluent ; un rendu peut changer d’une version à l’autre.',
+    effective: 'En vigueur le 5 octobre 2026.',
+  },
+  en: {
+    privacyTitle: 'Privacy',
+    privacyIntro: 'This site collects nothing. No accounts, no analytics, no advertising cookies, no data resale.',
+    privacyLocalTitle: '100% local storage',
+    privacyLocal: 'Everything stays on your device: the theme preference (localStorage), downloaded voices for synthesis (IndexedDB), and the offline cache (service worker). None of it is sent anywhere: there is no server on our side.',
+    privacyThirdTitle: 'Technical third parties',
+    privacyThird: 'Two providers see your IP address like any web server would: GitHub Pages (site hosting) and Hugging Face (voices, audio samples, and models). Check their privacy policies for details.',
+    privacyContactTitle: 'Contact',
+    privacyContact: 'Questions about these rules? Open an issue on the site repository.',
+    termsTitle: 'Terms of use',
+    termsIntro: 'Piper Bank is a directory of voices for Piper TTS, with synthesis demos right in the browser.',
+    termsVoicesTitle: 'Voice licenses',
+    termsVoices: 'Each voice belongs to its author and keeps its own license (shown on its page and repository). Check it before any use, especially commercial. When in doubt, ask the author.',
+    termsUseTitle: 'Fair use',
+    termsUse: 'Synthesis runs entirely in your browser: entered texts never leave it. Use the site to listen, compare, and create, without harming authors or the service.',
+    termsWarrantyTitle: 'Warranties',
+    termsWarranty: 'Site provided as is, with no uptime or accuracy warranty. Models evolve; rendering may change between versions.',
+    effective: 'Effective October 5, 2026.',
+  },
+}[locale];
+---
+
+<Layout title={doc === 'privacy' ? copy.privacyTitle : copy.termsTitle} active="" locale={locale} pageUrl={`/${doc}/`}
+  description={doc === 'privacy' ? copy.privacyIntro : copy.termsIntro}>
+  <main class="legal-page">
+    <p class="eyebrow">{doc === 'privacy' ? copy.privacyTitle : copy.termsTitle}</p>
+    <h1>{doc === 'privacy' ? copy.privacyTitle : copy.termsTitle}</h1>
+    {doc === 'privacy' ? (
+      <>
+        <p class="lede">{copy.privacyIntro}</p>
+        <h2>{copy.privacyLocalTitle}</h2>
+        <p>{copy.privacyLocal}</p>
+        <h2>{copy.privacyThirdTitle}</h2>
+        <p>{copy.privacyThird}</p>
+        <h2>{copy.privacyContactTitle}</h2>
+        <p>{copy.privacyContact} <a href="https://github.com/fox3000foxy/piper-bank">GitHub ↗</a></p>
+        <p class="dim">{copy.effective}</p>
+      </>
+    ) : (
+      <>
+        <p class="lede">{copy.termsIntro}</p>
+        <h2>{copy.termsVoicesTitle}</h2>
+        <p>{copy.termsVoices}</p>
+        <h2>{copy.termsUseTitle}</h2>
+        <p>{copy.termsUse}</p>
+        <h2>{copy.termsWarrantyTitle}</h2>
+        <p>{copy.termsWarranty}</p>
+        <p class="dim">{copy.effective}</p>
+      </>
+    )}
+  </main>
+</Layout>
