@@ -2606,3 +2606,10 @@ body:has(.model-hero) .model-hero ~ .tags a.tag:hover {
   .guide-facts strong { margin: 7px 0; }
   .guide-code { padding: 15px; font-size: 11px; }
 }
+
+/* Badge Piper+ (modèles piper-plus, runtime spécifique) + lien RSS. */
+.plus-pill { background: var(--ink); color: var(--page); font: 700 9px var(--mono); white-space: nowrap; border-radius: 999px; padding: 3px 9px; }
+section .plus-pill { vertical-align: 1px; }
+.rss-link { display: inline-flex; align-items: center; color: var(--ink-muted); margin-left: 10px; }
+.rss-link svg { width: 13px; height: 13px; }
+.rss-link:hover { color: var(--ink); }

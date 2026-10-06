@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { formatNumber, localizedPath, t, type Locale } from '../../i18n/ui';
 
-const { locale = 'fr' as Locale, doc = 'privacy' as 'privacy' | 'terms' | 'legal' } = Astro.props;
+const { locale = 'fr' as Locale, doc = 'privacy' as 'privacy' | 'terms' | 'legal' } = Astro.props as { locale?: Locale; doc?: 'privacy' | 'terms' | 'legal' };
 const base = import.meta.env.BASE_URL;
 
 const copy = {
@@ -63,7 +63,7 @@ const copy = {
 }[locale];
 ---
 
-<Layout title={doc === 'privacy' ? copy.privacyTitle : doc === 'terms' ? copy.termsTitle : copy.legalTitle} active="" locale={locale} pageUrl={`/${doc}/`}
+<Layout title={doc === 'privacy' ? copy.privacyTitle : doc === 'terms' ? copy.termsTitle : copy.legalTitle} active="" locale={locale} pageUrl={`/${doc}/`} noindex
   description={doc === 'privacy' ? copy.privacyIntro : doc === 'terms' ? copy.termsIntro : copy.legalIntro}>
   <main class="legal-page">
     <p class="eyebrow">{doc === 'privacy' ? copy.privacyTitle : doc === 'terms' ? copy.termsTitle : copy.legalTitle}</p>

@@ -83,14 +83,15 @@ for r in csv.DictReader(open(CSV_MODELS, newline='')):
         'langName': lang_names.get(lang, lang.upper()),
         'thread': r['thread_id'].strip(),
         'usable': ok,
+        'piperPlus': 'piper-plus' in (r['hf_repo'] + r['onnx_file']).strip().lower(),
         'voices': 1,
         'voiceNames': [],
     }
     models.append(model)
 
-# speakers cache update for usable multiVoice
+# speakers cache update for usable multiVoice (+ modèles Piper+, visibles sans synthèse)
 import concurrent.futures
-need = [m for m in models if m['usable']]
+need = [m for m in models if m['usable'] or m['piperPlus']]
 def get_speakers(m):
     key = m['repo'] + '|' + m['json']
     ent = cache.get(key) or {}
@@ -110,7 +111,10 @@ def get_speakers(m):
             cfg = d.get('cfg') or {}
             ent = {'n': n, 'names': names, 'ids': d.get('ids') or list(range(n)), 'cfg': cfg}
             cache[key] = ent
-    m['voices'], m['voiceNames'] = ent.get('n', 1), ent.get('names', [])
+    _n, _names = int(ent.get('n', 1)), ent.get('names') or []
+    if not _names:
+        _names = [f'voice-{i}' for i in range(max(_n, 1))]
+    m['voices'], m['voiceNames'] = _n, _names
     m['voiceIds'] = ent.get('ids') or list(range(ent.get('n', 1)))
     cfg = ent.get('cfg') or {}
     # lightweight config for browser inference (text phoneme voices)
@@ -154,6 +158,61 @@ with concurrent.futures.ThreadPoolExecutor(24) as ex:
     list(ex.map(get_updated, need))
 json.dump(ucache, open(UCACHE, 'w'))
 print(f"dates: {sum(1 for m in need if m.get('updated'))}/{len(need)}")
+
+# Licences affichées sur la fiche modèle : cardData des dépôts du Hub, API
+# GitHub pour les voix miroitées (leur source est un dépôt git, pas un dépôt
+# HF). Cache 30 jours, et un échec n'est jamais mis en cache (on retente).
+LCACHE = os.path.join(OUT, 'licenses_cache.json')
+try: lcache = json.load(open(LCACHE))
+except Exception: lcache = {}
+MIRROR_REPO = 'fox3000foxy/piper-voices-collection'
+def _lic_keys_of(m):
+    # ligne hébergée dans le miroir : onnx = "<auteur>--<depot>/<fichier>"
+    # le dépôt source existe potentiellement sur HF ET/OU sur GitHub
+    if m['repo'] == MIRROR_REPO and '/' in m['onnx'] and '--' in m['onnx'].split('/')[0]:
+        slug = m['onnx'].split('/')[0].replace('--', '/', 1)
+        return ['hf:' + slug, 'gh:' + slug]
+    return ['hf:' + m['repo']]
+def _fetch_hf(repo):
+    req = urllib.request.Request(f"https://huggingface.co/api/models/{repo}",
+        headers={"User-Agent": "PiperHub/1.0", "Authorization": f"Bearer {HF_TOKEN}"})
+    cd = json.load(urllib.request.urlopen(req, timeout=25)).get('cardData') or {}
+    lic = cd.get('license')
+    # 'other' seul ne veut rien dire : le libellé réel est dans license_name
+    return (cd.get('license_name') or 'other') if lic == 'other' else (lic or '')
+def _fetch_gh(slug):
+    req = urllib.request.Request(f"https://api.github.com/repos/{slug}",
+        headers={"User-Agent": "PiperHub/1.0", "Accept": "application/vnd.github+json"})
+    lic = json.load(urllib.request.urlopen(req, timeout=25)).get('license') or {}
+    return lic.get('spdx_id') or lic.get('name') or ''
+def get_license(key):
+    ent = lcache.get(key) or {}
+    if 'value' in ent and (time.time() - ent.get('fetched', 0)) < 30 * 86400:
+        return
+    try:
+        val = _fetch_gh(key[3:]) if key.startswith('gh:') else _fetch_hf(key[3:])
+        lcache[key] = {'value': val, 'fetched': time.time()}
+    except Exception:
+        lcache[key] = {'value': ent.get('value', ''), 'fetched': ent.get('fetched', 0)}
+# Libellés lisibles : on n'affiche ni 'mit' ni 'apache-2.0' en vrac.
+_LIC_LABEL = {
+    'mit': 'MIT', 'apache-2.0': 'Apache-2.0', 'gpl-3.0': 'GPL-3.0',
+    'cc-by-4.0': 'CC BY 4.0', 'cc-by-nc-4.0': 'CC BY-NC 4.0',
+    'cc-by-nc-sa-4.0': 'CC BY-NC-SA 4.0', 'other': 'Autre',
+}
+def _lic_label(v):
+    v = (v or '').strip()
+    if not v or v.upper() == 'NOASSERTION':
+        return ''
+    return _LIC_LABEL.get(v.lower(), v)
+_lic_keys = sorted({k for m in models for k in _lic_keys_of(m)})
+with concurrent.futures.ThreadPoolExecutor(12) as ex:
+    list(ex.map(get_license, _lic_keys))
+for m in models:
+    m['license'] = next((_lic_label(lcache.get(k, {}).get('value', '')) for k in _lic_keys_of(m)
+                         if _lic_label(lcache.get(k, {}).get('value', ''))), '')
+json.dump(lcache, open(LCACHE, 'w'))
+print(f"licences: {sum(1 for k in _lic_keys if lcache.get(k, {}).get('value'))}/{len(_lic_keys)} depots renseignes")
 
 # Classement par repo d'abord (exact), puis par mots entiers du NOM (pas le repo).
 ICONS = {

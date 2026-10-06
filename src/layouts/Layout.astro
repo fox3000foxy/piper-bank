@@ -1,7 +1,7 @@
 ---
 import { localizedPath, t, type Locale } from '../i18n/ui';
 
-const { title, active, description, pageUrl, image, locale = 'fr' as Locale, noindex = false } = Astro.props;
+const { title, rawTitle, active, description, pageUrl, image, locale = 'fr' as Locale, noindex = false, breadcrumbs = [] } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const site = 'https://piperhub.org';
 const desc = description || t(locale, 'site.description');
@@ -9,12 +9,45 @@ const url = site + localizedPath(base, locale, pageUrl || '/');
 const img = image ? site + image : site + base + 'logo.png';
 const frenchUrl = site + localizedPath(base, 'fr', pageUrl || '/');
 const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
+const fullTitle = rawTitle || `${title} · PiperHub`;
+const isHome = (pageUrl || '/') === '/' && !noindex;
+const jsonLd: Record<string, unknown>[] = [];
+if (isHome) {
+  jsonLd.push({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'PiperHub',
+    alternateName: ['Piper Hub', 'piperhub.org'],
+    url: site + '/',
+    inLanguage: ['en', 'fr'],
+  });
+  jsonLd.push({
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'PiperHub',
+    url: site + '/',
+    logo: site + '/logo.png',
+    sameAs: ['https://github.com/fox3000foxy/piper-bank'],
+  });
+}
+if (breadcrumbs.length) {
+  jsonLd.push({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbs.map((b: { name: string; path: string }, i: number) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: b.name,
+      item: site + localizedPath(base, locale, b.path),
+    })),
+  });
+}
 ---
 <html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · PiperHub</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={desc} />
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
@@ -49,15 +82,18 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
     <link rel="stylesheet" href={`${base}site.css`} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="PiperHub" />
-    <meta property="og:title" content={`${title} · PiperHub`} />
+    <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={url} />
     <meta property="og:image" content={img} />
     <link rel="canonical" href={url} />
     <link rel="alternate" hreflang="fr" href={frenchUrl} />
     <link rel="alternate" hreflang="en" href={englishUrl} />
+    <link rel="alternate" hreflang="x-default" href={englishUrl} />
+    <meta property="og:locale" content={locale === 'fr' ? 'fr_FR' : 'en_US'} />
+    {jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content={`${title} · PiperHub`} />
+    <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={img} />
   </head>
@@ -107,10 +143,12 @@ const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
       <nav aria-label={t(locale, 'nav.footerLinks')}>
         <a href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a>
         <a href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'nav.datasets')}</a>
+        <a href={localizedPath(base, locale, '/guides/')}>{t(locale, 'nav.guides')}</a>
         <a href={localizedPath(base, locale, '/privacy/')}>{t(locale, 'footer.privacy')}</a>
         <a href={localizedPath(base, locale, '/terms/')}>{t(locale, 'footer.terms')}</a>
           <a href={localizedPath(base, locale, '/legal/')}>{t(locale, 'footer.legal')}</a>
           <a href={localizedPath(base, locale, '/contact/')}>{t(locale, 'footer.contact')}</a>
+        <a href={`${base}rss.xml`}>{t(locale, 'footer.rss')}</a>
         <a href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'footer.source')} ↗</a>
       </nav>
       <span class="footer-note">{t(locale, 'footer.local')}</span>

@@ -8,7 +8,12 @@ const base = import.meta.env.BASE_URL;
 const hasModel = !!(d.model && d.modelSlug);
 ---
 
-<Layout title={d.name} active="datasets" locale={locale} pageUrl={`/dataset/${d.slug}/`}
+<Layout title={`${d.name} – Piper TTS dataset`} active="datasets" locale={locale} pageUrl={`/dataset/${d.slug}/`}
+  breadcrumbs={[
+    { name: t(locale, 'nav.home'), path: '/' },
+    { name: t(locale, 'nav.datasets'), path: '/datasets/' },
+    { name: d.name, path: `/dataset/${d.slug}/` },
+  ]}
   description={t(locale, 'dataset.description', { class: d.class || '-', source: d.source || '-', language: languageLabel(d.lang, d.langName || d.lang, locale) })} subtitle={`${d.source || t(locale, 'dataset.titleFallback')} · ${languageLabel(d.lang, d.langName || d.lang, locale)}`}>
   <a class="back" href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'detail.backDatasets')}</a>
 

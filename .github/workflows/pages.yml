@@ -3,7 +3,7 @@ name: Deploy Piper Bank to GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ['src/**', 'public/**', 'scripts/**', 'package.json', 'astro.config.mjs']
+    paths: ['src/**', 'public/**', 'scripts/**', 'package.json', 'astro.config.mjs', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -29,6 +29,7 @@ jobs:
       - name: Build site
         run: |
           npm ci
+          npx astro check
           SITE_BASE=/ npx astro build
           npx esbuild public/site.css --minify --outfile=dist/site.css
 

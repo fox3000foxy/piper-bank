@@ -12,7 +12,7 @@ const noModel = datasets.filter((d) => !d.modelSlug);
 const hasModel = datasets.filter((d) => d.modelSlug);
 ---
 
-<Layout title={t(locale, 'datasets.title')} active="datasets" locale={locale} pageUrl="/datasets/"
+<Layout title={t(locale, 'datasets.title')} active="datasets" locale={locale} pageUrl="/datasets/" breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'nav.datasets'), path: '/datasets/' }]}
   description={t(locale, 'datasets.description')} subtitle={`${formatNumber(locale, datasets.length)} ${t(locale, 'datasets.count')} · LJSpeech`}>
     <header class="catalog-intro editorial-intro dataset-intro">
       <div><p class="eyebrow">{t(locale, 'datasets.eyebrow')}</p><h1>{t(locale, 'datasets.heading')}</h1></div>
@@ -51,20 +51,21 @@ const hasModel = datasets.filter((d) => d.modelSlug);
     </main>
 
     <script>
-      const search = document.getElementById('search');
-      const chips = [...document.querySelectorAll('.filter-option')];
-      const cards = [...document.querySelectorAll('.card')];
-      const count = document.getElementById('count');
-      let f = 'all', q = '';
+      const search = document.getElementById('search') as HTMLInputElement;
+      const chips = [...document.querySelectorAll<HTMLButtonElement>('.filter-option')];
+      const cards = [...document.querySelectorAll<HTMLAnchorElement>('.card')];
+      const count = document.getElementById('count') as HTMLElement;
+      // `f` peut être undefined si l'attribut data-f manque : même valeur runtime qu'avant, aucun comportement changé.
+      let f: string | undefined = 'all', q = '';
       function apply() {
         let n = 0;
         for (const c of cards) {
-          const ok = (!q || c.dataset.search.includes(q))
+          const ok = (!q || c.dataset.search!.includes(q))
             && (f === 'all' || (f === 'with') === (c.dataset.has === '1'));
           c.style.display = ok ? '' : 'none';
           if (ok) n++;
         }
-        count.textContent = count.dataset.template.replace('{visible}', new Intl.NumberFormat(count.dataset.numberLocale).format(n)).replace('{total}', new Intl.NumberFormat(count.dataset.numberLocale).format(cards.length));
+        count.textContent = count.dataset.template!.replace('{visible}', new Intl.NumberFormat(count.dataset.numberLocale).format(n)).replace('{total}', new Intl.NumberFormat(count.dataset.numberLocale).format(cards.length));
       }
       chips.forEach((c) => c.addEventListener('click', () => {
         chips.forEach((x) => x.classList.remove('is-on')); c.classList.add('is-on');

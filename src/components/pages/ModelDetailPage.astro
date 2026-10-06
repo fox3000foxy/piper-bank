@@ -6,7 +6,7 @@ const { locale = 'fr' as Locale } = Astro.props;
 const { model: m } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const avatar = m.avatar || { emoji: '?', hue: 260, icon: null };
-const voicePairs = (m.voiceNames || []).map((vn, i) => ({
+const voicePairs: { name: string; sid: number }[] = (m.voiceNames || []).map((vn: string, i: number) => ({
   name: vn, sid: (m.voiceIds || [])[i] ?? i,
 }));
 const updatedDate = m.updated ? new Date(m.updated + 'T00:00:00Z') : null;
@@ -14,7 +14,7 @@ const isFresh = !!updatedDate && (Date.now() - updatedDate.getTime()) < 14 * 864
 const updatedLabel = updatedDate ? updatedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 const HF_SAMPLES = 'https://huggingface.co/datasets/fox3000foxy/piper-samples/resolve/main/';
 const sampleBaseSrv = (m.repo.replace('/', '--') + '__' + m.onnx.replace('/', '_').replace(/\.onnx$/, '')).replace(/[^a-zA-Z0-9\-_.]/g, '_');
-const sampleUrlSrv = (sid, n) => `${HF_SAMPLES}${sampleBaseSrv}__sp${sid}__${n}.wav`;
+const sampleUrlSrv = (sid: number, n: number) => `${HF_SAMPLES}${sampleBaseSrv}__sp${sid}__${n}.wav`;
 const seedOf = (slug: string, sid: number) => {
   let h = 0x811c9dc5;
   const s = `${slug}:${sid}`;
@@ -34,8 +34,15 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
 };
 ---
 
-<Layout title={m.name} active="voices" locale={locale} pageUrl={`/model/${m.slug}/`}
-  description={t(locale, 'voices.description')} subtitle={`${locale === 'fr' ? 'par' : 'by'} ${m.author}`}>
+<Layout title={`${m.name} – Piper TTS`} active="voices" locale={locale} pageUrl={`/model/${m.slug}/`}
+  breadcrumbs={[
+    { name: t(locale, 'nav.home'), path: '/' },
+    { name: t(locale, 'nav.voices'), path: '/voices/' },
+    { name: m.name, path: `/model/${m.slug}/` },
+  ]}
+  description={locale === 'fr'
+    ? `Voix Piper TTS « ${m.name} » (${languageLabel(m.lang, m.langName || m.lang, locale)}, qualité ${m.quality || 'n/a'}, par ${m.author}). Écoutez des extraits et lancez la synthèse localement.`
+    : `Piper TTS voice "${m.name}" (${languageLabel(m.lang, m.langName || m.lang, locale)}, ${m.quality || 'n/a'} quality, by ${m.author}). Listen to samples and synthesize speech locally.`} subtitle={`${locale === 'fr' ? 'par' : 'by'} ${m.author}`}>
 
     <a class="back" href={localizedPath(base, locale, '/voices/')}>{t(locale, 'detail.backVoices')}</a>
     <div class="hero model-hero">
@@ -58,6 +65,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
     <section class="tags">
       <span class="tag lang">{languageLabel(m.lang, m.langName, locale)}</span>
       <span class={`tag q-${m.quality}`}>{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</span>
+      {m.piperPlus && <span class="plus-pill" title="piper-plus">Piper+</span>}
       {m.voices > 1
         ? <span class="tag voices">{formatNumber(locale, m.voices)} {locale === 'fr' ? 'voix' : 'voices'}</span>
         : <span class="tag">{t(locale, 'common.oneSpeaker')}</span>}
@@ -72,7 +80,8 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
 
     <div class="model-cols">
       <div class="model-main">
-    <section class="sec first">
+    {!m.usable && <section class="sec"><p class="dim">{t(locale, 'detail.piperPlusNote')}</p></section>}
+    <section class="sec first" hidden={!m.usable}>
       <h2>{t(locale, 'detail.synthesis')}</h2>
       <textarea id="text" rows="7" placeholder={t(locale, 'detail.enterText')}></textarea>
       <div class="editor-submit"><span id="status" class="dim" aria-live="polite"></span><button id="go">{t(locale, 'detail.generateAudio')} <span aria-hidden="true">→</span></button></div>
@@ -98,7 +107,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
       <audio id="player" preload="none" hidden></audio>
     </section>
 
-    {voicePairs.length > 1 && (
+    {m.usable && voicePairs.length > 1 && (
     <section class="sec">
       <h2>{t(locale, 'detail.compareVoices')}</h2>
       <p class="dim">{t(locale, 'detail.compareHelp')}</p>
@@ -128,6 +137,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
         <div><dt>{t(locale, 'detail.speakers')}</dt><dd>{formatNumber(locale, m.voices)}</dd></div>
         <div><dt>{t(locale, 'detail.phonemes')}</dt><dd>{m.phonemeType === 'text' ? (locale === 'fr' ? 'texte' : 'text') : (((m.configs || {}).espeak || {}).voice || 'espeak')}</dd></div>
         <div><dt>{t(locale, 'detail.sampleRate')}</dt><dd>{formatNumber(locale, m.sampleRate)} Hz</dd></div>
+        <div><dt>{t(locale, 'detail.license')}</dt><dd>{m.license || (locale === 'fr' ? 'non précisée' : 'not specified')}</dd></div>
       </dl>
     </section>
 
@@ -141,7 +151,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
 
       </div>
       <aside class="model-side">
-    <section class="sec first setting-section">
+    <section class="sec first setting-section" hidden={!m.usable}>
       <h2>{t(locale, 'detail.voiceSettings')}</h2>
       {voicePairs.length > 1 ? <label class="synthesis-voice">{t(locale, 'detail.voiceToSynthesize')}
         <select id="voice-select" aria-label={t(locale, 'detail.selectVoice')}>
@@ -350,17 +360,11 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
         });
       });
 
-      const { synthesize } = await new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
+      // Onnxruntime (vendor-ort) n'est chargé qu'au premier clic sur Générer :
+      // la page reste légère au chargement initial.
+      const loadStack = () => new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
       const go = document.getElementById('go');
-      let warmed = false;
-      const warmSession = () => {
-        if (warmed) return; warmed = true;
-        new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js')
-          .then((m) => m.getSession(model.repo, model.onnx).catch(() => {}))
-          .catch(() => {});
-      };
-      document.getElementById('text').addEventListener('input', warmSession);
-      document.getElementById('voice-select')?.addEventListener('change', warmSession);
+      if (go) {
       document.getElementById('text').addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); go.click(); }
       });
@@ -432,6 +436,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
         synthesisUrl = '';
         go.disabled = true;
         try {
+          const { synthesize } = await loadStack();
           const blob = await synthesize({
             repo: model.repo, onnx: model.onnx, configs: model.configs,
             phonemeType: model.phonemeType, phonemeIdMap: model.phonemeIdMap,
@@ -478,6 +483,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
           clearCmp();
           if (cmpCurrent) { cmpCurrent.pause(); cmpCurrent = null; }
           let done = 0;
+          const { synthesize } = await loadStack();
           for (const sid of sids) {
             cmpStatus.textContent = message(ui.labels.compareStatus, { done: done + 1, total: sids.length, name: cmpNames[sid] || sid });
             try {
@@ -517,6 +523,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
           cmpStatus.textContent = '';
           cmpGo.disabled = false;
         });
+      }
       }
     </script>
 </Layout>
