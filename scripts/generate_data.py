@@ -208,9 +208,18 @@ def _lic_label(v):
 _lic_keys = sorted({k for m in models for k in _lic_keys_of(m)})
 with concurrent.futures.ThreadPoolExecutor(12) as ex:
     list(ex.map(get_license, _lic_keys))
+# Licences etablies par audit (scripts/licenses_audit.json) : ces depots ne
+# declarent rien sur le Hub, mais la source des poids en declare une. L'audit
+# ne comble que les trous, une licence reellement lue garde la priorite.
+try:
+    _audit = json.load(open(os.path.join(ROOT, 'scripts', 'licenses_audit.json'))).get('licenses', {})
+except Exception:
+    _audit = {}
 for m in models:
     m['license'] = next((_lic_label(lcache.get(k, {}).get('value', '')) for k in _lic_keys_of(m)
                          if _lic_label(lcache.get(k, {}).get('value', ''))), '')
+    if not m['license']:
+        m['license'] = next((_lic_label(_audit[k]) for k in _lic_keys_of(m) if _audit.get(k)), '')
 json.dump(lcache, open(LCACHE, 'w'))
 print(f"licences: {sum(1 for k in _lic_keys if lcache.get(k, {}).get('value'))}/{len(_lic_keys)} depots renseignes")
 
