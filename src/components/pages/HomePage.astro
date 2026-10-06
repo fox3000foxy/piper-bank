@@ -8,6 +8,14 @@ const { locale = 'fr' as Locale } = Astro.props;
 const models = data.filter((m) => m.usable || m.piperPlus);
 const sample = models.find((m) => m.slug === 'glados-french-medium-voice');
 const totalVoices = models.reduce((sum, model) => sum + model.voices, 0);
+const langCount = new Set(models.map((m) => m.lang)).size;
+// Description meta (og:, twitter:, SEO) avec les compteurs du catalogue,
+// calculés au build depuis les données : exacts à chaque déploiement.
+const metaDescription = t(locale, 'home.metaDescription', {
+  models: formatNumber(locale, models.length),
+  langs: formatNumber(locale, langCount),
+  voices: formatNumber(locale, totalVoices),
+});
 const freshCutoff = Date.now() - 14 * 864e5;
 const fresh = models
   .filter((m) => m.updated && new Date(m.updated + 'T00:00:00Z').getTime() >= freshCutoff)
@@ -23,7 +31,7 @@ const featured = [
 ].filter(Boolean) as Model[];
 const base = import.meta.env.BASE_URL;
 ---
-<Layout title={t(locale, 'home.title')} rawTitle={locale === 'fr' ? 'PiperHub – Catalogue de voix Piper TTS' : 'PiperHub – Piper TTS voices catalogue'} active="home" locale={locale} pageUrl="/" description={t(locale, 'home.description')}>
+<Layout title={t(locale, 'home.title')} rawTitle={locale === 'fr' ? 'PiperHub – Catalogue de voix Piper TTS' : 'PiperHub – Piper TTS voices catalogue'} active="home" locale={locale} pageUrl="/" description={metaDescription}>
   <main class="home-page">
     <section class="home-hero" aria-labelledby="home-title">
       <div class="hero-copy">

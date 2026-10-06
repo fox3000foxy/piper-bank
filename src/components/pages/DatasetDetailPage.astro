@@ -6,14 +6,10 @@ const { locale = 'fr' as Locale } = Astro.props;
 const { ds: d } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const hasModel = !!(d.model && d.modelSlug);
-// Dépôts Hugging Face privés : leurs URL publiques renvoient une erreur 401.
-// Ce statut devrait à terme venir des données (champ dédié ou préfixe ↔).
-const PRIVATE_REPOS = new Set([
-  'fox3000foxy/fortune-eleven-v4-piper',
-  'fox3000foxy/fortune-eleven-v4-piper-en',
-]);
+// Dépôt Hugging Face privé (champ `private` de datasets_mapping.csv) :
+// son URL publique renvoie une erreur 401, donc pas de lien cliquable.
 const repo = d.repo && !d.repo.startsWith('↔') ? d.repo : '';
-const repoIsPrivate = PRIVATE_REPOS.has(repo);
+const repoIsPrivate = d.private === true;
 ---
 
 <Layout title={`${d.name} – ${t(locale, 'dataset.metaTitle')}`} active="datasets" locale={locale} pageUrl={`/dataset/${d.slug}/`}

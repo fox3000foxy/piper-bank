@@ -12,9 +12,16 @@ const languages = [...new Set(models.map((m) => m.lang))].sort();
 const availableQualities = new Set(models.map((m) => m.quality));
 const qualities = ['high', 'medium', 'low', 'unknown'].filter((q) => availableQualities.has(q));
 const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
+// Description meta (og:, twitter:, SEO) avec les compteurs du catalogue,
+// calculés au build depuis les données : exacts à chaque déploiement.
+const metaDescription = t(locale, 'voices.metaDescription', {
+  models: formatNumber(locale, models.length),
+  langs: formatNumber(locale, languages.length),
+  voices: formatNumber(locale, totalVoices),
+});
 const base = import.meta.env.BASE_URL;
 ---
-<Layout title={t(locale, 'voices.title')} active="voices" locale={locale} pageUrl="/voices/" breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'nav.voices'), path: '/voices/' }]} description={t(locale, 'voices.description')}>
+<Layout title={t(locale, 'voices.title')} active="voices" locale={locale} pageUrl="/voices/" breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'nav.voices'), path: '/voices/' }]} description={metaDescription}>
   <main class="catalog-page">
     <section class="catalog-intro editorial-intro">
       <div><p class="eyebrow">{t(locale, 'voices.eyebrow')}</p><h1>{t(locale, 'voices.heading')}</h1></div>

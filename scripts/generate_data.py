@@ -53,6 +53,7 @@ for d in csv.DictReader(open(CSV_DATASETS, newline='')):
         'langName': lang_names.get((d['language'] or '').strip().lower(), (d['language'] or 'XX').upper()),
         'class': d['class_name'].strip(), 'source': d['source'].strip(),
         'status': d['status'].strip(), 'thread': d['thread_id'].strip(),
+        'private': (d.get('private') or '').strip() in ('1', 'true', 'yes'),
         'model': None, 'modelSlug': None,
     })
 # slugs uniques + lien inverse modèle -> dataset (rempli après calcul des liens)
