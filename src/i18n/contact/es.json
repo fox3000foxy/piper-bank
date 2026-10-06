@@ -1,0 +1,17 @@
+{
+ "email": "Correo electrónico (opcional)",
+ "emailPlaceholder": "para responder fuera de Discord",
+ "err": "Nombre: mínimo 2 caracteres. Mensaje: mínimo 10 caracteres.",
+ "errEmail": "Dirección de correo electrónico no válida.",
+ "fail": "Error de envío. Reintente o visite el servidor de Discord.",
+ "hint": "Sin cuenta, sin seguimiento: solo transita su mensaje, y su correo electrónico solo se utiliza para responderle.",
+ "intro": "¿Una pregunta, una voz para sugerir, un error que informar? Escríbanos, el mensaje llega directamente a nuestro Discord.",
+ "message": "Mensaje",
+ "messagePlaceholder": "Su mensaje (mínimo 10 caracteres)…",
+ "name": "Nombre o seudónimo",
+ "namePlaceholder": "Su seudónimo",
+ "ok": "Mensaje enviado, ¡gracias! Le respondemos en Discord.",
+ "send": "Enviar",
+ "sending": "Enviando…",
+ "title": "Contacto"
+}

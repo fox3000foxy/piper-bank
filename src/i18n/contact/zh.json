@@ -1,0 +1,17 @@
+{
+ "email": "电子邮箱 (可选)",
+ "emailPlaceholder": "用于在 Discord 之外回复您",
+ "err": "姓名至少2个字符,留言至少10个字符。",
+ "errEmail": "电子邮箱地址无效。",
+ "fail": "发送失败。请重试或前往 Discord 服务器联系我们。",
+ "hint": "无需创建账号,也无跟踪:只有您的留言会被传输,您的邮箱仅用于回复。",
+ "intro": "有问题、想推荐语音或想报告错误吗?请给我们留言,消息会直接发送到我们的 Discord。",
+ "message": "留言",
+ "messagePlaceholder": "您的留言 (至少10个字符)…",
+ "name": "姓名或昵称",
+ "namePlaceholder": "您的昵称",
+ "ok": "消息已发送,谢谢!我们会在 Discord 上回复。",
+ "send": "发送",
+ "sending": "发送中…",
+ "title": "联系"
+}

@@ -1,45 +1,28 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { type Locale } from '../../i18n/ui';
+import contactFr from '../../i18n/contact/fr.json';
+import contactEn from '../../i18n/contact/en.json';
+import contactde from '../../i18n/contact/de.json';
+import contactes from '../../i18n/contact/es.json';
+import contactit from '../../i18n/contact/it.json';
+import contactpt from '../../i18n/contact/pt.json';
+import contactru from '../../i18n/contact/ru.json';
+import contacttr from '../../i18n/contact/tr.json';
+import contactja from '../../i18n/contact/ja.json';
+import contactko from '../../i18n/contact/ko.json';
+import contactzh from '../../i18n/contact/zh.json';
+import contactid from '../../i18n/contact/id.json';
+import contacthi from '../../i18n/contact/hi.json';
+import contactar from '../../i18n/contact/ar.json';
+import contactvi from '../../i18n/contact/vi.json';
+import contactth from '../../i18n/contact/th.json';
 
 const { locale = 'fr' as Locale } = Astro.props as { locale?: Locale };
 
-const copyByLocale = {
-  fr: {
-    title: 'Contact',
-    intro: 'Une question, une voix à proposer, un bug à signaler ? Écris-nous, le message arrive directement sur notre Discord.',
-    name: 'Nom ou pseudo',
-    namePlaceholder: 'Ton pseudo',
-    email: 'Email (optionnel)',
-    emailPlaceholder: 'pour te répondre hors Discord',
-    message: 'Message',
-    messagePlaceholder: 'Ton message (10 caractères minimum)…',
-    send: 'Envoyer',
-    sending: 'Envoi…',
-    err: 'Nom : 2 caractères minimum. Message : 10 caractères minimum.',
-    errEmail: 'Adresse email invalide.',
-    ok: 'Message envoyé, merci ! On te répond sur Discord.',
-    fail: 'Échec de l’envoi. Réessaie ou passe par le serveur Discord.',
-    hint: 'Pas de compte à créer, pas de suivi : seul ton message transite, et ton email n’est utilisé que pour te répondre.',
-  },
-  en: {
-    title: 'Contact',
-    intro: 'A question, a voice to suggest, a bug to report? Write to us, the message lands straight on our Discord.',
-    name: 'Name or nickname',
-    namePlaceholder: 'Your nickname',
-    email: 'Email (optional)',
-    emailPlaceholder: 'to reply outside Discord',
-    message: 'Message',
-    messagePlaceholder: 'Your message (10 characters minimum)…',
-    send: 'Send',
-    sending: 'Sending…',
-    err: 'Name: 2 characters minimum. Message: 10 characters minimum.',
-    errEmail: 'Invalid email address.',
-    ok: 'Message sent, thanks! We reply on Discord.',
-    fail: 'Send failed. Retry or come to the Discord server.',
-    hint: 'No account needed, no tracking: only your message transits, and your email is used solely to reply.',
-  },
-};
+// Traductions : un fichier par locale (src/i18n/contact/<code>.json).
+// Les locales sans fichier retombent sur l'anglais (repli ci-dessous).
+const copyByLocale = { fr: contactFr, en: contactEn, de: contactde, es: contactes, it: contactit, pt: contactpt, ru: contactru, tr: contacttr, ja: contactja, ko: contactko, zh: contactzh, id: contactid, hi: contacthi, ar: contactar, vi: contactvi, th: contactth };
 // Pages annexes : repli anglais tant que la locale n'a pas sa version.
 const copy = (copyByLocale as unknown as Record<string, typeof copyByLocale.en>)[locale] ?? copyByLocale.en; // repli anglais (pages annexes non traduites)
 

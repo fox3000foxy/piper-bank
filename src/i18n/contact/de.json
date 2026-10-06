@@ -1,0 +1,17 @@
+{
+ "email": "E-Mail (optional)",
+ "emailPlaceholder": "für eine Antwort außerhalb von Discord",
+ "err": "Name: mindestens 2 Zeichen. Nachricht: mindestens 10 Zeichen.",
+ "errEmail": "Ungültige E-Mail-Adresse.",
+ "fail": "Senden fehlgeschlagen. Versuchen Sie es erneut oder kommen Sie auf den Discord-Server.",
+ "hint": "Kein Konto nötig, kein Tracking: Nur Ihre Nachricht wird übertragen, und Ihre E-Mail wird ausschließlich zur Antwort verwendet.",
+ "intro": "Eine Frage, eine Stimme zum Vorschlagen, ein Fehler zum Melden? Schreiben Sie uns, die Nachricht landet direkt auf unserem Discord.",
+ "message": "Nachricht",
+ "messagePlaceholder": "Ihre Nachricht (mindestens 10 Zeichen)…",
+ "name": "Name oder Spitzname",
+ "namePlaceholder": "Ihr Spitzname",
+ "ok": "Nachricht gesendet, danke! Wir antworten auf Discord.",
+ "send": "Senden",
+ "sending": "Wird gesendet…",
+ "title": "Kontakt"
+}

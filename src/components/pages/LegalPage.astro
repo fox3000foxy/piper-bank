@@ -1,65 +1,28 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { type Locale } from '../../i18n/ui';
+import legalFr from '../../i18n/legal/fr.json';
+import legalEn from '../../i18n/legal/en.json';
+import legalde from '../../i18n/legal/de.json';
+import legales from '../../i18n/legal/es.json';
+import legalit from '../../i18n/legal/it.json';
+import legalpt from '../../i18n/legal/pt.json';
+import legalru from '../../i18n/legal/ru.json';
+import legaltr from '../../i18n/legal/tr.json';
+import legalja from '../../i18n/legal/ja.json';
+import legalko from '../../i18n/legal/ko.json';
+import legalzh from '../../i18n/legal/zh.json';
+import legalid from '../../i18n/legal/id.json';
+import legalhi from '../../i18n/legal/hi.json';
+import legalar from '../../i18n/legal/ar.json';
+import legalvi from '../../i18n/legal/vi.json';
+import legalth from '../../i18n/legal/th.json';
 
 const { locale = 'fr' as Locale, doc = 'privacy' as 'privacy' | 'terms' | 'legal' } = Astro.props as { locale?: Locale; doc?: 'privacy' | 'terms' | 'legal' };
 
-const copyByLocale = {
-  fr: {
-    privacyTitle: 'Confidentialité',
-    privacyIntro: 'Ce site ne collecte rien. Pas de compte, pas de mesure d’audience, pas de cookies publicitaires, pas de revente de données.',
-    privacyLocalTitle: 'Stockage 100 % local',
-    privacyLocal: 'Tout reste sur ton appareil : la préférence de thème (localStorage), les voix téléchargées pour la synthèse (IndexedDB) et le cache hors-ligne (service worker). Rien de tout cela n’est transmis quelque part : il n’y a aucun serveur de notre côté.',
-    privacyThirdTitle: 'Tiers techniques',
-    privacyThird: 'Deux prestataires voient ton adresse IP comme n’importe quel serveur web : GitHub Pages (hébergement du site) et Hugging Face (voix, extraits audio et modèles). Consulte leurs politiques de confidentialité pour en savoir plus.',
-    privacyContactTitle: 'Contact',
-    privacyContact: 'Une question sur ces règles ? Ouvre un sujet sur le dépôt GitHub du site.',
-    termsTitle: 'Conditions d’utilisation',
-    termsIntro: 'PiperHub est un annuaire de voix pour Piper TTS, avec démonstration de synthèse directement dans le navigateur.',
-    termsVoicesTitle: 'Licences des voix',
-    termsVoices: 'Chaque voix appartient à son auteur et garde sa propre licence (indiquée sur sa fiche et son dépôt). Vérifie-la avant tout usage, surtout commercial. En cas de doute, demande à l’auteur.',
-    termsUseTitle: 'Usage loyal',
-    termsUse: 'La synthèse tourne entièrement dans ton navigateur : les textes saisis n’en sortent jamais. Utilise le site pour écouter, comparer et créer, sans nuire aux auteurs ni au service.',
-    termsWarrantyTitle: 'Garanties',
-    termsWarranty: 'Site fourni tel quel, sans garantie de disponibilité ni d’exactitude. Les modèles évoluent ; un rendu peut changer d’une version à l’autre.',
-    legalTitle: 'Mentions légales',
-    legalIntro: 'Informations requises par la loi française pour tout site publié.',
-    legalEditorTitle: 'Éditeur',
-    legalEditor: 'Site édité par fox3000foxy. Contact : contact@fox3000foxy.com.',
-    legalHostTitle: 'Hébergement',
-    legalHost: 'Site hébergé par GitHub Pages, service de GitHub, Inc., 88 Colin P Kelly Jr Street, San Francisco, CA 94107, États-Unis.',
-    legalIpTitle: 'Propriété intellectuelle',
-    legalIp: 'Le design et le code du site suivent la licence du dépôt. Les voix, extraits et jeux de données appartiennent à leurs auteurs respectifs, sous leurs propres licences.',
-    effective: 'En vigueur le 5 octobre 2026.',
-  },
-  en: {
-    privacyTitle: 'Privacy',
-    privacyIntro: 'This site collects nothing. No accounts, no analytics, no advertising cookies, no data resale.',
-    privacyLocalTitle: '100% local storage',
-    privacyLocal: 'Everything stays on your device: the theme preference (localStorage), downloaded voices for synthesis (IndexedDB), and the offline cache (service worker). None of it is sent anywhere: there is no server on our side.',
-    privacyThirdTitle: 'Technical third parties',
-    privacyThird: 'Two providers see your IP address like any web server would: GitHub Pages (site hosting) and Hugging Face (voices, audio samples, and models). Check their privacy policies for details.',
-    privacyContactTitle: 'Contact',
-    privacyContact: 'Questions about these rules? Open an issue on the site repository.',
-    termsTitle: 'Terms of use',
-    termsIntro: 'PiperHub is a directory of voices for Piper TTS, with synthesis demos right in the browser.',
-    termsVoicesTitle: 'Voice licenses',
-    termsVoices: 'Each voice belongs to its author and keeps its own license (shown on its page and repository). Check it before any use, especially commercial. When in doubt, ask the author.',
-    termsUseTitle: 'Fair use',
-    termsUse: 'Synthesis runs entirely in your browser: entered texts never leave it. Use the site to listen, compare, and create, without harming authors or the service.',
-    termsWarrantyTitle: 'Warranties',
-    termsWarranty: 'Site provided as is, with no uptime or accuracy warranty. Models evolve; rendering may change between versions.',
-    legalTitle: 'Legal notice',
-    legalIntro: 'Information required by French law for any published website.',
-    legalEditorTitle: 'Publisher',
-    legalEditor: 'Site published by fox3000foxy. Contact: contact@fox3000foxy.com.',
-    legalHostTitle: 'Hosting',
-    legalHost: 'Site hosted by GitHub Pages, a service of GitHub, Inc., 88 Colin P Kelly Jr Street, San Francisco, CA 94107, United States.',
-    legalIpTitle: 'Intellectual property',
-    legalIp: 'The site design and code follow the repository license. Voices, samples, and datasets belong to their respective authors, under their own licenses.',
-    effective: 'Effective October 5, 2026.',
-  },
-};
+// Traductions : un fichier par locale (src/i18n/legal/<code>.json).
+// Les locales sans fichier retombent sur l'anglais (repli ci-dessous).
+const copyByLocale = { fr: legalFr, en: legalEn, de: legalde, es: legales, it: legalit, pt: legalpt, ru: legalru, tr: legaltr, ja: legalja, ko: legalko, zh: legalzh, id: legalid, hi: legalhi, ar: legalar, vi: legalvi, th: legalth };
 // Pages annexes : repli anglais tant que la locale n'a pas sa version.
 const copy = (copyByLocale as unknown as Record<string, typeof copyByLocale.en>)[locale] ?? copyByLocale.en; // repli anglais (pages annexes non traduites)
 ---

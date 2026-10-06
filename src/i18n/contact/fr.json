@@ -1,0 +1,17 @@
+{
+ "title": "Contact",
+ "intro": "Une question, une voix à proposer, un bug à signaler ? Écris-nous, le message arrive directement sur notre Discord.",
+ "name": "Nom ou pseudo",
+ "namePlaceholder": "Ton pseudo",
+ "email": "Email (optionnel)",
+ "emailPlaceholder": "pour te répondre hors Discord",
+ "message": "Message",
+ "messagePlaceholder": "Ton message (10 caractères minimum)…",
+ "send": "Envoyer",
+ "sending": "Envoi…",
+ "err": "Nom : 2 caractères minimum. Message : 10 caractères minimum.",
+ "errEmail": "Adresse email invalide.",
+ "ok": "Message envoyé, merci ! On te répond sur Discord.",
+ "fail": "Échec de l’envoi. Réessaie ou passe par le serveur Discord.",
+ "hint": "Pas de compte à créer, pas de suivi : seul ton message transite, et ton email n’est utilisé que pour te répondre."
+}

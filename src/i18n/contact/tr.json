@@ -1,0 +1,17 @@
+{
+ "email": "E-posta (isteğe bağlı)",
+ "emailPlaceholder": "Discord dışında yanıt için",
+ "err": "Ad: en az 2 karakter. Mesaj: en az 10 karakter.",
+ "errEmail": "Geçersiz e-posta adresi.",
+ "fail": "Gönderim başarısız oldu. Yeniden deneyin veya Discord sunucusuna gelin.",
+ "hint": "Hesap yok, takip yok: yalnızca mesajınız iletilir ve e-postanız yalnızca yanıt için kullanılır.",
+ "intro": "Bir sorunuz, önereceğiniz bir ses veya bildireceğiniz bir hata mı var? Bize yazın, mesajınız doğrudan Discord sunucumuza ulaşır.",
+ "message": "Mesaj",
+ "messagePlaceholder": "Mesajınız (en az 10 karakter)…",
+ "name": "Ad veya kullanıcı adı",
+ "namePlaceholder": "Kullanıcı adınız",
+ "ok": "Mesaj gönderildi, teşekkürler! Discord üzerinden yanıtlıyoruz.",
+ "send": "Gönderin",
+ "sending": "Gönderiliyor…",
+ "title": "İletişim"
+}

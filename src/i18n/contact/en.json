@@ -1,0 +1,17 @@
+{
+ "title": "Contact",
+ "intro": "A question, a voice to suggest, a bug to report? Write to us, the message lands straight on our Discord.",
+ "name": "Name or nickname",
+ "namePlaceholder": "Your nickname",
+ "email": "Email (optional)",
+ "emailPlaceholder": "to reply outside Discord",
+ "message": "Message",
+ "messagePlaceholder": "Your message (10 characters minimum)…",
+ "send": "Send",
+ "sending": "Sending…",
+ "err": "Name: 2 characters minimum. Message: 10 characters minimum.",
+ "errEmail": "Invalid email address.",
+ "ok": "Message sent, thanks! We reply on Discord.",
+ "fail": "Send failed. Retry or come to the Discord server.",
+ "hint": "No account needed, no tracking: only your message transits, and your email is used solely to reply."
+}

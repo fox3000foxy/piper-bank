@@ -1,0 +1,17 @@
+{
+ "email": "Email (opsional)",
+ "emailPlaceholder": "untuk membalas di luar Discord",
+ "err": "Nama: minimal 2 karakter. Pesan: minimal 10 karakter.",
+ "errEmail": "Alamat email tidak valid.",
+ "fail": "Pengiriman gagal. Coba lagi atau kunjungi server Discord.",
+ "hint": "Tidak perlu membuat akun, tidak ada pelacakan: hanya pesan Anda yang diteruskan, dan email Anda hanya digunakan untuk membalas.",
+ "intro": "Ada pertanyaan, suara yang ingin diusulkan, atau bug yang ingin dilaporkan? Tulis pesan kepada kami, pesan akan langsung masuk ke Discord kami.",
+ "message": "Pesan",
+ "messagePlaceholder": "Pesan Anda (minimal 10 karakter)…",
+ "name": "Nama atau nama panggilan",
+ "namePlaceholder": "Nama panggilan Anda",
+ "ok": "Pesan terkirim, terima kasih! Kami akan membalas di Discord.",
+ "send": "Kirim",
+ "sending": "Mengirim…",
+ "title": "Kontak"
+}
