@@ -57,7 +57,7 @@ const discordInviteUrl = 'https://discord.gg/xDmDJwfbfp';
       <a href="#training-guide">02 <i>·</i> {copy.trainingTitle}</a>
       <a href="#use-voice-guide">03 <i>·</i> {copy.useVoiceTitle}</a>
       <a href="#pipertts-guide">04 <i>·</i> pipertts / Node.js</a>
-      <a href="#piperplus-guide">05 <i>·</i> {copy.ppTitle}</a>
+      <a href={localizedPath(base, locale, '/guides-piper-plus/')}>05 <i>·</i> {copy.ppTitle}</a>
     </nav>
 
     <section id="dataset-guide" class="guide-section">
@@ -130,19 +130,6 @@ const discordInviteUrl = 'https://discord.gg/xDmDJwfbfp';
       </div>
     </section>
 
-    <section id="piperplus-guide" class="guide-section guide-piperplus">
-      <div class="guide-rail"><span>05</span><span>PIPER PLUS · MULTILINGUE</span></div>
-      <div class="guide-content">
-        <h2>{copy.ppTitle}</h2>
-        <p class="guide-lede">{copy.ppIntro}</p>
-        <ol class="guide-steps">
-          <li><span class="guide-step-number">01</span><div><h3>{copy.ppStep1}</h3><p>{copy.ppStep1Copy}</p><pre class="guide-code"><code>{copy.ppInstallCommand}</code></pre></div></li>
-          <li><span class="guide-step-number">02</span><div><h3>{copy.ppStep2}</h3><p>{copy.ppStep2Copy}</p><pre class="guide-code"><code>{copy.ppDownloadCommand}</code></pre></div></li>
-          <li><span class="guide-step-number">03</span><div><h3>{copy.ppStep3}</h3><p>{copy.ppStep3Copy}</p><pre class="guide-code"><code>{copy.ppSynthCommand}</code></pre></div></li>
-          <li><span class="guide-step-number">04</span><div><h3>{copy.ppStep4}</h3><p>{copy.ppStep4Copy}</p><div class="guide-links"><a href={localizedPath(base, locale, '/model/tsukuyomi-chan-multilingual-6-language-voice/')}>Tsukuyomi-chan</a><a href={localizedPath(base, locale, '/model/css10-japanese-6-lang-piper-plus/')}>CSS10</a><a href={localizedPath(base, locale, '/model/mera-chan-multilingual-6-lang-medium/')}>Mera</a></div><div class="guide-references"><a href={piperPlusRepoUrl} target="_blank" rel="noreferrer">{copy.ppRepo} ↗</a><a href={piperPlusModelsUrl} target="_blank" rel="noreferrer">{copy.ppModels} ↗</a><a href={discordInviteUrl} target="_blank" rel="noreferrer">{copy.ppDiscord} ↗</a></div></div></li>
-        </ol>
-        <p class="dim">{copy.ppHelp}</p>
-      </div>
-    </section>
+
   </main>
 </Layout>

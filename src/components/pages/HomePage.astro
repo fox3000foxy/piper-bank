@@ -100,6 +100,9 @@ const base = import.meta.env.BASE_URL;
         ] as [string, string, string][]).map(([num, label, anchor]) => <a class="featured-row" href={localizedPath(base, locale, `/guides/${anchor}`)}>
           <span class="row-number">{num}</span><span class="row-name">{label}</span><span class="row-arrow" aria-hidden="true">↗</span>
         </a>)}
+        <a class="featured-row" href={localizedPath(base, locale, '/guides-piper-plus/')}>
+          <span class="row-number">04</span><span class="row-name">{t(locale, 'detail.piperPlusRuntime')}</span><span class="row-arrow" aria-hidden="true">↗</span>
+        </a>
       </div>
     </section>
 

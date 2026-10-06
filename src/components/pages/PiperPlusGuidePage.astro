@@ -1,0 +1,88 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { localizedPath, t, type Locale } from '../../i18n/ui';
+import guidesFr from '../../i18n/guides/fr.json';
+import guidesEn from '../../i18n/guides/en.json';
+import guidesDe from '../../i18n/guides/de.json';
+import guidesEs from '../../i18n/guides/es.json';
+import guidesIt from '../../i18n/guides/it.json';
+import guidesPt from '../../i18n/guides/pt.json';
+import guidesRu from '../../i18n/guides/ru.json';
+import guidesTr from '../../i18n/guides/tr.json';
+import guidesJa from '../../i18n/guides/ja.json';
+import guidesKo from '../../i18n/guides/ko.json';
+import guidesZh from '../../i18n/guides/zh.json';
+import guidesId from '../../i18n/guides/id.json';
+import guidesHi from '../../i18n/guides/hi.json';
+import guidesAr from '../../i18n/guides/ar.json';
+import guidesVi from '../../i18n/guides/vi.json';
+import guidesTh from '../../i18n/guides/th.json';
+
+const { locale = 'en' as Locale } = Astro.props as { locale?: Locale };
+const base = import.meta.env.BASE_URL;
+
+// Mêmes fichiers que la page Guides (src/i18n/guides/<code>.json).
+const copyByLocale = {
+  fr: guidesFr, en: guidesEn, de: guidesDe, es: guidesEs, it: guidesIt,
+  pt: guidesPt, ru: guidesRu, tr: guidesTr, ja: guidesJa, ko: guidesKo,
+  zh: guidesZh, id: guidesId, hi: guidesHi, ar: guidesAr, vi: guidesVi,
+  th: guidesTh,
+};
+const copy = (copyByLocale as unknown as Record<string, typeof copyByLocale.en>)[locale] ?? copyByLocale.en;
+
+const piperPlusRepoUrl = 'https://github.com/ayutaz/piper-plus';
+const piperPlusModelsUrl = 'https://github.com/ayutaz/piper-plus/blob/dev/docs/guides/development/pretrained-models.md';
+const discordInviteUrl = 'https://discord.gg/xDmDJwfbfp';
+---
+<Layout title={copy.ppTitle} description={copy.ppIntro} active="guides" locale={locale} pageUrl="/guides-piper-plus/"
+  breadcrumbs={[
+    { name: t(locale, 'nav.home'), path: '/' },
+    { name: t(locale, 'nav.guides'), path: '/guides/' },
+    { name: copy.ppTitle, path: '/guides-piper-plus/' },
+  ]}>
+  <main class="guide-page">
+    <header class="guide-intro">
+      <p class="eyebrow">{t(locale, 'home.guidesEyebrow')}</p>
+      <h1>{copy.ppTitle}</h1>
+      <p>{copy.ppIntro}</p>
+    </header>
+
+    <section id="piperplus-guide" class="guide-section guide-piperplus">
+      <div class="guide-rail"><span>01</span><span>PIPER PLUS · MULTILINGUE</span></div>
+      <div class="guide-content">
+        <h2>{copy.ppStep1}</h2>
+        <p class="guide-lede">{copy.ppStep1Copy}</p>
+        <pre class="guide-code"><code>{copy.ppInstallCommand}</code></pre>
+      </div>
+    </section>
+
+    <section class="guide-section">
+      <div class="guide-rail"><span>02</span></div>
+      <div class="guide-content">
+        <h2>{copy.ppStep2}</h2>
+        <p class="guide-lede">{copy.ppStep2Copy}</p>
+        <pre class="guide-code"><code>{copy.ppDownloadCommand}</code></pre>
+      </div>
+    </section>
+
+    <section class="guide-section">
+      <div class="guide-rail"><span>03</span></div>
+      <div class="guide-content">
+        <h2>{copy.ppStep3}</h2>
+        <p class="guide-lede">{copy.ppStep3Copy}</p>
+        <pre class="guide-code"><code>{copy.ppSynthCommand}</code></pre>
+      </div>
+    </section>
+
+    <section class="guide-section">
+      <div class="guide-rail"><span>04</span></div>
+      <div class="guide-content">
+        <h2>{copy.ppStep4}</h2>
+        <p class="guide-lede">{copy.ppStep4Copy}</p>
+        <div class="guide-links"><a href={localizedPath(base, locale, '/model/tsukuyomi-chan-multilingual-6-language-voice/')}>Tsukuyomi-chan</a><a href={localizedPath(base, locale, '/model/css10-japanese-6-lang-piper-plus/')}>CSS10</a><a href={localizedPath(base, locale, '/model/mera-chan-multilingual-6-lang-medium/')}>Mera</a></div>
+        <div class="guide-references"><a href={piperPlusRepoUrl} target="_blank" rel="noreferrer">{copy.ppRepo} ↗</a><a href={piperPlusModelsUrl} target="_blank" rel="noreferrer">{copy.ppModels} ↗</a><a href={discordInviteUrl} target="_blank" rel="noreferrer">{copy.ppDiscord} ↗</a></div>
+        <p class="dim">{copy.ppHelp}</p>
+      </div>
+    </section>
+  </main>
+</Layout>
