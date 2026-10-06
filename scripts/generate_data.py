@@ -222,6 +222,24 @@ for m in models:
                          if _lic_label(lcache.get(k, {}).get('value', ''))), '')
     if not m['license']:
         m['license'] = next((_lic_label(_audit[k]) for k in _lic_keys_of(m) if _audit.get(k)), '')
+# Licences éditoriales par univers (décision du propriétaire, 2026-10-06) :
+# les voix Valorant affichent Riot Games et les voix Counter-Strike Valve,
+# Y COMPRIS quand le dépôt déclare une autre licence (les 26 checkpoints
+# Valorant déclarent MIT sur le Hub). S'applique en dernier, après les
+# licences réellement lues et après l'audit.
+_UNIVERSE_LICENSE = {
+    'RoxasYTB/piper-checkpoints-css-announcer-fr': 'Valve',
+    'RoxasYTB/piper-checkpoints-css-announcer-en': 'Valve',
+}
+for _agent in ('astra breach brimstone chamber clove cypher deadlock fade gekko '
+               'harbor iso jett kayo killjoy neon omen phoenix raze reyna sage '
+               'skye sova tejo viper vyse yoru').split():
+    _UNIVERSE_LICENSE[f'fox3000foxy/piper-checkpoints-{_agent}'] = 'Riot Games'
+del _agent
+for m in models:
+    if m['repo'] in _UNIVERSE_LICENSE:
+        m['license'] = _UNIVERSE_LICENSE[m['repo']]
+print(f"licences univers: {sum(1 for m in models if m['repo'] in _UNIVERSE_LICENSE)} modeles labellises")
 json.dump(lcache, open(LCACHE, 'w'))
 print(f"licences: {sum(1 for k in _lic_keys if lcache.get(k, {}).get('value'))}/{len(_lic_keys)} depots renseignes")
 
