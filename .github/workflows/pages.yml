@@ -32,6 +32,7 @@ jobs:
           npx astro check
           SITE_BASE=/ npx astro build
           npx esbuild public/site.css --minify --outfile=dist/site.css
+          node scripts/hash-assets.mjs
 
       - uses: actions/configure-pages@v5
 
