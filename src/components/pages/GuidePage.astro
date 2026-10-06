@@ -1,8 +1,9 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { t, type Locale } from '../../i18n/ui';
+import { localizedPath, t, type Locale } from '../../i18n/ui';
 
 const { locale = 'en' as Locale } = Astro.props as { locale?: Locale };
+const base = import.meta.env.BASE_URL;
 const copyByLocale = {
   fr: {
     title: 'Guides',
@@ -97,6 +98,23 @@ const copyByLocale = {
     npmDocs: 'Documentation et exemples pipertts',
     npmHome: 'Page npm de pipertts',
     npmRepo: 'Dépôt GitHub de pipertts',
+    ppTitle: 'Voix Piper Plus',
+    ppIntro: 'Certaines voix utilisent l’architecture Piper Plus : synthèse multilingue, prosodie et décodage MB-iSTFT. Elles portent le badge Piper+ dans le catalogue et exigent le runtime piper-plus, pas le binaire piper standard.',
+    ppStep1: 'Installer piper-plus',
+    ppStep1Copy: 'Le runtime est distribué sur PyPI. Les données NLTK du phonémiseur sont récupérées à la première synthèse.',
+    ppInstallCommand: 'pip install piper-plus',
+    ppStep2: 'Télécharger une voix',
+    ppStep2Copy: 'Le runtime résout un nom de modèle et télécharge ses fichiers. Les voix Piper Plus du catalogue restent aussi disponibles sur leurs dépôts Hugging Face.',
+    ppDownloadCommand: 'piper --download-model tsukuyomi',
+    ppStep3: 'Générer un WAV',
+    ppStep3Copy: 'Même interface que piper : texte en entrée, fichier WAV en sortie. Les voix multilingues couvrent leurs six langues en une seule commande.',
+    ppSynthCommand: 'piper --model tsukuyomi --text "Konnichiwa, kyou wa ii tenki desu ne." --output_file output.wav',
+    ppStep4: 'Modèles du catalogue',
+    ppStep4Copy: 'Les fiches portent le badge Piper+ et indiquent la licence. La synthèse dans le navigateur reste désactivée pour ces voix : le runtime du site ne gère que le Piper standard.',
+    ppHelp: 'Une question sur Piper Plus ? Le serveur Discord répond.',
+    ppDiscord: 'Rejoindre le serveur Discord',
+    ppRepo: 'Dépôt GitHub de piper-plus',
+    ppModels: 'Modèles pré-entraînés piper-plus',
     npmInstallCommand: 'npm install pipertts\n# mode wrapper uniquement : python3 -m pip install piper-tts',
     npmExample: 'import { PiperNativeTTS, resolveModelPathFromOptions } from "pipertts";\nimport * as fs from "node:fs";\n\nconst modelPath = await resolveModelPathFromOptions({\n  model: "en_US-lessac-medium",\n  modelsDir: "./models",\n});\nconst tts = await PiperNativeTTS.load({ modelPath });\n\nconst { audio } = await tts.synthesize("Hello from Piper.");\nfs.writeFileSync("./hello.wav", audio);',
     npmCustomExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/my-voice.onnx",\n});\nconst { audio, sampleRate } = await tts.synthesize("Hello.", { speakerId: 0 });',
@@ -195,6 +213,23 @@ const copyByLocale = {
     npmDocs: 'pipertts documentation and examples',
     npmHome: 'pipertts on npm',
     npmRepo: 'pipertts on GitHub',
+    ppTitle: 'Piper Plus voices',
+    ppIntro: 'Some voices use the Piper Plus architecture: multilingual synthesis, prosody, and MB-iSTFT decoding. They carry the Piper+ badge in the catalogue and require the piper-plus runtime, not the standard piper binary.',
+    ppStep1: 'Install piper-plus',
+    ppStep1Copy: 'The runtime ships on PyPI. The phonemizer NLTK data is fetched on first synthesis.',
+    ppInstallCommand: 'pip install piper-plus',
+    ppStep2: 'Download a voice',
+    ppStep2Copy: 'The runtime resolves a model name and downloads its files. Catalogue Piper Plus voices stay available from their Hugging Face repositories too.',
+    ppDownloadCommand: 'piper --download-model tsukuyomi',
+    ppStep3: 'Generate a WAV file',
+    ppStep3Copy: 'Same interface as piper: text in, WAV file out. Multilingual voices cover their six languages in a single command.',
+    ppSynthCommand: 'piper --model tsukuyomi --text "Konnichiwa, kyou wa ii tenki desu ne." --output_file output.wav',
+    ppStep4: 'Catalogue models',
+    ppStep4Copy: 'Model pages carry the Piper+ badge and show the license. In-browser synthesis stays disabled for these voices: the site runtime only handles standard Piper.',
+    ppHelp: 'A question about Piper Plus? The Discord server answers.',
+    ppDiscord: 'Join the Discord server',
+    ppRepo: 'piper-plus on GitHub',
+    ppModels: 'Pre-trained piper-plus models',
     npmInstallCommand: 'npm install pipertts\n# wrapper mode only: python3 -m pip install piper-tts',
     npmExample: 'import { PiperNativeTTS, resolveModelPathFromOptions } from "pipertts";\nimport * as fs from "node:fs";\n\nconst modelPath = await resolveModelPathFromOptions({\n  model: "en_US-lessac-medium",\n  modelsDir: "./models",\n});\nconst tts = await PiperNativeTTS.load({ modelPath });\n\nconst { audio } = await tts.synthesize("Hello from Piper.");\nfs.writeFileSync("./hello.wav", audio);',
     npmCustomExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/my-voice.onnx",\n});\nconst { audio, sampleRate } = await tts.synthesize("Hello.", { speakerId: 0 });',
@@ -211,6 +246,9 @@ const discordUrl = 'https://discord.com/channels/1523276835712929946/15232775083
 const voiceForumUrl = 'https://discord.com/channels/1523276835712929946/1523277617996894259';
 const piperttsUrl = 'https://www.npmjs.com/package/pipertts';
 const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
+const piperPlusRepoUrl = 'https://github.com/ayutaz/piper-plus';
+const piperPlusModelsUrl = 'https://github.com/ayutaz/piper-plus/blob/dev/docs/guides/development/pretrained-models.md';
+const discordInviteUrl = 'https://discord.gg/xDmDJwfbfp';
 ---
 <Layout title={copy.title} description={copy.description} active="guides" locale={locale} pageUrl="/guides/">
   <main class="guide-page">
@@ -226,6 +264,7 @@ const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
       <a href="#training-guide">02 <i>·</i> {copy.trainingTitle}</a>
       <a href="#use-voice-guide">03 <i>·</i> {copy.useVoiceTitle}</a>
       <a href="#pipertts-guide">04 <i>·</i> pipertts / Node.js</a>
+      <a href="#piperplus-guide">05 <i>·</i> {copy.ppTitle}</a>
     </nav>
 
     <section id="dataset-guide" class="guide-section">
@@ -295,6 +334,21 @@ const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
           <li><span class="guide-step-number">04</span><div><h3>{copy.npmApi}</h3><p>{copy.npmApiCopy}</p></div></li>
           <li><span class="guide-step-number">05</span><div><h3>{copy.npmLegacy}</h3><p>{copy.npmLegacyCopy}</p><pre class="guide-code"><code>{copy.npmLegacyExample}</code></pre><div class="guide-references"><a href={piperttsUrl} target="_blank" rel="noreferrer">{copy.npmHome} ↗</a><a href={piperttsRepoUrl} target="_blank" rel="noreferrer">{copy.npmRepo} ↗</a><a href={`${piperttsRepoUrl}#readme`} target="_blank" rel="noreferrer">{copy.npmDocs} ↗</a></div></div></li>
         </ol>
+      </div>
+    </section>
+
+    <section id="piperplus-guide" class="guide-section guide-piperplus">
+      <div class="guide-rail"><span>05</span><span>PIPER PLUS · MULTILINGUE</span></div>
+      <div class="guide-content">
+        <h2>{copy.ppTitle}</h2>
+        <p class="guide-lede">{copy.ppIntro}</p>
+        <ol class="guide-steps">
+          <li><span class="guide-step-number">01</span><div><h3>{copy.ppStep1}</h3><p>{copy.ppStep1Copy}</p><pre class="guide-code"><code>{copy.ppInstallCommand}</code></pre></div></li>
+          <li><span class="guide-step-number">02</span><div><h3>{copy.ppStep2}</h3><p>{copy.ppStep2Copy}</p><pre class="guide-code"><code>{copy.ppDownloadCommand}</code></pre></div></li>
+          <li><span class="guide-step-number">03</span><div><h3>{copy.ppStep3}</h3><p>{copy.ppStep3Copy}</p><pre class="guide-code"><code>{copy.ppSynthCommand}</code></pre></div></li>
+          <li><span class="guide-step-number">04</span><div><h3>{copy.ppStep4}</h3><p>{copy.ppStep4Copy}</p><div class="guide-links"><a href={localizedPath(base, locale, '/model/tsukuyomi-chan-multilingual-6-language-voice/')}>Tsukuyomi-chan</a><a href={localizedPath(base, locale, '/model/css10-japanese-6-lang-piper-plus/')}>CSS10</a><a href={localizedPath(base, locale, '/model/mera-chan-multilingual-6-lang-medium/')}>Mera</a></div><div class="guide-references"><a href={piperPlusRepoUrl} target="_blank" rel="noreferrer">{copy.ppRepo} ↗</a><a href={piperPlusModelsUrl} target="_blank" rel="noreferrer">{copy.ppModels} ↗</a><a href={discordInviteUrl} target="_blank" rel="noreferrer">{copy.ppDiscord} ↗</a></div></div></li>
+        </ol>
+        <p class="dim">{copy.ppHelp}</p>
       </div>
     </section>
   </main>

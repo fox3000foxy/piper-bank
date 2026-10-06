@@ -72,7 +72,9 @@ if (breadcrumbs.length) {
     <meta name="msapplication-TileImage" content={`${base}ms-icon-144x144.png`} />
     <meta name="theme-color" content="#7c3aed" />
     <script is:inline>
-      (function () {
+      // Sélecteur de langue : le script vit dans le <head> mais le <select>
+      // n'existe qu'après analyse du <body>, d'où l'attente du DOM.
+      document.addEventListener('DOMContentLoaded', function () {
         var sel = document.getElementById('locale-select');
         if (!sel) return;
         sel.addEventListener('change', function () {
@@ -82,7 +84,7 @@ if (breadcrumbs.length) {
           b = b === '/' ? '' : b.replace(/\/+$/, '');
           location.href = b + (code === 'en' ? page : '/' + code + (page === '/' ? '/' : page));
         });
-      })();
+      });
     </script>
     <script is:inline>
       try {
@@ -163,6 +165,7 @@ if (breadcrumbs.length) {
         <a href={localizedPath(base, locale, '/terms/')}>{t(locale, 'footer.terms')}</a>
           <a href={localizedPath(base, locale, '/legal/')}>{t(locale, 'footer.legal')}</a>
           <a href={localizedPath(base, locale, '/contact/')}>{t(locale, 'footer.contact')}</a>
+        <a href="https://discord.gg/xDmDJwfbfp" target="_blank" rel="noreferrer">{t(locale, 'footer.discord')} ↗</a>
         <a href={`${base}rss.xml`}>{t(locale, 'footer.rss')}</a>
         <a href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'footer.source')} ↗</a>
       </nav>
