@@ -1985,6 +1985,7 @@ body:has(.dataset-filters) .dataset-intro .catalog-description {
 }
 /* Softer, tactile controls for the restored voice imagery and sample players. */
 .avatar-wrap { position: relative; display: inline-grid; flex: 0 0 auto; }
+.avatar-wrap > .cert { position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px; }
 .avatar.big { display: grid; place-items: center; overflow: hidden; border-radius: 17px; border: 1px solid hsl(var(--h, 265) 28% 76% / 0.65); background: hsl(var(--h, 265) 58% 39%); color: #fff; font: 600 17px/1 var(--sans); }
 .avatar.big img { width: 64%; height: 64%; object-fit: contain; filter: none; }
 .big-cert { position: absolute; right: -5px; bottom: -5px; width: 19px; height: 19px; filter: none; }
