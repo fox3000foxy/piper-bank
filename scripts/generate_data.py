@@ -198,7 +198,8 @@ def get_license(key):
 # Libellés lisibles : on n'affiche ni 'mit' ni 'apache-2.0' en vrac.
 _LIC_LABEL = {
     'mit': 'MIT', 'apache-2.0': 'Apache-2.0', 'gpl-3.0': 'GPL-3.0',
-    'cc-by-4.0': 'CC BY 4.0', 'cc-by-nc-4.0': 'CC BY-NC 4.0',
+    'cc-by-4.0': 'CC BY 4.0', 'cc-by-nc-4.0': 'CC BY-NC 4.0', 'cc-by-nc-nd-4.0': 'CC BY-NC-ND 4.0',
+    'cc0-1.0': 'CC0 1.0', 'openrail': 'OpenRAIL',
     'cc-by-nc-sa-4.0': 'CC BY-NC-SA 4.0', 'other': 'Autre',
 }
 def _lic_label(v):
