@@ -12,6 +12,6 @@
   },
   "scripts": {
     "data": "python3 scripts/generate_data.py",
-    "build": "astro build && npx esbuild public/site.css --minify --outfile=dist/site.css"
+    "build": "astro build && npx esbuild public/site.css --minify --outfile=dist/site.css && node scripts/hash-assets.mjs"
   }
 }
