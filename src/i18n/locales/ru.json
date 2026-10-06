@@ -64,6 +64,7 @@
  "home.guideDataset": "Подготовить набор данных",
  "home.guideTraining": "Обучить голос",
  "home.guideUsage": "Использовать голос",
+ "home.guidePiperPlus": "Использовать Piper Plus",
  "home.modelCount": "{count} моделей",
  "home.sourceEyebrow": "У КАЖДОГО ГОЛОСА ЕСТЬ ИСТОЧНИК",
  "home.modelDatasetPair": "МОДЕЛЬ ↔ НАБОР ДАННЫХ",

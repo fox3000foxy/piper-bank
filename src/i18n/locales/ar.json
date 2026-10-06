@@ -64,6 +64,7 @@
  "home.guideDataset": "إعداد مجموعة بيانات",
  "home.guideTraining": "تدريب صوت",
  "home.guideUsage": "استخدام صوت",
+ "home.guidePiperPlus": "استخدام Piper Plus",
  "home.modelCount": "{count} نماذج",
  "home.sourceEyebrow": "لكل صوت مصدر",
  "home.modelDatasetPair": "نموذج ↔ مجموعة بيانات",

@@ -64,6 +64,7 @@
  "home.guideDataset": "整理数据集",
  "home.guideTraining": "训练语音",
  "home.guideUsage": "使用语音",
+ "home.guidePiperPlus": "使用 Piper Plus",
  "home.modelCount": "{count} 个模型",
  "home.sourceEyebrow": "每个语音都有来源",
  "home.modelDatasetPair": "模型 ↔ 数据集",

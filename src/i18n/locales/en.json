@@ -64,6 +64,7 @@
  "home.guideDataset": "Build a dataset",
  "home.guideTraining": "Train a voice",
  "home.guideUsage": "Use a voice",
+ "home.guidePiperPlus": "Use Piper Plus",
  "home.modelCount": "{count} models",
  "home.sourceEyebrow": "EVERY VOICE HAS A SOURCE",
  "home.modelDatasetPair": "MODEL ↔ DATASET",

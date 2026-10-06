@@ -64,6 +64,7 @@
  "home.guideDataset": "データセットを作る",
  "home.guideTraining": "音声を学習する",
  "home.guideUsage": "音声を使う",
+ "home.guidePiperPlus": "Piper Plusを使う",
  "home.modelCount": "{count}件のモデル",
  "home.sourceEyebrow": "音声には出典があります",
  "home.modelDatasetPair": "モデル ↔ データセット",

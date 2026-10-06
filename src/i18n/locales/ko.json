@@ -64,6 +64,7 @@
  "home.guideDataset": "데이터셋 만들기",
  "home.guideTraining": "음성 학습시키기",
  "home.guideUsage": "음성 사용하기",
+ "home.guidePiperPlus": "Piper Plus 사용하기",
  "home.modelCount": "모델 {count}개",
  "home.sourceEyebrow": "모든 음성에는 출처가 있습니다",
  "home.modelDatasetPair": "모델 ↔ 데이터셋",
