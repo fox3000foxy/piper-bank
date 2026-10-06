@@ -782,7 +782,18 @@ textarea {
 }
 .site-footer nav {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  row-gap: 10px;
+  column-gap: 24px;
+}
+.footer-group {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 10px;
+  column-gap: 20px;
+}
+.site-footer nav a {
+  white-space: nowrap;
 }
 .site-footer nav a,
 .footer-note {

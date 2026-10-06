@@ -157,17 +157,21 @@ if (breadcrumbs.length) {
     <footer class="site-footer">
       <a class="wordmark footer-mark" href={localizedPath(base, locale, '/')}><img src={`${base}logo.png`} alt="" /><span class="wordmark-name"><span class="wordmark-piper">Piper</span><span class="wordmark-bank">Hub</span></span></a>
       <p>{t(locale, 'footer.description')}<br />{t(locale, 'footer.licenses')}</p>
-      <nav aria-label={t(locale, 'nav.footerLinks')}>
-        <a href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a>
-        <a href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'nav.datasets')}</a>
-        <a href={localizedPath(base, locale, '/guides/')}>{t(locale, 'nav.guides')}</a>
-        <a href={localizedPath(base, locale, '/privacy/')}>{t(locale, 'footer.privacy')}</a>
-        <a href={localizedPath(base, locale, '/terms/')}>{t(locale, 'footer.terms')}</a>
-          <a href={localizedPath(base, locale, '/legal/')}>{t(locale, 'footer.legal')}</a>
+      <nav aria-label={t(locale, 'nav.footerLinks')} class="footer-nav">
+        <span class="footer-group">
+          <a href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a>
+          <a href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'nav.datasets')}</a>
+          <a href={localizedPath(base, locale, '/guides/')}>{t(locale, 'nav.guides')}</a>
           <a href={localizedPath(base, locale, '/contact/')}>{t(locale, 'footer.contact')}</a>
-        <a href="https://discord.gg/xDmDJwfbfp" target="_blank" rel="noreferrer">{t(locale, 'footer.discord')} ↗</a>
-        <a href={`${base}rss.xml`}>{t(locale, 'footer.rss')}</a>
-        <a href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'footer.source')} ↗</a>
+          <a href="https://discord.gg/xDmDJwfbfp" target="_blank" rel="noreferrer">{t(locale, 'footer.discord')} ↗</a>
+          <a href={`${base}rss.xml`}>{t(locale, 'footer.rss')}</a>
+        </span>
+        <span class="footer-group">
+          <a href={localizedPath(base, locale, '/privacy/')}>{t(locale, 'footer.privacy')}</a>
+          <a href={localizedPath(base, locale, '/terms/')}>{t(locale, 'footer.terms')}</a>
+          <a href={localizedPath(base, locale, '/legal/')}>{t(locale, 'footer.legal')}</a>
+          <a href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'footer.source')} ↗</a>
+        </span>
       </nav>
       <span class="footer-note">{t(locale, 'footer.local')}</span>
     </footer>
