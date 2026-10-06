@@ -1,408 +1,85 @@
-export type Locale = 'fr' | 'en';
+import ar from './locales/ar.json';
+import de from './locales/de.json';
+import enJson from './locales/en.json';
+import es from './locales/es.json';
+import fr from './locales/fr.json';
+import hi from './locales/hi.json';
+import id from './locales/id.json';
+import it from './locales/it.json';
+import ja from './locales/ja.json';
+import ko from './locales/ko.json';
+import pt from './locales/pt.json';
+import ru from './locales/ru.json';
+import th from './locales/th.json';
+import tr from './locales/tr.json';
+import vi from './locales/vi.json';
+import zh from './locales/zh.json';
 
-const fr = {
-  'language.label': 'Langue',
-  'language.french': 'Français',
-  'language.english': 'English',
-  'theme.change': 'Changer de thème',
-  'nav.home': 'Accueil',
-  'nav.main': 'Navigation principale',
-  'nav.voices': 'Voix',
-  'nav.datasets': 'Datasets',
-  'nav.guides': 'Guides',
-  'nav.project': 'Projet',
-  'nav.footerLinks': 'Liens de pied de page',
-  'footer.description': 'Une collection ouverte pour Piper TTS.',
-  'footer.licenses': 'Les licences restent propres à chaque ressource.',
-  'footer.source': 'Code source',
-  'footer.privacy': 'Confidentialité',
-  'footer.terms': 'Conditions',
-  'footer.legal': 'Mentions légales',
-  'footer.contact': 'Contact',  'footer.local': 'La synthèse s’exécute dans votre navigateur.',
-  'footer.rss': 'Nouvelles voix',
-  'voices.rss': 'Flux RSS : nouvelles voix',
-  'site.description': 'Des voix pour Piper TTS, à explorer et à écouter. Une collection libre, une synthèse exécutée dans votre navigateur.',
-  'home.title': 'La voix, en clair',
-  'home.description': 'Explorez les voix pour Piper TTS, écoutez des extraits et générez de la parole localement. Gratuit et open source.',
-  'home.metaDescription': 'Explorez {models} voix Piper TTS en {langs} langues ({voices} locuteurs), écoutez des extraits et générez de la parole localement.',
-  'home.eyebrow': 'Voix pour Piper TTS',
-  'home.headline': 'La voix,',
-  'home.headlineSecond': 'en clair.',
-  'home.deck': 'Des voix ouvertes. Des sources identifiées. Une synthèse qui reste chez vous.',
-  'home.exploreVoices': 'Explorer les voix',
-  'home.seeDatasets': 'Voir les datasets',
-  'home.freeNote': 'Gratuit · Open source · Synthèse locale',
-  'home.sampleIndex': '01 / EXTRAIT',
-  'home.modelDetails': 'Détails du modèle',
-  'home.listenSample': 'Écouter l’extrait',
-  'home.pauseSample': 'Mettre en pause l’extrait',
-  'home.waveform': 'Forme d’onde calculée depuis l’extrait audio',
-  'home.samplePosition': 'Position dans l’extrait',
-  'home.sampleUnavailable': 'Indisponible',
-  'home.sampleProvidedBy': 'Extrait audio fourni par',
-  'home.openSampleModel': 'Voir le modèle {name}',
-  'home.openSamples': 'Quelques voix du catalogue',
-  'home.catalogStats': 'Le catalogue en chiffres',
-  'home.openIndex': 'Un index ouvert',
-  'home.modelsInCatalog': 'modèles référencés dans le catalogue',
-  'home.international': 'Une collection internationale',
-  'home.languagesListed': 'langues référencées',
-  'home.voicesNoCredits': 'Des voix, pas des crédits',
-  'home.speakersListed': 'locuteurs répertoriés',
-  'home.catalogEyebrow': 'LE CATALOGUE',
-  'home.listenDifferences': 'Écoutez',
-  'home.differencesSecond': 'les différences.',
-  'home.catalogCopy': 'Chaque modèle a sa cadence, son grain et sa provenance. Parcourez les détails, puis essayez une synthèse localement.',
-  'home.browseModels': 'Parcourir les {count} modèles',
-  'home.allCollection': 'Toute la collection',
-  'home.freshEyebrow': 'Fraîchement mis à jour',
-  'home.freshTitle': 'Les nouveautés du catalogue',
-  'home.freshCopy': 'Les voix retouchées ou ajoutées ces 14 derniers jours.',
-  'home.guidesEyebrow': 'APPRENDRE',
-  'home.guidesTitle': 'Les guides de PiperHub',
-  'home.guidesCopy': 'Trois pas pour aller du texte brut à une voix Piper prête à l’usage.',
-  'home.guideDataset': 'Dresser un dataset',
-  'home.guideTraining': 'Entraîner une voix',
-  'home.guideUsage': 'Utiliser une voix',
-  'home.modelCount': '{count} modèles',
-  'home.sourceEyebrow': 'UNE VOIX A UNE SOURCE',
-  'home.modelDatasetPair': 'MODÈLE ↔ DATASET',
-  'home.sourceHeadline': 'La provenance',
-  'home.sourceHeadlineSecond': 'fait partie du son.',
-  'home.sourceCopy': 'est reliée au dataset {dataset}. Ouvrez les deux fiches pour consulter leurs dépôts et les informations de licence propres à chaque ressource.',
-  'home.modelSheet': 'Fiche du modèle',
-  'home.datasetSheet': 'Fiche du dataset',
-  'home.linkedResources': 'RESSOURCES LIÉES',
-  'home.yourTurn': 'À VOUS DE JOUER',
-  'home.findVoice': 'Trouvez votre voix.',
-  'home.findVoiceCopy': 'Nous avons rassemblé des modèles de voix issus d’Internet pour vous aider à les trouver plus facilement. Parcourez le catalogue pour découvrir ceux qui vous intéressent. Attention : certains modèles proposent plusieurs voix.',
-  'home.openCatalog': 'Ouvrir le catalogue',
-  'voices.title': 'Voix',
-  'voices.description': 'Parcourez les modèles Piper TTS, écoutez leurs extraits et lancez une synthèse locale.',
-  'voices.metaDescription': 'Parcourez {models} modèles Piper TTS en {langs} langues ({voices} locuteurs) : écoutez les extraits et lancez une synthèse locale.',
-  'voices.eyebrow': 'INDEX SONORE / 01',
-  'voices.heading': 'Les voix.',
-  'voices.intro': 'Un catalogue de voix pour Piper TTS, avec leurs informations de modèle et leur provenance quand elle est connue.',
-  'voices.models': 'modèles',
-  'voices.speakers': 'locuteurs',
-  'voices.filters': 'Recherche et filtres du catalogue',
-  'voices.searchPlaceholder': 'Nom, langue, auteur ou identifiant…',
-  'voices.searchLabel': 'Rechercher une voix, une langue ou un auteur',
-  'filter.language': 'LANGUE',
-  'filter.quality': 'QUALITÉ',
-  'filter.all': 'Toutes',
-  'filter.allMasculine': 'Tous',
-  'filter.multiVoice': 'Plusieurs locuteurs',
-  'filter.sort': 'Trier',
-  'sort.name': 'Nom : A à Z',
-  'sort.voicesDesc': 'Locuteurs : décroissant',
-  'sort.voicesAsc': 'Locuteurs : croissant',
-  'sort.updatedDesc': 'Mis à jour : récent',
-  'sort.updatedAsc': 'Mis à jour : ancien',
-  'quality.high': 'Haute',
-  'quality.medium': 'Moyenne',
-  'quality.low': 'Basse',
-  'quality.unknown': 'Non renseignée',
-  'voices.results': '{visible} modèles sur {total}',
-  'voices.empty': 'Aucun résultat pour ces critères.',
-  'voices.clearFilters': 'Effacer la recherche et les filtres',
-  'voices.speakerCount': '{count} locuteurs',
-  'datasets.title': 'Jeux de données',
-  'datasets.description': 'Jeux de données communautaires pour entraîner les voix Piper TTS.',
-  'datasets.eyebrow': 'INDEX DES SOURCES / 02',
-  'datasets.heading': 'Les datasets.',
-  'datasets.intro': 'Explorez les jeux de données associés aux voix et retrouvez leur origine quand elle est documentée.',
-  'datasets.count': 'jeux de données',
-  'datasets.licenses': 'licences selon les ressources',
-  'datasets.filters': 'Recherche et filtres des jeux de données',
-  'datasets.searchPlaceholder': 'Rechercher un jeu de données…',
-  'datasets.searchLabel': 'Rechercher un jeu de données',
-  'datasets.modelState': 'État du modèle',
-  'datasets.all': 'Tous',
-  'datasets.withModel': 'Avec modèle',
-  'datasets.toTrain': 'À entraîner',
-  'datasets.results': '{visible} jeux de données sur {total}',
-  'datasets.associated': 'Modèle associé',
-  'datasets.noRepo': 'Dépôt non renseigné',
-  'detail.backVoices': '← Toutes les voix',
-  'detail.backDatasets': '← Tous les jeux de données',
-  'detail.modelOfficial': 'Modèle officiel Piper',
-  'detail.synthesis': 'Synthèse locale',
-  'detail.enterText': 'Saisissez le texte à transformer en voix…',
-  'detail.generateAudio': 'Générer l’audio',
-  'detail.enterTextStatus': 'Saisissez un texte pour générer un extrait.',
-  'detail.audioReady': 'Synthèse locale prête. Utilisez le lecteur pour écouter.',
-  'detail.playSynthesis': 'Lire la synthèse',
-  'detail.pauseSynthesis': 'Mettre en pause la synthèse',
-  'detail.downloadAudio': 'Télécharger la synthèse (WAV)',
-  'detail.synthesisPosition': 'Position dans la synthèse',
-  'detail.information': 'Informations',
-  'detail.author': 'Auteur',
-  'detail.repository': 'Dépôt',
-  'detail.language': 'Langue',
-  'detail.quality': 'Catégorie du modèle',
-  'detail.speakers': 'Locuteurs',
-  'detail.phonemes': 'Phonèmes',
-  'detail.sampleRate': 'Fréquence',
-  'detail.license': 'Licence',
-  'detail.piperPlusNote': 'Architecture Piper Plus : cette voix nécessite le runtime piper-plus, pas le binaire piper standard.',
-  'detail.piperPlusRuntime': 'Runtime piper-plus',
-  'detail.dataset': 'Jeu de données associé',
-  'detail.noDataset': 'Aucun jeu de données associé.',
-  'detail.voiceSettings': 'Réglages de la voix',
-  'detail.voiceToSynthesize': 'Voix à synthétiser',
-  'detail.selectVoice': 'Sélectionner la voix pour la synthèse',
-  'detail.speed': 'Vitesse',
-  'detail.noise': 'Bruit',
-  'detail.downloads': 'Téléchargements',
-  'detail.huggingFace': 'Dépôt Hugging Face',
-  'detail.discussion': 'Discussion',
-  'detail.voiceSamples': 'Locuteurs et extraits ({count})',
-  'detail.sampleHelp': 'Écoutez un extrait, puis sélectionnez le nom du locuteur pour la synthèse.',
-  'detail.listenVoice': 'Écouter l’extrait de {name}',
-  'detail.pauseVoice': 'Mettre en pause l’extrait de {name}',
-  'detail.sampleN': 'Extrait {number}',
-  'detail.downloadSample': 'Télécharger cet extrait',
-  'detail.compareVoices': 'Comparer les voix',
-  'detail.compareHelp': 'Même texte, plusieurs voix : choisissez jusqu’à trois locuteurs puis lancez la comparaison.',
-  'detail.compareSlot': 'Voix {letter}',
-  'detail.compareRun': 'Comparer',
-  'detail.compareStatus': 'Comparaison {done}/{total} : {name}…',
-  'detail.updatedOn': 'Mis à jour le {date}',
-  'detail.samplePosition': 'Position dans l’extrait de {name}',
-  'detail.sampleUnavailable': 'Extrait indisponible',
-  'detail.moreSpeakers': '… et {count} autres locuteurs (synthèse disponible pour tous).',
-  'detail.durationPair': '{current} sur {duration}',
-  'detail.synthProgress': 'Synthèse locale en cours · {progress}',
-  'detail.synthFailure': 'Échec de la synthèse · {message}',
-  'dataset.titleFallback': 'Jeu de données',
-  'dataset.metaTitle': 'jeu de données Piper TTS',
-  'dataset.description': 'Jeu de données {class} ({source}, {language}) pour les modèles Piper TTS.',
-  'dataset.modelAssociated': 'Modèle associé : {model}',
-  'dataset.information': 'Informations',
-  'dataset.class': 'Classe',
-  'dataset.source': 'Source',
-  'dataset.status': 'État',
-  'dataset.filesAndModel': 'Fichiers disponibles · modèle associé',
-  'dataset.filesAvailable': 'Fichiers disponibles',
-  'dataset.trainVoice': 'Entraîner une voix',
-  'dataset.modelAlreadyAssociated': 'Un modèle Piper est déjà associé à ce jeu de données. Consultez sa fiche pour écouter la voix.',
-  'dataset.noModelYet': 'Aucun modèle n’y est associé pour le moment. Le format est LJSpeech ({metadata} et dossier {wavs}/). L’entraînement prend de 1 à 6 h dans le notebook Kaggle et produit {onnx} et {json}.',
-  'dataset.links': 'Liens',
-  'dataset.openDataset': 'Jeu de données',
-  'dataset.privateRepoNote': 'Dépôt privé, non accessible publiquement.',
-  'dataset.model': 'Modèle',
-  'common.none': 'Non renseigné',
-  'common.private': 'Privé',
-  'common.unknown': 'Non renseignée',
-  'common.oneSpeaker': '1 locuteur',
-  'common.new': 'Nouveau',
-  'common.year': 'ans',
-} as const;
+export type Locale =
+  | 'fr' | 'en' | 'de' | 'es' | 'it' | 'pt' | 'ru' | 'tr'
+  | 'ja' | 'ko' | 'zh' | 'id' | 'hi' | 'ar' | 'vi' | 'th';
 
-const en: Record<keyof typeof fr, string> = {
-  'language.label': 'Language',
-  'language.french': 'Français',
-  'language.english': 'English',
-  'theme.change': 'Change theme',
-  'nav.home': 'Home',
-  'nav.main': 'Main navigation',
-  'nav.voices': 'Voices',
-  'nav.datasets': 'Datasets',
-  'nav.guides': 'Guides',
-  'nav.project': 'Project',
-  'nav.footerLinks': 'Footer links',
-  'footer.description': 'An open collection for Piper TTS.',
-  'footer.rss': 'New voices',
-  'footer.licenses': 'Licenses remain specific to each resource.',
-  'footer.source': 'Source code',
-  'footer.privacy': 'Privacy',
-  'footer.terms': 'Terms',
-  'footer.legal': 'Legal notice',
-  'footer.contact': 'Contact',
-  'footer.local': 'Speech synthesis runs in your browser.',
-  'voices.rss': 'RSS feed: new voices',
-  'site.description': 'Voices for Piper TTS to explore and hear. An open collection with synthesis running in your browser.',
-  'home.title': 'Voice, made clear',
-  'home.description': 'Explore Piper TTS voices, listen to samples, and synthesize speech locally. Free and open source.',
-  'home.metaDescription': 'Explore {models} Piper TTS voices in {langs} languages ({voices} speakers), listen to samples, and synthesize speech locally.',
-  'home.eyebrow': 'Voices for Piper TTS',
-  'home.headline': 'Voice,',
-  'home.headlineSecond': 'made clear.',
-  'home.deck': 'Open voices. Identified sources. Synthesis that stays on your device.',
-  'home.exploreVoices': 'Explore voices',
-  'home.seeDatasets': 'Browse datasets',
-  'home.freeNote': 'Free · Open source · Local synthesis',
-  'home.sampleIndex': '01 / SAMPLE',
-  'home.modelDetails': 'Model details',
-  'home.listenSample': 'Play sample',
-  'home.pauseSample': 'Pause sample',
-  'home.waveform': 'Waveform generated from the audio sample',
-  'home.samplePosition': 'Sample position',
-  'home.sampleUnavailable': 'Unavailable',
-  'home.sampleProvidedBy': 'Audio sample provided by',
-  'home.openSampleModel': 'View the {name} model',
-  'home.openSamples': 'A few voices from the catalogue',
-  'home.catalogStats': 'The catalogue in numbers',
-  'home.openIndex': 'An open index',
-  'home.modelsInCatalog': 'models listed in the catalogue',
-  'home.international': 'An international collection',
-  'home.languagesListed': 'languages represented',
-  'home.voicesNoCredits': 'Voices, not credits',
-  'home.speakersListed': 'speakers listed',
-  'home.catalogEyebrow': 'THE CATALOGUE',
-  'home.listenDifferences': 'Hear',
-  'home.differencesSecond': 'the differences.',
-  'home.catalogCopy': 'Every model has its own cadence, texture, and provenance. Explore the details, then try synthesis locally.',
-  'home.browseModels': 'Browse {count} models',
-  'home.allCollection': 'Full collection',
-  'home.freshEyebrow': 'Freshly updated',
-  'home.freshTitle': 'Latest catalog updates',
-  'home.freshCopy': 'Voices retouched or added in the last 14 days.',
-  'home.guidesEyebrow': 'LEARN',
-  'home.guidesTitle': 'The PiperHub guides',
-  'home.guidesCopy': 'Three steps from raw text to a Piper voice, ready to use.',
-  'home.guideDataset': 'Build a dataset',
-  'home.guideTraining': 'Train a voice',
-  'home.guideUsage': 'Use a voice',
-  'home.modelCount': '{count} models',
-  'home.sourceEyebrow': 'EVERY VOICE HAS A SOURCE',
-  'home.modelDatasetPair': 'MODEL ↔ DATASET',
-  'home.sourceHeadline': 'Provenance',
-  'home.sourceHeadlineSecond': 'is part of the sound.',
-  'home.sourceCopy': 'is linked to the {dataset} dataset. Open both pages to review their repositories and resource-specific license information.',
-  'home.modelSheet': 'Model page',
-  'home.datasetSheet': 'Dataset page',
-  'home.linkedResources': 'RELATED RESOURCES',
-  'home.yourTurn': 'YOUR TURN',
-  'home.findVoice': 'Find your voice.',
-  'home.findVoiceCopy': 'We’ve gathered voice models from across the internet and brought them together here to make them easier to find. Browse the catalogue to discover models that interest you. Be aware that some models include multiple speakers.',
-  'home.openCatalog': 'Open the catalogue',
-  'voices.title': 'Voices',
-  'voices.description': 'Browse Piper TTS models, listen to samples, and synthesize speech locally.',
-  'voices.metaDescription': 'Browse {models} Piper TTS models in {langs} languages ({voices} speakers): listen to samples and synthesize locally.',
-  'voices.eyebrow': 'VOICE INDEX / 01',
-  'voices.heading': 'The voices.',
-  'voices.intro': 'A catalogue of Piper TTS voices, with model details and provenance where available.',
-  'voices.models': 'models',
-  'voices.speakers': 'speakers',
-  'voices.filters': 'Catalogue search and filters',
-  'voices.searchPlaceholder': 'Name, language, author, or identifier…',
-  'voices.searchLabel': 'Search voices, languages, or authors',
-  'filter.language': 'LANGUAGE',
-  'filter.quality': 'QUALITY',
-  'filter.all': 'All',
-  'filter.allMasculine': 'All',
-  'filter.multiVoice': 'Multiple speakers',
-  'filter.sort': 'Sort',
-  'sort.name': 'Name: A to Z',
-  'sort.voicesDesc': 'Speakers: most first',
-  'sort.voicesAsc': 'Speakers: fewest first',
-  'sort.updatedDesc': 'Updated: newest',
-  'sort.updatedAsc': 'Updated: oldest',
-  'quality.high': 'High',
-  'quality.medium': 'Medium',
-  'quality.low': 'Low',
-  'quality.unknown': 'Unspecified',
-  'voices.results': '{visible} models of {total}',
-  'voices.empty': 'No results match these filters.',
-  'voices.clearFilters': 'Clear search and filters',
-  'voices.speakerCount': '{count} speakers',
-  'datasets.title': 'Datasets',
-  'datasets.description': 'Community datasets for training Piper TTS voices.',
-  'datasets.eyebrow': 'SOURCE INDEX / 02',
-  'datasets.heading': 'The datasets.',
-  'datasets.intro': 'Explore datasets associated with voices and find their source where documented.',
-  'datasets.count': 'datasets',
-  'datasets.licenses': 'licenses vary by resource',
-  'datasets.filters': 'Dataset search and filters',
-  'datasets.searchPlaceholder': 'Search datasets…',
-  'datasets.searchLabel': 'Search datasets',
-  'datasets.modelState': 'Model status',
-  'datasets.all': 'All',
-  'datasets.withModel': 'With model',
-  'datasets.toTrain': 'To train',
-  'datasets.results': '{visible} datasets of {total}',
-  'datasets.associated': 'Associated model',
-  'datasets.noRepo': 'Repository not listed',
-  'detail.backVoices': '← All voices',
-  'detail.backDatasets': '← All datasets',
-  'detail.modelOfficial': 'Official Piper model',
-  'detail.synthesis': 'Local synthesis',
-  'detail.enterText': 'Enter text to turn into speech…',
-  'detail.generateAudio': 'Generate audio',
-  'detail.enterTextStatus': 'Enter text to generate a sample.',
-  'detail.audioReady': 'Local synthesis is ready. Use the player to listen.',
-  'detail.playSynthesis': 'Play generated speech',
-  'detail.pauseSynthesis': 'Pause generated speech',
-  'detail.downloadAudio': 'Download synthesis (WAV)',
-  'detail.synthesisPosition': 'Position in generated speech',
-  'detail.information': 'Information',
-  'detail.author': 'Author',
-  'detail.repository': 'Repository',
-  'detail.language': 'Language',
-  'detail.quality': 'Model quality',
-  'detail.speakers': 'Speakers',
-  'detail.phonemes': 'Phonemes',
-  'detail.sampleRate': 'Sample rate',
-  'detail.license': 'License',
-  'detail.piperPlusNote': 'Piper Plus architecture: this voice needs the piper-plus runtime, not the standard piper binary.',
-  'detail.piperPlusRuntime': 'piper-plus runtime',
-  'detail.dataset': 'Associated dataset',
-  'detail.noDataset': 'No associated dataset.',
-  'detail.voiceSettings': 'Voice settings',
-  'detail.voiceToSynthesize': 'Voice to synthesize',
-  'detail.selectVoice': 'Select voice for synthesis',
-  'detail.speed': 'Speed',
-  'detail.noise': 'Noise',
-  'detail.downloads': 'Downloads',
-  'detail.huggingFace': 'Hugging Face repository',
-  'detail.discussion': 'Discussion',
-  'detail.voiceSamples': 'Speakers and samples ({count})',
-  'detail.sampleHelp': 'Listen to a sample, then select a speaker name to use it for synthesis.',
-  'detail.listenVoice': 'Play sample for {name}',
-  'detail.pauseVoice': 'Pause sample for {name}',
-  'detail.sampleN': 'Sample {number}',
-  'detail.downloadSample': 'Download this sample',
-  'detail.compareVoices': 'Compare voices',
-  'detail.compareHelp': 'Same text, several voices: pick up to three speakers, then run the comparison.',
-  'detail.compareSlot': 'Voice {letter}',
-  'detail.compareRun': 'Compare',
-  'detail.compareStatus': 'Comparing {done}/{total}: {name}…',
-  'detail.updatedOn': 'Updated {date}',
-  'detail.samplePosition': 'Sample position for {name}',
-  'detail.sampleUnavailable': 'Sample unavailable',
-  'detail.moreSpeakers': '… and {count} more speakers (synthesis is available for all).',
-  'detail.durationPair': '{current} of {duration}',
-  'detail.synthProgress': 'Local synthesis in progress · {progress}',
-  'detail.synthFailure': 'Synthesis failed · {message}',
-  'dataset.titleFallback': 'Dataset',
-  'dataset.metaTitle': 'Piper TTS dataset',
-  'dataset.description': 'Dataset {class} ({source}, {language}) for Piper TTS models.',
-  'dataset.modelAssociated': 'Associated model: {model}',
-  'dataset.information': 'Information',
-  'dataset.class': 'Class',
-  'dataset.source': 'Source',
-  'dataset.status': 'Status',
-  'dataset.filesAndModel': 'Files available · model associated',
-  'dataset.filesAvailable': 'Files available',
-  'dataset.trainVoice': 'Train a voice',
-  'dataset.modelAlreadyAssociated': 'A Piper model is already associated with this dataset. Open its page to listen to the voice.',
-  'dataset.noModelYet': 'No model is associated with this dataset yet. The format is LJSpeech ({metadata} and a {wavs}/ folder). Training takes 1 to 6 hours in the Kaggle notebook and produces {onnx} and {json}.',
-  'dataset.links': 'Links',
-  'dataset.openDataset': 'Dataset',
-  'dataset.privateRepoNote': 'Private repository, not publicly accessible.',
-  'dataset.model': 'Model',
-  'common.none': 'Not listed',
-  'common.private': 'Private',
-  'common.unknown': 'Unspecified',
-  'common.oneSpeaker': '1 speaker',
-  'common.new': 'New',
-  'common.year': 'years',
+export type MessageKey = keyof typeof fr;
+
+type Messages = Record<MessageKey, string>;
+const en: Messages = enJson;
+const deMsg: Messages = de;
+const esMsg: Messages = es;
+const itMsg: Messages = it;
+const ptMsg: Messages = pt;
+const ruMsg: Messages = ru;
+const trMsg: Messages = tr;
+const jaMsg: Messages = ja;
+const koMsg: Messages = ko;
+const zhMsg: Messages = zh;
+const idMsg: Messages = id;
+const hiMsg: Messages = hi;
+const arMsg: Messages = ar;
+const viMsg: Messages = vi;
+const thMsg: Messages = th;
+
+export const messages: Record<Locale, Messages> = {
+  fr, en, de: deMsg, es: esMsg, it: itMsg, pt: ptMsg, ru: ruMsg, tr: trMsg,
+  ja: jaMsg, ko: koMsg, zh: zhMsg, id: idMsg, hi: hiMsg, ar: arMsg,
+  vi: viMsg, th: thMsg,
 };
 
-export const messages = { fr, en } as const;
-export type MessageKey = keyof typeof fr;
+export interface LocaleMeta {
+  code: Locale;
+  tag: string;
+  dir: 'ltr' | 'rtl';
+  name: string;
+  prefixed: boolean;
+}
+
+// Anglais = canonique à la racine, les autres sous /<code>/.
+export const LOCALES: LocaleMeta[] = [
+  { code: 'en', tag: 'en-US', dir: 'ltr', name: 'English', prefixed: false },
+  { code: 'fr', tag: 'fr-FR', dir: 'ltr', name: 'Français', prefixed: true },
+  { code: 'de', tag: 'de-DE', dir: 'ltr', name: 'Deutsch', prefixed: true },
+  { code: 'es', tag: 'es-ES', dir: 'ltr', name: 'Español', prefixed: true },
+  { code: 'it', tag: 'it-IT', dir: 'ltr', name: 'Italiano', prefixed: true },
+  { code: 'pt', tag: 'pt-PT', dir: 'ltr', name: 'Português', prefixed: true },
+  { code: 'ru', tag: 'ru-RU', dir: 'ltr', name: 'Русский', prefixed: true },
+  { code: 'tr', tag: 'tr-TR', dir: 'ltr', name: 'Türkçe', prefixed: true },
+  { code: 'ja', tag: 'ja-JP', dir: 'ltr', name: '日本語', prefixed: true },
+  { code: 'ko', tag: 'ko-KR', dir: 'ltr', name: '한국어', prefixed: true },
+  { code: 'zh', tag: 'zh-CN', dir: 'ltr', name: '中文', prefixed: true },
+  { code: 'id', tag: 'id-ID', dir: 'ltr', name: 'Bahasa Indonesia', prefixed: true },
+  { code: 'hi', tag: 'hi-IN', dir: 'ltr', name: 'हिन्दी', prefixed: true },
+  { code: 'ar', tag: 'ar-SA', dir: 'rtl', name: 'العربية', prefixed: true },
+  { code: 'vi', tag: 'vi-VN', dir: 'ltr', name: 'Tiếng Việt', prefixed: true },
+  { code: 'th', tag: 'th-TH', dir: 'ltr', name: 'ไทย', prefixed: true },
+];
+
+export function localeMeta(locale: Locale): LocaleMeta {
+  return LOCALES.find((l) => l.code === locale) || LOCALES[0];
+}
+
+// og:locale au format fr_FR à partir du tag BCP47.
+export function ogLocale(locale: Locale): string {
+  return localeMeta(locale).tag.replace(/-(.*)/, (_, r: string) => '_' + r.toUpperCase());
+}
 
 export function t(locale: Locale, key: MessageKey, values: Record<string, string | number> = {}): string {
   return messages[locale][key].replace(/\{(\w+)\}/g, (match, name: string) =>
@@ -411,26 +88,29 @@ export function t(locale: Locale, key: MessageKey, values: Record<string, string
 }
 
 export function formatNumber(locale: Locale, value: number): string {
-  return new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-US').format(value);
+  return new Intl.NumberFormat(localeMeta(locale).tag).format(value);
 }
 
+const LOCALE_PREFIX = new RegExp('^/(' + LOCALES.filter((l) => l.prefixed).map((l) => l.code).join('|') + ')(?=/|$)');
+
 export function localeFromPath(pathname: string): Locale {
-  return /^\/fr(?:\/|$)/.test(pathname) ? 'fr' : 'en';
+  const m = LOCALE_PREFIX.exec(pathname);
+  return (m ? (m[1] as Locale) : 'en');
 }
 
 export function localizedPath(base: string, locale: Locale, path: string): string {
   const cleanBase = base === '/' ? '' : `/${base.replace(/^\/+|\/+$/g, '')}`;
   const cleanPath = `/${path.replace(/^\/+/, '')}`;
-  const withoutLocale = cleanPath.replace(/^\/(?:en|fr)(?=\/|$)/, '') || '/';
-  const localePath = locale === 'fr'
-    ? `/fr${withoutLocale === '/' ? '/' : withoutLocale}`
+  const withoutLocale = cleanPath.replace(LOCALE_PREFIX, '') || '/';
+  const localePath = localeMeta(locale).prefixed
+    ? `/${locale}${withoutLocale === '/' ? '/' : withoutLocale}`
     : withoutLocale;
   return `${cleanBase}${localePath}` || '/';
 }
 
 export function languageLabel(code: string, fallback: string, locale: Locale): string {
   try {
-    const displayName = new Intl.DisplayNames([locale === 'fr' ? 'fr-FR' : 'en-US'], { type: 'language' }).of(code);
+    const displayName = new Intl.DisplayNames([localeMeta(locale).tag], { type: 'language' }).of(code);
     if (displayName && displayName.toLowerCase() !== code.toLowerCase()) return displayName;
   } catch {
     // Unknown or nonstandard source language tags keep their supplied display name.

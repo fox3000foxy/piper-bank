@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import { t, type Locale } from '../../i18n/ui';
 
 const { locale = 'en' as Locale } = Astro.props as { locale?: Locale };
-const copy = {
+const copyByLocale = {
   fr: {
     title: 'Guides',
     description: 'Préparez un jeu de données LJSpeech et entraînez une voix Piper avec le notebook Kaggle.',
@@ -200,7 +200,9 @@ const copy = {
     npmCustomExample: 'import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: "./models/my-voice.onnx",\n});\nconst { audio, sampleRate } = await tts.synthesize("Hello.", { speakerId: 0 });',
     npmLegacyExample: 'import { PiperTTS } from "pipertts";\n\nconst tts = await PiperTTS.create({\n  modelPath: "./models/en_US-lessac-medium.onnx",\n});\nawait tts.synthesizeToFile("Hello from the legacy wrapper.", "./hello.wav");',
   },
-}[locale];
+};
+// Pages annexes : repli anglais tant que la locale n'a pas sa version.
+const copy = (copyByLocale as unknown as Record<string, typeof copyByLocale.en>)[locale] ?? copyByLocale.en; // repli anglais (pages annexes non traduites)
 
 const kaggleQuotaUrl = 'https://www.kaggle.com/docs/efficient-gpu-usage';
 const kaggleNotebooksUrl = 'https://www.kaggle.com/docs/notebooks';
@@ -234,7 +236,7 @@ const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
         <pre class="guide-code"><code>{copy.archive}</code></pre>
         <ol class="guide-steps">
           <li><span class="guide-step-number">01</span><div><h3>{copy.step1}</h3><p>{copy.step1copy}</p><div class="guide-links"><a href="https://huggingface.co/datasets?search=ljspeech" target="_blank" rel="noreferrer">{copy.hfSearch} ↗</a><span>{copy.ytDlp}</span></div></div></li>
-          <li><span class="guide-step-number">02</span><div><h3>{copy.step2}</h3><p>{copy.step2copy}</p><ul class="guide-tool-list">{copy.tools.map((tool) => <li>{tool}</li>)}</ul></div></li>
+          <li><span class="guide-step-number">02</span><div><h3>{copy.step2}</h3><p>{copy.step2copy}</p><ul class="guide-tool-list">{(copy.tools as string[]).map((tool: string) => <li>{tool}</li>)}</ul></div></li>
           <li><span class="guide-step-number">03</span><div><h3>{copy.step3}</h3><p>{copy.step3copy}</p><pre class="guide-code"><code>{copy.metadata}</code></pre></div></li>
           <li><span class="guide-step-number">04</span><div><h3>{copy.step4}</h3><p>{copy.step4copy}</p><pre class="guide-code guide-code-command"><code>{copy.zip}</code></pre></div></li>
           <li><span class="guide-step-number">05</span><div><h3>{copy.step5}</h3><p>{copy.step5copy}</p><pre class="guide-code"><code>{copy.yaml}</code></pre><div class="guide-links"><a href="https://huggingface.co/new-dataset" target="_blank" rel="noreferrer">{copy.newDataset} ↗</a><a href="https://huggingface.co/fox3000foxy" target="_blank" rel="noreferrer">{copy.exampleProfile} ↗</a></div></div></li>
@@ -254,8 +256,8 @@ const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
           <article><span>{copy.acceleratorTitle}</span><strong>T4 x2</strong><p>{copy.acceleratorCopy}</p></article>
         </div>
         <div class="guide-resume"><span>↻</span><div><h3>{copy.resumeTitle}</h3><p>{copy.resumeCopy}</p></div></div>
-        <div class="guide-checklist"><h3>{copy.beforeTitle}</h3><ul>{copy.beforeList.map((item) => <li>{item}</li>)}</ul></div>
-        <div class="guide-references" aria-label={locale === 'fr' ? 'Sources officielles' : 'Official references'}>
+        <div class="guide-checklist"><h3>{copy.beforeTitle}</h3><ul>{(copy.beforeList as string[]).map((item: string) => <li>{item}</li>)}</ul></div>
+        <div class="guide-references" aria-label={t(locale, 'guide.officialRefs')}>
           <a href={kaggleQuotaUrl} target="_blank" rel="noreferrer">{copy.kaggleQuota} ↗</a>
           <a href={kaggleNotebooksUrl} target="_blank" rel="noreferrer">{copy.kaggleNotebooks} ↗</a>
           <a href={p100NoticeUrl} target="_blank" rel="noreferrer">{copy.p100Notice} ↗</a>

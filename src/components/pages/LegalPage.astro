@@ -5,7 +5,7 @@ import { formatNumber, localizedPath, t, type Locale } from '../../i18n/ui';
 const { locale = 'fr' as Locale, doc = 'privacy' as 'privacy' | 'terms' | 'legal' } = Astro.props as { locale?: Locale; doc?: 'privacy' | 'terms' | 'legal' };
 const base = import.meta.env.BASE_URL;
 
-const copy = {
+const copyByLocale = {
   fr: {
     privacyTitle: 'Confidentialité',
     privacyIntro: 'Ce site ne collecte rien. Pas de compte, pas de mesure d’audience, pas de cookies publicitaires, pas de revente de données.',
@@ -60,7 +60,9 @@ const copy = {
     legalIp: 'The site design and code follow the repository license. Voices, samples, and datasets belong to their respective authors, under their own licenses.',
     effective: 'Effective October 5, 2026.',
   },
-}[locale];
+};
+// Pages annexes : repli anglais tant que la locale n'a pas sa version.
+const copy = (copyByLocale as unknown as Record<string, typeof copyByLocale.en>)[locale] ?? copyByLocale.en; // repli anglais (pages annexes non traduites)
 ---
 
 <Layout title={doc === 'privacy' ? copy.privacyTitle : doc === 'terms' ? copy.termsTitle : copy.legalTitle} active="" locale={locale} pageUrl={`/${doc}/`} noindex

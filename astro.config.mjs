@@ -25,6 +25,7 @@ export default defineConfig({
   build: { format: 'directory' },
   integrations: [
     sitemap({
+      // Locales préfixées (source de vérité : LOCALES dans src/i18n/ui.ts).
       // - /en/... duplique la version racine (canonical = racine) => hors sitemap
       // - pages légales en noindex => hors sitemap
       filter: (page) => {
@@ -36,16 +37,17 @@ export default defineConfig({
         const base = (process.env.SITE_BASE || '/').replace(/\/$/, '');
         let rel = url.pathname;
         if (base && rel.startsWith(base + '/')) rel = rel.slice(base.length);
-        const noLocale = rel.replace(/^\/(fr|en)(?=\/|$)/, '') || '/';
+        const prefixes = 'fr|de|es|it|pt|ru|tr|ja|ko|zh|id|hi|ar|vi|th|en';
+        const noLocale = rel.replace(new RegExp(`^/(${prefixes})(?=/|$)`), '') || '/';
 
-        // hreflang : EN à la racine, FR sous /fr/
+        // hreflang : EN à la racine (canonical + x-default), les autres sous /<code>/.
         const en = url.origin + base + noLocale;
-        const fr = url.origin + base + '/fr' + noLocale;
-        item.links = [
-          { url: en, lang: 'en' },
-          { url: fr, lang: 'fr' },
-          { url: en, lang: 'x-default' },
-        ];
+        item.links = [{ url: en, lang: 'en' }];
+        for (const code of prefixes.split('|')) {
+          if (code === 'en') continue;
+          item.links.push({ url: url.origin + base + '/' + code + noLocale, lang: code });
+        }
+        item.links.push({ url: en, lang: 'x-default' });
 
         const hit = lastmod.get(noLocale);
         if (hit) item.lastmod = new Date(hit + 'T00:00:00Z').toISOString();

@@ -1,0 +1,11 @@
+---
+import DatasetDetailPage from '../../../components/pages/DatasetDetailPage.astro';
+import datasets from '../../../data/datasets.json';
+
+export async function getStaticPaths() {
+  return datasets.map((ds) => ({ params: { slug: ds.slug }, props: { ds } }));
+}
+
+const { ds } = Astro.props;
+---
+<DatasetDetailPage ds={ds} locale="th" />

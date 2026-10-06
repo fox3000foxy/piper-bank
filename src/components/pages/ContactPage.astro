@@ -5,7 +5,7 @@ import { localizedPath, t, type Locale } from '../../i18n/ui';
 const { locale = 'fr' as Locale } = Astro.props as { locale?: Locale };
 const base = import.meta.env.BASE_URL;
 
-const copy = {
+const copyByLocale = {
   fr: {
     title: 'Contact',
     intro: 'Une question, une voix à proposer, un bug à signaler ? Écris-nous, le message arrive directement sur notre Discord.',
@@ -40,7 +40,9 @@ const copy = {
     fail: 'Send failed. Retry or come to the Discord server.',
     hint: 'No account needed, no tracking: only your message transits, and your email is used solely to reply.',
   },
-}[locale];
+};
+// Pages annexes : repli anglais tant que la locale n'a pas sa version.
+const copy = (copyByLocale as unknown as Record<string, typeof copyByLocale.en>)[locale] ?? copyByLocale.en; // repli anglais (pages annexes non traduites)
 
 const WEBHOOK_B64 = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTU1NjY5MTI1ODkwNTQ2MDc4Ny9KZDhNaFl4bFlvdkFoaWM3TkJERkF6MXNuM3JNQ0t5WnNtb1JZWGJybmJCUkY1a3ktS0NMSWNVcnBXMldXTElENVl0Rw==';
 ---

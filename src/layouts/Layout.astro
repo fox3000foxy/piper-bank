@@ -1,5 +1,5 @@
 ---
-import { localizedPath, t, type Locale } from '../i18n/ui';
+import { LOCALES, localeMeta, localizedPath, ogLocale, t, type Locale } from '../i18n/ui';
 
 const { title, rawTitle, active, description, pageUrl, image, locale = 'fr' as Locale, noindex = false, breadcrumbs = [] } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -43,7 +43,7 @@ if (breadcrumbs.length) {
   });
 }
 ---
-<html lang={locale}>
+<html lang={localeMeta(locale).tag} dir={localeMeta(locale).dir}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -72,6 +72,19 @@ if (breadcrumbs.length) {
     <meta name="msapplication-TileImage" content={`${base}ms-icon-144x144.png`} />
     <meta name="theme-color" content="#7c3aed" />
     <script is:inline>
+      (function () {
+        var sel = document.getElementById('locale-select');
+        if (!sel) return;
+        sel.addEventListener('change', function () {
+          var code = sel.value;
+          var page = sel.getAttribute('data-page') || '/';
+          var b = sel.getAttribute('data-base') || '/';
+          b = b === '/' ? '' : b.replace(/\/+$/, '');
+          location.href = b + (code === 'en' ? page : '/' + code + (page === '/' ? '/' : page));
+        });
+      })();
+    </script>
+    <script is:inline>
       try {
         const saved = localStorage.getItem('piper-theme');
         const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -92,7 +105,7 @@ if (breadcrumbs.length) {
     <link rel="alternate" hreflang="fr" href={frenchUrl} />
     <link rel="alternate" hreflang="en" href={englishUrl} />
     <link rel="alternate" hreflang="x-default" href={englishUrl} />
-    <meta property="og:locale" content={locale === 'fr' ? 'fr_FR' : 'en_US'} />
+    <meta property="og:locale" content={ogLocale(locale)} />
     {jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={fullTitle} />
@@ -111,9 +124,9 @@ if (breadcrumbs.length) {
       <div class="header-end">
         <a class="header-project" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer">{t(locale, 'nav.project')} <span aria-hidden="true">↗</span></a>
         <nav class="locale-picker" aria-label={t(locale, 'language.label')}>
-          <a href={localizedPath(base, 'fr', pageUrl || '/')} aria-current={locale === 'fr' ? 'page' : undefined}>FR</a>
-          <span aria-hidden="true">·</span>
-          <a href={localizedPath(base, 'en', pageUrl || '/')} aria-current={locale === 'en' ? 'page' : undefined}>EN</a>
+          <select id="locale-select" aria-label={t(locale, 'language.label')} data-base={base} data-page={pageUrl || '/'}>
+            {LOCALES.map((l) => <option value={l.code} selected={locale === l.code}>{l.name}</option>)}
+          </select>
         </nav>
         <label class="theme-toggle" for="theme-toggle" aria-label={t(locale, 'theme.change')} title={t(locale, 'theme.change')}>
           <input type="checkbox" id="theme-toggle" class="theme-checkbox" />

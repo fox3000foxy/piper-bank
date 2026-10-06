@@ -2462,6 +2462,8 @@ body:has(.dataset-filters) .grid { display: grid; grid-template-columns: repeat(
 .locale-picker a { color: var(--ink-muted); font: 11px var(--sans); text-decoration: none; padding: 4px 2px; }
 .locale-picker a:hover { color: var(--ink); }
 .locale-picker a[aria-current="page"] { color: var(--ink); font-weight: 700; }
+.locale-picker select { color: var(--ink-muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; font: 11px var(--sans); padding: 4px 6px; max-width: 132px; }
+.locale-picker select:hover { color: var(--ink); }
 @media (max-width: 760px) {
   .header-end { gap: 10px; }
 }

@@ -1,0 +1,11 @@
+---
+import ModelDetailPage from '../../../components/pages/ModelDetailPage.astro';
+import models from '../../../data/models.json';
+
+export async function getStaticPaths() {
+  return models.filter((model) => model.usable || model.piperPlus).map((model) => ({ params: { slug: model.slug }, props: { model } }));
+}
+
+const { model } = Astro.props;
+---
+<ModelDetailPage model={model} locale="zh" />

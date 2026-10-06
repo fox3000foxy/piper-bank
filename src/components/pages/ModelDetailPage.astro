@@ -40,9 +40,12 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
     { name: t(locale, 'nav.voices'), path: '/voices/' },
     { name: m.name, path: `/model/${m.slug}/` },
   ]}
-  description={locale === 'fr'
-    ? `Voix Piper TTS « ${m.name} » (${languageLabel(m.lang, m.langName || m.lang, locale)}, qualité ${m.quality || 'n/a'}, par ${m.author}). Écoutez des extraits et lancez la synthèse localement.`
-    : `Piper TTS voice "${m.name}" (${languageLabel(m.lang, m.langName || m.lang, locale)}, ${m.quality || 'n/a'} quality, by ${m.author}). Listen to samples and synthesize speech locally.`} subtitle={`${locale === 'fr' ? 'par' : 'by'} ${m.author}`}>
+  description={t(locale, 'detail.metaDescription', {
+    name: m.name,
+    language: languageLabel(m.lang, m.langName || m.lang, locale),
+    quality: m.quality || 'n/a',
+    author: m.author,
+  })} subtitle={`${t(locale, 'common.by')} ${m.author}`}>
 
     <a class="back" href={localizedPath(base, locale, '/voices/')}>{t(locale, 'detail.backVoices')}</a>
     <div class="hero model-hero">
@@ -58,7 +61,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
       </span>
       <div>
         <h1>{m.name}</h1>
-        <p class="subtitle">{locale === 'fr' ? 'par' : 'by'} {m.author} · {m.repo}</p>
+        <p class="subtitle">{t(locale, 'common.by')} {m.author} · {m.repo}</p>
       </div>
     </div>
 
@@ -67,12 +70,12 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
       <span class={`tag q-${m.quality}`}>{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</span>
       {m.piperPlus && <span class="plus-pill" title="piper-plus">Piper+</span>}
       {m.voices > 1
-        ? <span class="tag voices">{formatNumber(locale, m.voices)} {locale === 'fr' ? 'voix' : 'voices'}</span>
+        ? <span class="tag voices">{formatNumber(locale, m.voices)} {t(locale, 'common.voicesUnit')}</span>
         : <span class="tag">{t(locale, 'common.oneSpeaker')}</span>}
       {m.dataset
         ? <a class="tag voices" href={localizedPath(base, locale, `/dataset/${m.dataset.slug || ''}/`)} title={m.dataset.repo}>{t(locale, 'detail.dataset')}</a>
         : <span class="tag q-medium">{t(locale, 'detail.noDataset')}</span>}
-      <span class="tag type">{m.phonemeType === 'text' ? `${t(locale, 'detail.phonemes')}: ${locale === 'fr' ? 'texte' : 'text'}` : `${t(locale, 'detail.phonemes')}: ${((m.configs || {}).espeak || {}).voice || 'espeak'}`}</span>
+      <span class="tag type">{m.phonemeType === 'text' ? `${t(locale, 'detail.phonemes')}: ${t(locale, 'detail.textPhoneme')}` : `${t(locale, 'detail.phonemes')}: ${((m.configs || {}).espeak || {}).voice || 'espeak'}`}</span>
       <span class="tag">{formatNumber(locale, m.sampleRate)} Hz</span>
       {isFresh && <span class="tag new-pill">{t(locale, 'common.new')}</span>}
       {m.updated && <span class="tag">{t(locale, 'detail.updatedOn', { date: updatedLabel })}</span>}
@@ -135,9 +138,9 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
         <div><dt>{t(locale, 'detail.language')}</dt><dd>{languageLabel(m.lang, m.langName, locale)}</dd></div>
         <div><dt>{t(locale, 'detail.quality')}</dt><dd class="cap">{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</dd></div>
         <div><dt>{t(locale, 'detail.speakers')}</dt><dd>{formatNumber(locale, m.voices)}</dd></div>
-        <div><dt>{t(locale, 'detail.phonemes')}</dt><dd>{m.phonemeType === 'text' ? (locale === 'fr' ? 'texte' : 'text') : (((m.configs || {}).espeak || {}).voice || 'espeak')}</dd></div>
+        <div><dt>{t(locale, 'detail.phonemes')}</dt><dd>{m.phonemeType === 'text' ? t(locale, 'detail.textPhoneme') : (((m.configs || {}).espeak || {}).voice || 'espeak')}</dd></div>
         <div><dt>{t(locale, 'detail.sampleRate')}</dt><dd>{formatNumber(locale, m.sampleRate)} Hz</dd></div>
-        <div><dt>{t(locale, 'detail.license')}</dt><dd>{m.license || (locale === 'fr' ? 'non précisée' : 'not specified')}</dd></div>
+        <div><dt>{t(locale, 'detail.license')}</dt><dd>{m.license || t(locale, 'detail.noLicense')}</dd></div>
       </dl>
     </section>
 
@@ -157,17 +160,17 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
         <select id="voice-select" aria-label={t(locale, 'detail.selectVoice')}>
           {voicePairs.map((voice) => <option value={voice.sid}>{voice.name}</option>)}
         </select>
-      </label> : <p class="dim synthesis-single-voice">{locale === 'fr' ? 'Voix' : 'Voice'}: {voicePairs[0]?.name || (locale === 'fr' ? 'par défaut' : 'default')}</p>}
+      </label> : <p class="dim synthesis-single-voice">{t(locale, 'detail.singleVoice')}: {voicePairs[0]?.name || t(locale, 'detail.defaultVoice')}</p>}
       <div class="setting-grid">
-        <label>{t(locale, 'detail.speed')} <input id="len" type="number" step="0.05" min="0.2" max="3" placeholder={locale === 'fr' ? '1,0' : '1.0'} /></label>
-        <label>{t(locale, 'detail.noise')} <input id="noise" type="number" step="0.05" min="0" max="1.5" placeholder={locale === 'fr' ? '0,667' : '0.667'} /></label>
+        <label>{t(locale, 'detail.speed')} <input id="len" type="number" step="0.05" min="0.2" max="3" placeholder={t(locale, 'detail.speedPlaceholder')} /></label>
+        <label>{t(locale, 'detail.noise')} <input id="noise" type="number" step="0.05" min="0" max="1.5" placeholder={t(locale, 'detail.noisePlaceholder')} /></label>
       </div>
     </section>
     <section class="sec download-section">
       <h2>{t(locale, 'detail.downloads')}</h2>
       <div class="dl-row">
-        <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.onnx}`} aria-label={locale === 'fr' ? 'Télécharger le modèle ONNX' : 'Download the ONNX model'}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v10m0 0 4-4m-4 4-4-4M3.5 14.5v2h13v-2"/></svg>model.onnx</a>
-        <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.json}`} aria-label={locale === 'fr' ? 'Télécharger la configuration JSON' : 'Download the JSON configuration'}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v10m0 0 4-4m-4 4-4-4M3.5 14.5v2h13v-2"/></svg>model.onnx.json</a>
+        <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.onnx}`} aria-label={t(locale, 'detail.downloadOnnx')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v10m0 0 4-4m-4 4-4-4M3.5 14.5v2h13v-2"/></svg>model.onnx</a>
+        <a class="btn-dl" href={`https://huggingface.co/${m.repo}/resolve/main/${m.json}`} aria-label={t(locale, 'detail.downloadJson')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v10m0 0 4-4m-4 4-4-4M3.5 14.5v2h13v-2"/></svg>model.onnx.json</a>
         <a class="btn-dl ghost" href={`https://huggingface.co/${m.repo}`}>{t(locale, 'detail.huggingFace')}</a>
         {m.thread && <a class="btn-dl ghost" href={`https://discord.com/channels/1523276835712929946/${m.thread}`}>{t(locale, 'detail.discussion')}</a>}
       </div>
