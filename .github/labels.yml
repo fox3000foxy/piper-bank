@@ -1,0 +1,81 @@
+# Repository label catalogue (Issue / PR triage).
+
+- name: run-full-gate
+  color: "B60205"
+  description: >-
+    Promote all contract gates back to blocker for a first-PR fast lane PR.
+    Attach before merge so PUA / loanword / ORT / migration parity is enforced.
+
+- name: breaking
+  color: "D93F0B"
+  description: >-
+    PR introduces a user-visible breaking change. Triggers Migration Guide Lint
+    enforcement on top of paths-based detection.
+
+# --- Dependabot (.github/dependabot.yml, all 11 ecosystems) -----------------
+
+- name: dependencies
+  color: "0366D6"
+  description: >-
+    Dependency update. Applied by Dependabot to every ecosystem PR, and used by
+    actions/stale as a PR staleness exemption.
+
+- name: automated
+  color: "EDEDED"
+  description: >-
+    Opened by automation rather than a human. Applied by Dependabot alongside
+    `dependencies`.
+
+# --- actions/stale (.github/workflows/stale.yml) ----------------------------
+
+- name: stale
+  color: "EDEDED"
+  description: >-
+    No activity for 90 days. Auto-closed 7 days later unless the issue or PR
+    sees a comment, a push, or an exemption label.
+
+- name: auto-closed
+  color: "EDEDED"
+  description: >-
+    Closed automatically after 90+7 days without activity. Reopen freely.
+
+- name: pinned
+  color: "FBCA04"
+  description: Exempt from stale auto-close. Keep open indefinitely.
+
+- name: blocked
+  color: "D93F0B"
+  description: >-
+    Waiting on something outside this repository (upstream fix, external
+    review, hardware). Exempt from stale auto-close.
+
+- name: wip
+  color: "FEF2C0"
+  description: >-
+    Work in progress. Exempt from stale auto-close.
+
+- name: security
+  color: "B60205"
+  description: >-
+    Security-relevant issue or PR. Exempt from stale auto-close and routed by
+    security-issue-routing.yml.
+
+- name: roadmap
+  color: "0E8A16"
+  description: >-
+    Tracked on the project roadmap. Exempt from stale auto-close.
+
+- name: help wanted
+  color: "008672"
+  description: >-
+    Extra attention is needed. Exempt from stale auto-close.
+    Note the space — GitHub label names are space- and case-sensitive, and
+    `help-wanted` is a different (nonexistent) label.
+
+# --- security-issue-routing.yml --------------------------------------------
+
+- name: needs-triage
+  color: "D876E3"
+  description: >-
+    Awaiting maintainer triage. Applied automatically to incoming security
+    issues.
