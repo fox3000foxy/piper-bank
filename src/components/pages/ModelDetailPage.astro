@@ -225,8 +225,6 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
       const model = JSON.parse(document.getElementById('model-data').textContent);
       const ui = JSON.parse(document.getElementById('ui-messages').textContent);
       const message = (template, values = {}) => template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
-      const formatCount = (n) => new Intl.NumberFormat(ui.locale === 'fr' ? 'fr-FR' : 'en-US').format(n);
-      const siteBase = window.__BASE__;
 
       // Waveforms décoratives générées côté client (même PRNG que le build).
       const wavePath = (seed) => {
