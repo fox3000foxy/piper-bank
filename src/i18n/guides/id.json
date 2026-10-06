@@ -6,7 +6,7 @@
   "intro": "Langkah-langkah penting untuk menyiapkan data suara Anda dan melatih model Piper. Batas Kaggle dapat berubah: periksa kuota Anda sebelum pelatihan yang lama.",
   "contents": "Dalam panduan ini",
   "datasetTitle": "Membuat dataset LJSpeech untuk Piper TTS",
-  "datasetIntro": "LJSpeech adalah format standar yang diharapkan oleh Piper. Setiap kalimat adalah file WAV terpisah, dipasangkan dengan transkripsinya di metadata.csv.",
+  "datasetIntro": "LJSpeech adalah format standar yang diharapkan Piper. Setiap kalimat adalah file WAV terpisah, dipasangkan dengan transkripsinya di metadata.csv.",
   "archiveLabel": "STRUKTUR ARSIP",
   "archive": "data.zip\n├── metadata.csv   # nom_du_fichier|transcription\n└── wavs/\n    ├── 000001.wav\n    └── ...",
   "step1": "Mengumpulkan file audio",

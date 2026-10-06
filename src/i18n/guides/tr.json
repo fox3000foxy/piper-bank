@@ -23,7 +23,7 @@
   ],
   "step3": "metadata.csv oluşturun",
   "step3copy": "Dosya başına bir satır. Ayırıcı dikey çizgidir; ad, wavs/ klasöründeki dosyayla birebir eşleşmelidir.",
-  "metadata": "000001.wav|Bu örnek bir cümledir.\n000002.wav|Eğitim için bir cümle daha.",
+  "metadata": "000001.wav|Ceci est une phrase d'exemple.\n000002.wav|Voici une autre phrase pour l'entraînement.",
   "step4": "Arşivi sıkıştırın",
   "step4copy": "metadata.csv dosyasını ve wavs/ klasörünü arşivin köküne yerleştirin.",
   "zip": "zip -r data.zip metadata.csv wavs/",

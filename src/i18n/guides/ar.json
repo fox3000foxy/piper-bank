@@ -23,7 +23,7 @@
   ],
   "step3": "إنشاء metadata.csv",
   "step3copy": "سطر واحد لكل ملف. الفاصل شريط عمودي، ويجب أن يطابق الاسم الملف الموجود في wavs/.",
-  "metadata": "000001.wav|هذه جملة مثال.\n000002.wav|هذه جملة أخرى للتدريب.",
+  "metadata": "000001.wav|Ceci est une phrase d'exemple.\n000002.wav|Voici une autre phrase pour l'entraînement.",
   "step4": "اضغط الأرشيف",
   "step4copy": "ضع metadata.csv ومجلد wavs/ في جذر الأرشيف.",
   "zip": "zip -r data.zip metadata.csv wavs/",
