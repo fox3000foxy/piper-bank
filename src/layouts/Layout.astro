@@ -7,7 +7,6 @@ const site = 'https://piperhub.org';
 const desc = description || t(locale, 'site.description');
 const url = site + localizedPath(base, locale, pageUrl || '/');
 const img = image ? site + image : site + base + 'logo.png';
-const frenchUrl = site + localizedPath(base, 'fr', pageUrl || '/');
 const englishUrl = site + localizedPath(base, 'en', pageUrl || '/');
 const fullTitle = rawTitle || `${title} · PiperHub`;
 const isHome = (pageUrl || '/') === '/' && !noindex;
@@ -128,8 +127,7 @@ if (breadcrumbs.length) {
     <meta property="og:url" content={url} />
     <meta property="og:image" content={img} />
     <link rel="canonical" href={url} />
-    <link rel="alternate" hreflang="fr" href={frenchUrl} />
-    <link rel="alternate" hreflang="en" href={englishUrl} />
+    {LOCALES.map((l) => <link rel="alternate" hreflang={l.code} href={site + localizedPath(base, l.code, pageUrl || '/')} />)}
     <link rel="alternate" hreflang="x-default" href={englishUrl} />
     <meta property="og:locale" content={ogLocale(locale)} />
     {jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
