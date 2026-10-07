@@ -33,21 +33,14 @@ export default defineConfig({
         return !/\/(privacy|terms|legal)\/?$/.test(path);
       },
       serialize(item) {
+        // hreflang servis dans le <head> de chaque page (Layout.astro),
+        // pas ici : 17 liens x 10k URLs = ~19 Mo de sitemap pour rien.
         const url = new URL(item.url);
         const base = (process.env.SITE_BASE || '/').replace(/\/$/, '');
         let rel = url.pathname;
         if (base && rel.startsWith(base + '/')) rel = rel.slice(base.length);
         const prefixes = 'fr|de|es|it|pt|ru|tr|ja|ko|zh|id|hi|ar|vi|th|en';
         const noLocale = rel.replace(new RegExp(`^/(${prefixes})(?=/|$)`), '') || '/';
-
-        // hreflang : EN à la racine (canonical + x-default), les autres sous /<code>/.
-        const en = url.origin + base + noLocale;
-        item.links = [{ url: en, lang: 'en' }];
-        for (const code of prefixes.split('|')) {
-          if (code === 'en') continue;
-          item.links.push({ url: url.origin + base + '/' + code + noLocale, lang: code });
-        }
-        item.links.push({ url: en, lang: 'x-default' });
 
         const hit = lastmod.get(noLocale);
         if (hit) item.lastmod = new Date(hit + 'T00:00:00Z').toISOString();
