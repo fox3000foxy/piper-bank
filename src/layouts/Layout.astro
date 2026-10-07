@@ -79,6 +79,7 @@ if (breadcrumbs.length) {
         if (!sel) return;
         sel.addEventListener('change', function () {
           var code = sel.value;
+          try { localStorage.setItem('piper-locale', code); } catch (e) {}
           var page = sel.getAttribute('data-page') || '/';
           var b = sel.getAttribute('data-base') || '/';
           b = b === '/' ? '' : b.replace(/\/+$/, '');
@@ -86,6 +87,29 @@ if (breadcrumbs.length) {
         });
       });
     </script>
+    {isHome && (
+    <script is:inline define:vars={{ base }}>
+      // Première arrivée sur l'accueil : redirige vers la locale du navigateur
+      // (une fois par session, jamais après un choix explicite). Googlebot
+      // annonce en-US : aucun effet côté SEO.
+      try {
+        if (!localStorage.getItem('piper-locale') && !sessionStorage.getItem('piper-locale-auto')) {
+          var langs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']);
+          var codes = ['en', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'tr', 'ja', 'ko', 'zh', 'id', 'hi', 'ar', 'vi', 'th'];
+          var pick = 'en';
+          var top = String(langs[0] || 'en').toLowerCase();
+          for (var i = 0; i < codes.length; i++) {
+            if (top === codes[i] || top.indexOf(codes[i] + '-') === 0) { pick = codes[i]; break; }
+          }
+          sessionStorage.setItem('piper-locale-auto', '1');
+          if (pick !== 'en') {
+            var b = base === '/' ? '' : String(base).replace(/\/+$/, '');
+            location.replace(b + '/' + pick + '/');
+          }
+        }
+      } catch (e) {}
+    </script>
+    )}
     <script is:inline>
       try {
         const saved = localStorage.getItem('piper-theme');
