@@ -26,11 +26,11 @@ export default defineConfig({
   integrations: [
     sitemap({
       // Locales préfixées (source de vérité : LOCALES dans src/i18n/ui.ts).
-      // - /en/... duplique la version racine (canonical = racine) => hors sitemap
-      // - pages légales en noindex => hors sitemap
+      // Les pages légales sont en noindex => hors sitemap.
+      // (Plus aucune route /en/ : l'anglais canonique vit à la racine.)
       filter: (page) => {
         const path = new URL(page).pathname;
-        return !/^\/en(\/|$)/.test(path) && !/\/(privacy|terms|legal)\/?$/.test(path);
+        return !/\/(privacy|terms|legal)\/?$/.test(path);
       },
       serialize(item) {
         const url = new URL(item.url);
