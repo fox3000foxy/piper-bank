@@ -1,0 +1,8 @@
+# Vendor minifié : exclu des stats de langage GitHub (linguist)
+public/vendor-ort/** linguist-vendored
+public/vendor-piper/** linguist-vendored
+
+# Données générées par le pipeline (npm run data) : exclues des stats
+src/data/*.json linguist-generated
+public/samples/** linguist-vendored
+public/piper-data/** linguist-vendored
