@@ -1,7 +1,7 @@
 ---
 import { LOCALES, localeMeta, localizedPath, ogLocale, t, type Locale } from '../i18n/ui';
 
-const { title, rawTitle, active, description, pageUrl, image, locale = 'fr' as Locale, noindex = false, breadcrumbs = [] } = Astro.props;
+const { title, rawTitle, active, description, pageUrl, image, locale = 'fr' as Locale, noindex = false, breadcrumbs = [], jsonLdExtra = [] as Record<string, unknown>[] } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const site = 'https://piperhub.org';
 const desc = description || t(locale, 'site.description');
@@ -18,7 +18,7 @@ if (isHome) {
     name: 'PiperHub',
     alternateName: ['Piper Hub', 'piperhub.org'],
     url: site + '/',
-    inLanguage: ['en', 'fr'],
+    inLanguage: LOCALES.map((l) => l.code),
   });
   jsonLd.push({
     '@context': 'https://schema.org',
@@ -130,7 +130,7 @@ if (breadcrumbs.length) {
     {LOCALES.map((l) => <link rel="alternate" hreflang={l.code} href={site + localizedPath(base, l.code, pageUrl || '/')} />)}
     <link rel="alternate" hreflang="x-default" href={englishUrl} />
     <meta property="og:locale" content={ogLocale(locale)} />
-    {jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
+    {[...jsonLd, ...jsonLdExtra].map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={desc} />

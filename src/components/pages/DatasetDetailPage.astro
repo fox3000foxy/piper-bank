@@ -10,9 +10,22 @@ const hasModel = !!(d.model && d.modelSlug);
 // son URL publique renvoie une erreur 401, donc pas de lien cliquable.
 const repo = d.repo && !d.repo.startsWith('↔') ? d.repo : '';
 const repoIsPrivate = d.private === true;
+// Schema.org Dataset (résultats enrichis Google + Dataset Search) :
+// name + description requis, le reste recommandé.
+const datasetSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: d.name,
+  description: `Speech dataset "${d.name}" (${d.langName || d.lang}) used to train Piper TTS voices. Hosted on Hugging Face.`,
+  url: `https://piperhub.org${base === '/' ? '' : base}/dataset/${d.slug}/`,
+  inLanguage: d.lang,
+  isAccessibleForFree: true,
+};
+if (repo) datasetSchema.sameAs = `https://huggingface.co/datasets/${repo}`;
 ---
 
 <Layout title={`${d.name} – ${t(locale, 'dataset.metaTitle')}`} active="datasets" locale={locale} pageUrl={`/dataset/${d.slug}/`}
+  jsonLdExtra={[datasetSchema]}
   breadcrumbs={[
     { name: t(locale, 'nav.home'), path: '/' },
     { name: t(locale, 'nav.datasets'), path: '/datasets/' },
