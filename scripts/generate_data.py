@@ -57,6 +57,10 @@ try:
     _LIC = json.load(open(os.path.join(os.path.dirname(__file__), 'dataset_licenses.json')))
 except (OSError, ValueError):
     _LIC = {}
+# Jeux : pas de licence déclarée sur le Hub, le studio fait foi (revendication éditoriale).
+_LIC_SOURCE = {
+    'Valorant': 'https://www.riotgames.com/en/legal',
+}
 _DS_SLUG = {}
 datasets = []
 for d in csv.DictReader(open(CSV_DATASETS, newline='')):
@@ -64,9 +68,12 @@ for d in csv.DictReader(open(CSV_DATASETS, newline='')):
     slug = _re.sub(r'[^a-z0-9]+', '-', name.lower().encode('ascii', 'ignore').decode()).strip('-')[:80] or 'dataset'
     repo = d['hf_repo'].strip()
     lic_id = _LIC.get(repo)
+    lic = _LIC_URL.get(lic_id) if lic_id else None
+    if not lic:
+        lic = _LIC_SOURCE.get(d['source'].strip())
     datasets.append({
         'name': name, 'slug': slug, 'repo': repo,
-        'license': _LIC_URL.get(lic_id) if lic_id else None,
+        'license': lic,
         'lang': (d['language'] or '').strip().lower() or 'xx',
         'langName': lang_names.get((d['language'] or '').strip().lower(), (d['language'] or 'XX').upper()),
         'class': d['class_name'].strip(), 'source': d['source'].strip(),
