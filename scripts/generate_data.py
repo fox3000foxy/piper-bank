@@ -62,6 +62,8 @@ _LIC_SOURCE = {
     'Valorant': 'https://www.riotgames.com/en/legal',
     'ItsRealFortune': "Fortune's Café",
     'Fuze': 'SandBlock Studios',
+    'TF2': 'Valve',
+    'Counter-Strike: Source': 'Valve',
 }
 _DS_SLUG = {}
 datasets = []
