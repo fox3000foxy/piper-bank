@@ -42,13 +42,31 @@ if os.path.realpath(CACHE):
 lang_names = {'fr':'Français','en':'English','de':'Deutsch','es':'Español','ru':'Русский','it':'Italiano','zh':'中文',
               'ar':'العربية','tr':'Türkçe','pl':'Polski','sv':'Svenska','pt':'Português','hi':'हिन्दी','hu':'Magyar','fi':'Suomi','brx':'Bodo','si':'Sinhala','tet':'Tetun','kmr':'Kurmanci','ha':'Hausa'}
 
+# Licences des datasets (récupérées du Hub, cf. scripts/dataset_licenses.json).
+# Fichier persistant : régénérable, fusionné à chaque `npm run data`.
+_LIC_URL = {
+    'cc-by-4.0': 'https://creativecommons.org/licenses/by/4.0/',
+    'cc-by-sa-3.0': 'https://creativecommons.org/licenses/by-sa/3.0/',
+    'cc0-1.0': 'https://creativecommons.org/publicdomain/zero/1.0/',
+    'odc-by': 'https://opendatacommons.org/licenses/by/',
+    'mit': 'https://opensource.org/licenses/MIT',
+    'apache-2.0': 'https://www.apache.org/licenses/LICENSE-2.0',
+    'gpl-3.0': 'https://www.gnu.org/licenses/gpl-3.0.html',
+}
+try:
+    _LIC = json.load(open(os.path.join(os.path.dirname(__file__), 'dataset_licenses.json')))
+except (OSError, ValueError):
+    _LIC = {}
 _DS_SLUG = {}
 datasets = []
 for d in csv.DictReader(open(CSV_DATASETS, newline='')):
     name = d['thread_name'].strip()
     slug = _re.sub(r'[^a-z0-9]+', '-', name.lower().encode('ascii', 'ignore').decode()).strip('-')[:80] or 'dataset'
+    repo = d['hf_repo'].strip()
+    lic_id = _LIC.get(repo)
     datasets.append({
-        'name': name, 'slug': slug, 'repo': d['hf_repo'].strip(),
+        'name': name, 'slug': slug, 'repo': repo,
+        'license': _LIC_URL.get(lic_id) if lic_id else None,
         'lang': (d['language'] or '').strip().lower() or 'xx',
         'langName': lang_names.get((d['language'] or '').strip().lower(), (d['language'] or 'XX').upper()),
         'class': d['class_name'].strip(), 'source': d['source'].strip(),

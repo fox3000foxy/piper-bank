@@ -22,6 +22,17 @@ const datasetSchema: Record<string, unknown> = {
   isAccessibleForFree: true,
 };
 if (repo) datasetSchema.sameAs = `https://huggingface.co/datasets/${repo}`;
+// creator = propriétaire du dépôt Hub (champ `license` vient de datasets.json,
+// alimenté par scripts/dataset_licenses.json ; absent si inconnue).
+if (repo && repo.includes('/')) {
+  const owner = repo.split('/')[0];
+  datasetSchema.creator = {
+    '@type': 'Person',
+    name: owner,
+    url: `https://huggingface.co/${owner}`,
+  };
+}
+if (d.license) datasetSchema.license = d.license;
 ---
 
 <Layout title={`${d.name} – ${t(locale, 'dataset.metaTitle')}`} active="datasets" locale={locale} pageUrl={`/dataset/${d.slug}/`}
