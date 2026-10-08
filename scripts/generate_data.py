@@ -60,6 +60,8 @@ except (OSError, ValueError):
 # Jeux : pas de licence déclarée sur le Hub, le studio fait foi (revendication éditoriale).
 _LIC_SOURCE = {
     'Valorant': 'https://www.riotgames.com/en/legal',
+    'ItsRealFortune': "Fortune's Café",
+    'Fuze': 'SandBlock Studios',
 }
 _DS_SLUG = {}
 datasets = []
