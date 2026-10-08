@@ -265,6 +265,10 @@ for _agent in ('astra breach brimstone chamber clove cypher deadlock fade gekko 
                'skye sova tejo viper vyse yoru').split():
     _UNIVERSE_LICENSE[f'fox3000foxy/piper-checkpoints-{_agent}'] = 'Riot Games'
 del _agent
+_UNIVERSE_LICENSE['fox3000foxy/piper-fortune-v6'] = "Fortune's Café"
+_UNIVERSE_LICENSE['fox3000foxy/piper-checkpoints-fortune-fr-multi'] = "Fortune's Café"
+_UNIVERSE_LICENSE['fox3000foxy/piper-checkpoints-fortune-en-multi'] = "Fortune's Café"
+_UNIVERSE_LICENSE['fox3000foxy/piper-checkpoints-fuzeiii'] = 'SandBlock Studios'
 for m in models:
     if m['repo'] in _UNIVERSE_LICENSE:
         m['license'] = _UNIVERSE_LICENSE[m['repo']]
