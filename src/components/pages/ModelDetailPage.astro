@@ -13,6 +13,28 @@ const updatedDate = m.updated ? new Date(m.updated + 'T00:00:00Z') : null;
 const isFresh = !!updatedDate && (Date.now() - updatedDate.getTime()) < 14 * 864e5;
 const updatedLabel = updatedDate ? updatedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 const HF_SAMPLES = 'https://huggingface.co/datasets/fox3000foxy/piper-samples/resolve/main/';
+// Product (résultats enrichis) : modèle = téléchargement gratuit.
+// Sans avis utilisateurs, seul le prix "0" peut s'afficher : modeste mais valide.
+const nVoices = (m.voiceNames || []).length || 1;
+const productSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: m.name,
+  description: `Piper TTS voice model "${m.name}" (${m.langName || m.lang}, ${m.quality || 'n/a'}). ${nVoices} voice(s) by ${m.author}. Free download on Hugging Face.`,
+  url: `https://piperhub.org${base === '/' ? '' : base}/model/${m.slug}/`,
+  inLanguage: m.lang,
+  brand: { '@type': 'Brand', name: m.author },
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+    availability: 'https://schema.org/InStock',
+    url: `https://huggingface.co/${m.repo}`,
+  },
+};
+if (m.license) productSchema.license = String(m.license).startsWith('http')
+  ? m.license
+  : { '@type': 'CreativeWork', name: m.license };
 const sampleBaseSrv = (m.repo.replace('/', '--') + '__' + m.onnx.replace('/', '_').replace(/\.onnx$/, '')).replace(/[^a-zA-Z0-9\-_.]/g, '_');
 const sampleUrlSrv = (sid: number, n: number) => `${HF_SAMPLES}${sampleBaseSrv}__sp${sid}__${n}.wav`;
 const seedOf = (slug: string, sid: number) => {
@@ -45,7 +67,8 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
     language: languageLabel(m.lang, m.langName || m.lang, locale),
     quality: m.quality || 'n/a',
     author: m.author,
-  })} subtitle={`${t(locale, 'common.by')} ${m.author}`}>
+  })} subtitle={`${t(locale, 'common.by')} ${m.author}`}
+  jsonLdExtra={[productSchema]}>
 
     <a class="back" href={localizedPath(base, locale, '/voices/')}>{t(locale, 'detail.backVoices')}</a>
     <div class="hero model-hero">
