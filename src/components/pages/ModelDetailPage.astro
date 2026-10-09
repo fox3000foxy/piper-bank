@@ -22,7 +22,7 @@ const productSchema: Record<string, unknown> = {
   name: m.name,
   description: `Piper TTS voice model "${m.name}" (${m.langName || m.lang}, ${m.quality || 'n/a'}). ${nVoices} voice(s) by ${m.author}. Free download on Hugging Face.`,
   url: `https://piperhub.org${base === '/' ? '' : base}/model/${m.slug}/`,
-  image: `https://piperhub.org${base === '/' ? '' : base}logo.png`,
+  image: 'https://piperhub.org' + base + 'logo.png',
   inLanguage: m.lang,
   brand: { '@type': 'Brand', name: m.author },
   offers: {
