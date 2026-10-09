@@ -39,8 +39,41 @@ const discordUrl = 'https://discord.com/channels/1523276835712929946/15232775083
 const voiceForumUrl = 'https://discord.com/channels/1523276835712929946/1523277617996894259';
 const piperttsUrl = 'https://www.npmjs.com/package/pipertts';
 const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
+
+// HowTo (résultats enrichis) : reprend les deux listes ordonnées de la page
+// (dataset 6 étapes + utilisation 7 étapes), dans la langue de la page.
+const c = copy as unknown as Record<string, unknown>;
+const str = (k: string) => (typeof c[k] === 'string' ? (c[k] as string) : '');
+const howtoSteps: Record<string, unknown>[] = [];
+const stepPairs: [string, string][] = [
+  ['step1', 'step1copy'], ['step2', 'step2copy'], ['step3', 'step3copy'],
+  ['step4', 'step4copy'], ['step5', 'step5copy'], ['step6', 'step6copy'],
+  ['installTitle', 'installCopy'], ['downloadTitle', 'downloadCopy'],
+  ['synthTitle', 'synthCopy'], ['textFileTitle', 'textFileTitle'],
+  ['pythonTitle', 'pythonTitle'], ['homeAssistantTitle', 'homeAssistantCopy'],
+  ['adviceTitle', 'adviceCopy'],
+];
+stepPairs.forEach(([nk, tk], i) => {
+  const name = str(nk);
+  if (!name) return;
+  howtoSteps.push({
+    '@type': 'HowToStep',
+    position: i + 1,
+    name,
+    text: str(tk) || name,
+  });
+});
+const howtoSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: copy.title,
+  description: copy.description,
+  inLanguage: locale,
+  step: howtoSteps,
+};
 ---
-<Layout title={copy.title} description={copy.description} active="guides" locale={locale} pageUrl="/guides/">
+<Layout title={copy.title} description={copy.description} active="guides" locale={locale} pageUrl="/guides/"
+  jsonLdExtra={[howtoSchema]}>
   <main class="guide-page">
     <header class="guide-intro">
       <p class="eyebrow">{copy.eyebrow}</p>
