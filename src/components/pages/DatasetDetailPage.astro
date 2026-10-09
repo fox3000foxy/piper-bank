@@ -32,7 +32,9 @@ if (repo && repo.includes('/')) {
     url: `https://huggingface.co/${owner}`,
   };
 }
-if (d.license) datasetSchema.license = d.license;
+if (d.license) datasetSchema.license = d.license.startsWith('http')
+  ? d.license
+  : { '@type': 'CreativeWork', name: d.license };
 ---
 
 <Layout title={`${d.name} – ${t(locale, 'dataset.metaTitle')}`} active="datasets" locale={locale} pageUrl={`/dataset/${d.slug}/`}
