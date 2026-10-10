@@ -55,6 +55,32 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
     return `M${4 + i * 8} ${28 - height / 2}v${height}`;
   }).join(' ');
 };
+// Demo sentence for the npm snippet, in the voice's own language.
+// Keyed by base language code; unknown codes fall back to English.
+const SAMPLE_SENTENCE: Record<string, string> = {
+  en: 'Hello from Piper.', fr: 'Bonjour de la part de Piper.', de: 'Hallo von Piper.',
+  es: 'Hola de parte de Piper.', it: 'Ciao da parte di Piper.', pt: 'Olá da parte do Piper.',
+  ru: 'Привет от Piper.', ar: 'مرحباً من Piper.', zh: '你好，这是 Piper。',
+  ja: 'こんにちは、Piper です。', ko: '안녕하세요, Piper입니다。', hi: 'Piper की ओर से नमस्ते।',
+  vi: 'Xin chào từ Piper.', th: 'สวัสดีจาก Piper', tr: "Piper'dan merhaba.",
+  nl: 'Hallo van Piper.', pl: 'Cześć od Piper.', uk: 'Привіт від Piper.',
+  fa: 'سلام از Piper.', ur: 'Piper کی طرف سے سلام۔', ta: 'Piper இடமிருந்து வணக்கம்.',
+  te: 'Piper నుండి నమస్కారం.', ml: 'Piper-ൽ നിന്ന് നമസ്കാരം.', bn: 'Piper-এর পক্ষ থেকে হ্যালো।',
+  ne: 'Piper बाट नमस्कार।', si: 'Piper ගෙන් ආයුබෝවන්.', mr: 'Piper कडून नमस्कार.',
+  kn: 'Piper ನಿಂದ ನಮಸ್ಕಾರ.', cs: 'Ahoj od Piper.', sk: 'Ahoj od Piper.',
+  hu: 'Üdvözlet Piper-től.', ro: 'Salut din partea lui Piper.', el: 'Γεια σας από το Piper.',
+  sv: 'Hej från Piper.', da: 'Hej fra Piper.', fi: 'Tervehdys Piperilta.',
+  no: 'Hei fra Piper.', is: 'Halló frá Piper.', et: 'Tere Piperilt.',
+  lv: 'Sveiki no Piper.', lt: 'Sveiki nuo Piper.', sl: 'Pozdravljeni od Piper.',
+  sr: 'Поздрав од Piper-a.', bg: 'Здравей от Piper.', ca: 'Hola de part de Piper.',
+  eu: 'Kaixo Piper-en partetik.', cy: 'Helo gan Piper.', id: 'Halo dari Piper.',
+  ms: 'Halo dari Piper.', he: "שלום מ-Piper.", ka: 'გამარჯობა Piper-ისგან.',
+  hy: 'Ողջույն Piper-ից:', kk: 'Piper-ден сәлем.', sw: 'Hujambo kutoka Piper.',
+  ha: 'Sannu daga Piper.', lb: 'Hallo vum Piper.', tet: 'Ola husi Piper.',
+  tdt: 'Ola husi Piper.', rw: 'Murakaza neza kuva Piper.', kmr: 'Silav ji Piper.',
+  ku: 'Silav ji Piper.', nya: 'Moni kuchokera kwa Piper.', sat: 'Johar Piper khon.',
+};
+const sampleSentence = SAMPLE_SENTENCE[String(m.lang || 'en').toLowerCase().split(/[-_]/)[0]] ?? SAMPLE_SENTENCE.en;
 ---
 
 <Layout title={`${m.name} – Piper TTS`} active="voices" locale={locale} pageUrl={`/model/${m.slug}/`}
@@ -204,7 +230,7 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
     <section class="sec">
       <h2>{t(locale, 'detail.nodeUse')}</h2>
       <p class="dim">{t(locale, 'detail.nodeUseCopy')}</p>
-      <pre class="guide-code"><code>{`npm install pipertts\n\nimport { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  model: "hub:${m.slug}",\n  modelsDir: "./models",\n});\n\nconst { audio } = await tts.synthesize("Hello from Piper.");`}</code></pre>
+      <pre class="guide-code"><code>{`npm install pipertts\n\nimport { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  model: "hub:${m.slug}",\n  modelsDir: "./models",\n});\n\nconst { audio } = await tts.synthesize("${sampleSentence}");`}</code></pre>
       <div class="dl-row">
         <a class="btn-dl ghost" href="https://www.npmjs.com/package/pipertts">pipertts · npm ↗</a>
         <a class="btn-dl ghost" href="https://itsrealfortune.fr/pipertts/">{t(locale, 'detail.apiReference')} ↗</a>
