@@ -39,11 +39,15 @@ const discordUrl = 'https://discord.com/channels/1523276835712929946/15232775083
 const voiceForumUrl = 'https://discord.com/channels/1523276835712929946/1523277617996894259';
 const piperttsUrl = 'https://www.npmjs.com/package/pipertts';
 const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
+const piperttsTypedocUrl = 'https://itsrealfortune.fr/pipertts/';
 
 // HowTo (résultats enrichis) : reprend les deux listes ordonnées de la page
 // (dataset 6 étapes + utilisation 7 étapes), dans la langue de la page.
 const c = copy as unknown as Record<string, unknown>;
-const str = (k: string) => (typeof c[k] === 'string' ? (c[k] as string) : '');
+const enCopy = copyByLocale.en as unknown as Record<string, unknown>;
+// Per-key English fallback: locales that have not translated a new key yet
+// render the English text instead of a blank.
+const str = (k: string) => (typeof c[k] === 'string' ? (c[k] as string) : (typeof enCopy[k] === 'string' ? (enCopy[k] as string) : ''));
 const howtoSteps: Record<string, unknown>[] = [];
 const stepPairs: [string, string][] = [
   ['step1', 'step1copy'], ['step2', 'step2copy'], ['step3', 'step3copy'],
@@ -52,6 +56,7 @@ const stepPairs: [string, string][] = [
   ['synthTitle', 'synthCopy'], ['textFileTitle', 'textFileTitle'],
   ['pythonTitle', 'pythonTitle'], ['homeAssistantTitle', 'homeAssistantCopy'],
   ['adviceTitle', 'adviceCopy'],
+  ['npmHubTitle', 'npmHubCopy'],
 ];
 stepPairs.forEach(([nk, tk], i) => {
   const name = str(nk);
@@ -155,7 +160,8 @@ const howtoSchema: Record<string, unknown> = {
           <li><span class="guide-step-number">02</span><div><h3>{copy.npmQuickStart}</h3><pre class="guide-code"><code>{copy.npmExample}</code></pre></div></li>
           <li><span class="guide-step-number">03</span><div><h3>{copy.npmCustomVoice}</h3><p>{copy.npmCustomCopy}</p><pre class="guide-code"><code>{copy.npmCustomExample}</code></pre></div></li>
           <li><span class="guide-step-number">04</span><div><h3>{copy.npmApi}</h3><p>{copy.npmApiCopy}</p></div></li>
-          <li><span class="guide-step-number">05</span><div><h3>{copy.npmLegacy}</h3><p>{copy.npmLegacyCopy}</p><pre class="guide-code"><code>{copy.npmLegacyExample}</code></pre><div class="guide-references"><a href={piperttsUrl} target="_blank" rel="noreferrer">{copy.npmHome} ↗</a><a href={piperttsRepoUrl} target="_blank" rel="noreferrer">{copy.npmRepo} ↗</a><a href={`${piperttsRepoUrl}#readme`} target="_blank" rel="noreferrer">{copy.npmDocs} ↗</a></div></div></li>
+          <li><span class="guide-step-number">05</span><div><h3>{copy.npmLegacy}</h3><p>{copy.npmLegacyCopy}</p><pre class="guide-code"><code>{copy.npmLegacyExample}</code></pre><div class="guide-references"><a href={piperttsUrl} target="_blank" rel="noreferrer">{copy.npmHome} ↗</a><a href={piperttsRepoUrl} target="_blank" rel="noreferrer">{copy.npmRepo} ↗</a><a href={piperttsTypedocUrl} target="_blank" rel="noreferrer">{str('npmTypedoc')} ↗</a><a href={`${piperttsRepoUrl}#readme`} target="_blank" rel="noreferrer">{copy.npmDocs} ↗</a></div></div></li>
+          <li><span class="guide-step-number">06</span><div><h3>{str('npmHubTitle')}</h3><p>{str('npmHubCopy')}</p><pre class="guide-code"><code>{str('npmHubExample')}</code></pre></div></li>
         </ol>
       </div>
     </section>

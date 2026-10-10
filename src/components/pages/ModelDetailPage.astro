@@ -200,6 +200,18 @@ const waveformPath = (seed: number) => {  let state = (Math.abs(Math.trunc(seed)
       </div>
     </section>
 
+    {m.usable &&
+    <section class="sec">
+      <h2>{t(locale, 'detail.nodeUse')}</h2>
+      <p class="dim">{t(locale, 'detail.nodeUseCopy')}</p>
+      <pre class="guide-code"><code>{`npm install pipertts\n\nimport { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  model: "hub:${m.slug}",\n  modelsDir: "./models",\n});\n\nconst { audio } = await tts.synthesize("Hello from Piper.");`}</code></pre>
+      <div class="dl-row">
+        <a class="btn-dl ghost" href="https://www.npmjs.com/package/pipertts">pipertts · npm ↗</a>
+        <a class="btn-dl ghost" href="https://itsrealfortune.fr/pipertts/">{t(locale, 'detail.apiReference')} ↗</a>
+      </div>
+    </section>
+    }
+
     <section class="sec">
       <h2>{t(locale, 'detail.voiceSamples', { count: formatNumber(locale, m.voices) })}</h2>
       <p class="dim">{t(locale, 'detail.sampleHelp')}</p>
