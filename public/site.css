@@ -2588,7 +2588,8 @@ body:has(.model-hero) .model-hero ~ .tags a.tag:hover {
 .guide-code { overflow-x: auto; margin: 16px 0 0; padding: 18px 20px; border: 1px solid #ffffff; border-radius: 13px; background: #242424; color: #ffffff; font: 12px/1.75 var(--mono); tab-size: 2; }
 .guide-code code { padding: 0; background: transparent; color: inherit; font: inherit; white-space: pre; }
 .guide-code-command { padding-block: 13px; }
-.snippet-wrap { position: relative; margin-bottom: 20px; }
+.snippet-wrap { margin-bottom: 20px; }
+.snippet-code { position: relative; }
 .snippet-wrap .guide-code { padding-right: 96px; }
 .snippet-wrap .guide-code + .guide-code { margin-top: 12px; }
 .guide-code .tok-kw { color: #c792ea; }

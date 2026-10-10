@@ -250,8 +250,10 @@ function hlJS(src: string): string {
       <p class="dim">{t(locale, 'detail.nodeUseCopy')}</p>
       <div class="snippet-wrap">
       <pre class="guide-code guide-code-command"><code>npm install pipertts</code></pre>
+      <div class="snippet-code">
       <pre class="guide-code lang-js"><code set:html={hlJS(jsSnippet)} /></pre>
       <button type="button" class="snippet-copy" data-copied={t(locale, 'detail.copied')} aria-label={t(locale, 'detail.copySnippet')}>{t(locale, 'detail.copySnippet')}</button>
+      </div>
       </div>
       <div class="dl-row">
         <a class="btn-dl ghost" href="https://www.npmjs.com/package/pipertts">pipertts · npm ↗</a>
