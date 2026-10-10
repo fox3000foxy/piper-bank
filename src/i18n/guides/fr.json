@@ -120,5 +120,9 @@
  "npmInstallCommand": "npm install pipertts\n# mode wrapper uniquement : python3 -m pip install piper-tts",
  "npmExample": "import { PiperNativeTTS, resolveModelPathFromOptions } from \"pipertts\";\nimport * as fs from \"node:fs\";\n\nconst modelPath = await resolveModelPathFromOptions({\n  model: \"en_US-lessac-medium\",\n  modelsDir: \"./models\",\n});\nconst tts = await PiperNativeTTS.load({ modelPath });\n\nconst { audio } = await tts.synthesize(\"Hello from Piper.\");\nfs.writeFileSync(\"./hello.wav\", audio);",
  "npmCustomExample": "import { PiperNativeTTS } from \"pipertts\";\n\nconst tts = await PiperNativeTTS.load({\n  modelPath: \"./models/my-voice.onnx\",\n});\nconst { audio, sampleRate } = await tts.synthesize(\"Hello.\", { speakerId: 0 });",
- "npmLegacyExample": "import { PiperTTS } from \"pipertts\";\n\nconst tts = await PiperTTS.create({\n  modelPath: \"./models/en_US-lessac-medium.onnx\",\n});\nawait tts.synthesizeToFile(\"Hello from the legacy wrapper.\", \"./hello.wav\");"
+ "npmLegacyExample": "import { PiperTTS } from \"pipertts\";\n\nconst tts = await PiperTTS.create({\n  modelPath: \"./models/en_US-lessac-medium.onnx\",\n});\nawait tts.synthesizeToFile(\"Hello from the legacy wrapper.\", \"./hello.wav\");",
+ "npmTypedoc": "Référence API pipertts (TypeDoc)",
+ "npmHubTitle": "Voix PiperHub et URL directes",
+ "npmHubCopy": "Toutes les voix de ce catalogue se chargent par slug, sans téléchargement manuel : préfixez avec hub:. Toute URL .onnx directe fonctionne aussi (sa config vaut <modelUrl>.json par défaut). Les téléchargements sont mis en cache dans modelsDir, avec repli automatique vers le miroir communautaire si le dépôt auteur disparaît.",
+ "npmHubExample": "import { PiperNativeTTS } from \"pipertts\";\n\n// Ce catalogue, par slug :\nconst tts = await PiperNativeTTS.load({\n  model: \"hub:glados-french-medium-voice\",\n  modelsDir: \"./models\",\n});\n\n// Ou toute URL directe :\nconst ttsUrl = await PiperNativeTTS.load({\n  modelUrl: \"https://huggingface.co/.../voice.onnx\",\n});"
 }
