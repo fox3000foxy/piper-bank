@@ -85,7 +85,20 @@ const speakerMax = (m.voices || 1) - 1;
 const synthCall = m.voices > 1
   ? `// ${m.voices} speakers: set speakerId 0–${speakerMax}.\nconst { audio } = await tts.synthesize("${sampleSentence}", { speakerId: 0 });`
   : `const { audio } = await tts.synthesize("${sampleSentence}");`;
-const npmSnippet = `npm install pipertts\n\nimport { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  model: "hub:${m.slug}",\n  modelsDir: "./models",\n});\n\n${synthCall}`;
+const jsSnippet = `import { PiperNativeTTS } from "pipertts";\n\nconst tts = await PiperNativeTTS.load({\n  model: "hub:${m.slug}",\n  modelsDir: "./models",\n});\n\n${synthCall}`;
+// Coloration JS/TS minimale, rendue au build (HTML statique, aucun JS client).
+function hlJS(src: string): string {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const re = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*")|\b(import|from|const|await|new|return|export|async|function)\b|\b(\d[\d_]*)\b/g;
+  let out = '', last = 0, m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const cls = m[1] ? 'tok-com' : m[2] ? 'tok-str' : m[3] ? 'tok-kw' : 'tok-num';
+    out += `<span class="${cls}">${esc(m[0])}</span>`;
+    last = m.index + m[0].length;
+  }
+  return out + esc(src.slice(last));
+}
 ---
 
 <Layout title={`${m.name} – Piper TTS`} active="voices" locale={locale} pageUrl={`/model/${m.slug}/`}
@@ -236,7 +249,8 @@ const npmSnippet = `npm install pipertts\n\nimport { PiperNativeTTS } from "pipe
       <h2>{t(locale, 'detail.nodeUse')}</h2>
       <p class="dim">{t(locale, 'detail.nodeUseCopy')}</p>
       <div class="snippet-wrap">
-      <pre class="guide-code"><code>{npmSnippet}</code></pre>
+      <pre class="guide-code guide-code-command"><code>npm install pipertts</code></pre>
+      <pre class="guide-code lang-js"><code set:html={hlJS(jsSnippet)} /></pre>
       <button type="button" class="snippet-copy" data-copied={t(locale, 'detail.copied')} aria-label={t(locale, 'detail.copySnippet')}>{t(locale, 'detail.copySnippet')}</button>
       </div>
       <div class="dl-row">
@@ -434,7 +448,7 @@ const npmSnippet = `npm install pipertts\n\nimport { PiperNativeTTS } from "pipe
       // Copy buttons on npm snippets (textContent yields the raw, unescaped code).
       document.querySelectorAll('.snippet-copy').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          const code = btn.closest('.snippet-wrap')?.querySelector('code')?.textContent ?? '';
+          const code = btn.closest('.snippet-wrap')?.querySelector('.lang-js code')?.textContent ?? '';
           try { await navigator.clipboard.writeText(code); }
           catch {
             const ta = document.createElement('textarea');
