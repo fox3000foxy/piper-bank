@@ -172,6 +172,8 @@
  "detail.nodeUse": "Use in Node.js",
  "detail.nodeUseCopy": "Load this voice straight from npm, no manual download:",
  "detail.apiReference": "API reference",
+ "detail.copySnippet": "Copy",
+ "detail.copied": "Copied",
   "detail.voiceSamples": "Người nói và mẫu thử ({count})",
   "detail.sampleHelp": "Nghe mẫu thử rồi chọn tên người nói để tổng hợp.",
   "detail.listenVoice": "Nghe mẫu thử của {name}",

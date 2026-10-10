@@ -172,6 +172,8 @@
  "detail.nodeUse": "Use in Node.js",
  "detail.nodeUseCopy": "Load this voice straight from npm, no manual download:",
  "detail.apiReference": "API reference",
+ "detail.copySnippet": "Copy",
+ "detail.copied": "Copied",
   "detail.voiceSamples": "Konuşmacılar ve örnekler ({count})",
   "detail.sampleHelp": "Bir örneği dinleyin, sonra sentez için konuşmacı adını seçin.",
   "detail.listenVoice": "{name} örneğini dinleyin",

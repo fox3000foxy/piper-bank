@@ -172,6 +172,8 @@
  "detail.nodeUse": "Use in Node.js",
  "detail.nodeUseCopy": "Load this voice straight from npm, no manual download:",
  "detail.apiReference": "API reference",
+ "detail.copySnippet": "Copy",
+ "detail.copied": "Copied",
   "detail.voiceSamples": "話者とサンプル ({count})",
   "detail.sampleHelp": "サンプルを試聴してから、合成に使う話者名を選択してください。",
   "detail.listenVoice": "{name}のサンプルを再生",

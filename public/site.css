@@ -2588,6 +2588,10 @@ body:has(.model-hero) .model-hero ~ .tags a.tag:hover {
 .guide-code { overflow-x: auto; margin: 16px 0 0; padding: 18px 20px; border: 1px solid #ffffff; border-radius: 13px; background: #242424; color: #ffffff; font: 12px/1.75 var(--mono); tab-size: 2; }
 .guide-code code { padding: 0; background: transparent; color: inherit; font: inherit; white-space: pre; }
 .guide-code-command { padding-block: 13px; }
+.snippet-wrap { position: relative; }
+.snippet-wrap .guide-code { padding-right: 96px; }
+.snippet-copy { position: absolute; top: 24px; right: 12px; padding: 6px 12px; border: 1px solid var(--line-strong); border-radius: 8px; background: rgba(255,255,255,.08); color: #ffffff; font: 12px var(--mono); cursor: pointer; }
+.snippet-copy:hover { background: rgba(255,255,255,.18); }
 .guide-subheading { margin: 25px 0 8px; font-size: 14px; font-weight: 550; letter-spacing: -.015em; }
 .guide-use-voice .guide-steps { margin-top: 24px; }
 .guide-use-voice .guide-steps > li { padding-block: 27px; }

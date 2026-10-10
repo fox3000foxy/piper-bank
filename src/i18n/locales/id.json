@@ -172,6 +172,8 @@
  "detail.nodeUse": "Use in Node.js",
  "detail.nodeUseCopy": "Load this voice straight from npm, no manual download:",
  "detail.apiReference": "API reference",
+ "detail.copySnippet": "Copy",
+ "detail.copied": "Copied",
   "detail.voiceSamples": "Penutur dan sampel ({count})",
   "detail.sampleHelp": "Dengarkan sampel, lalu pilih nama penutur untuk sintesis.",
   "detail.listenVoice": "Dengarkan sampel {name}",

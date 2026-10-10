@@ -172,6 +172,8 @@
  "detail.nodeUse": "Use in Node.js",
  "detail.nodeUseCopy": "Load this voice straight from npm, no manual download:",
  "detail.apiReference": "API reference",
+ "detail.copySnippet": "Copy",
+ "detail.copied": "Copied",
   "detail.voiceSamples": "वक्ता और नमूने ({count})",
   "detail.sampleHelp": "नमूना सुनें, फिर संश्लेषण हेतु वक्ता का नाम चुनें।",
   "detail.listenVoice": "{name} का नमूना सुनें",

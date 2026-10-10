@@ -172,6 +172,8 @@
  "detail.nodeUse": "Use in Node.js",
  "detail.nodeUseCopy": "Load this voice straight from npm, no manual download:",
  "detail.apiReference": "API reference",
+ "detail.copySnippet": "Copy",
+ "detail.copied": "Copied",
   "detail.voiceSamples": "ผู้พูดและตัวอย่าง ({count})",
   "detail.sampleHelp": "ฟังตัวอย่าง แล้วเลือกชื่อผู้พูดสำหรับการสังเคราะห์",
   "detail.listenVoice": "ฟังตัวอย่างของ {name}",
