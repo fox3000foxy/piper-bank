@@ -4,7 +4,7 @@
 // - Autres assets same-origin (js/fonts/images/vendor/tsv) : network-first,
 //   repli cache hors-ligne (jamais de contenu perime).
 // - Hugging Face, ONNX, echantillons audio : jamais interceptes (IndexedDB + HTTP).
-const CACHE = 'piper-bank-v3';
+const CACHE = 'piper-bank-v4';
 const STATIC_RE = /\.(css|js|mjs|woff2?|png|svg|ico|webmanifest|tsv|json|wasm|data)$/;
 // CSS a hash de contenu (8 hex) : cache-first, le nom change a chaque edition.
 const HASHED_CSS_RE = /(?:-|\.)[0-9a-f]{8}\.css$/;

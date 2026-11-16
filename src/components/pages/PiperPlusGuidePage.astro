@@ -1,88 +1,58 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import DocsShell from '../DocsShell.astro';
+import Icon from '../Icon.astro';
 import { localizedPath, t, type Locale } from '../../i18n/ui';
-import guidesFr from '../../i18n/guides/fr.json';
-import guidesEn from '../../i18n/guides/en.json';
-import guidesDe from '../../i18n/guides/de.json';
-import guidesEs from '../../i18n/guides/es.json';
-import guidesIt from '../../i18n/guides/it.json';
-import guidesPt from '../../i18n/guides/pt.json';
-import guidesRu from '../../i18n/guides/ru.json';
-import guidesTr from '../../i18n/guides/tr.json';
-import guidesJa from '../../i18n/guides/ja.json';
-import guidesKo from '../../i18n/guides/ko.json';
-import guidesZh from '../../i18n/guides/zh.json';
-import guidesId from '../../i18n/guides/id.json';
-import guidesHi from '../../i18n/guides/hi.json';
-import guidesAr from '../../i18n/guides/ar.json';
-import guidesVi from '../../i18n/guides/vi.json';
-import guidesTh from '../../i18n/guides/th.json';
+import { guideCopy } from '../../i18n/guides';
 
 const { locale = 'en' as Locale } = Astro.props as { locale?: Locale };
 const base = import.meta.env.BASE_URL;
-
-// Mêmes fichiers que la page Guides (src/i18n/guides/<code>.json).
-const copyByLocale = {
-  fr: guidesFr, en: guidesEn, de: guidesDe, es: guidesEs, it: guidesIt,
-  pt: guidesPt, ru: guidesRu, tr: guidesTr, ja: guidesJa, ko: guidesKo,
-  zh: guidesZh, id: guidesId, hi: guidesHi, ar: guidesAr, vi: guidesVi,
-  th: guidesTh,
-};
-const copy = (copyByLocale as unknown as Record<string, typeof copyByLocale.en>)[locale] ?? copyByLocale.en;
+const L = (p: string) => localizedPath(base, locale, p);
+const { str } = guideCopy(locale);
 
 const piperPlusRepoUrl = 'https://github.com/ayutaz/piper-plus';
 const piperPlusModelsUrl = 'https://github.com/ayutaz/piper-plus/blob/dev/docs/guides/development/pretrained-models.md';
 const discordInviteUrl = 'https://discord.gg/xDmDJwfbfp';
 ---
-<Layout title={copy.ppTitle} description={copy.ppIntro} active="guides" locale={locale} pageUrl="/guides-piper-plus/"
+<Layout title={str('ppTitle')} description={str('ppIntro')} active="guides" locale={locale} pageUrl="/guides-piper-plus/"
   breadcrumbs={[
     { name: t(locale, 'nav.home'), path: '/' },
-    { name: t(locale, 'nav.guides'), path: '/guides/' },
-    { name: copy.ppTitle, path: '/guides-piper-plus/' },
+    { name: t(locale, 'nav.docs'), path: '/guides/' },
+    { name: str('ppTitle'), path: '/guides-piper-plus/' },
   ]}>
-  <main class="guide-page">
-    <header class="guide-intro">
-      <p class="eyebrow">{t(locale, 'home.guidesEyebrow')}</p>
-      <h1>{copy.ppTitle}</h1>
-      <p>{copy.ppIntro}</p>
+  <DocsShell locale={locale} current="/guides-piper-plus/">
+    <header class="docs-head" id="top">
+      <p class="label">{t(locale, 'nav.docs')} · Piper Plus</p>
+      <h1>{str('ppTitle')}</h1>
+      <p class="lead">{str('ppIntro')}</p>
     </header>
 
-    <section id="piperplus-guide" class="guide-section guide-piperplus">
-      <div class="guide-rail"><span>01</span><span>PIPER PLUS · MULTILINGUE</span></div>
-      <div class="guide-content">
-        <h2>{copy.ppStep1}</h2>
-        <p class="guide-lede">{copy.ppStep1Copy}</p>
-        <pre class="guide-code"><code>{copy.ppInstallCommand}</code></pre>
+    <section id="piperplus-guide" class="doc-section">
+      <p class="doc-section-label">Piper Plus</p>
+      <h2>{t(locale, 'docs.ppSetup')}</h2>
+      <ol class="doc-steps">
+        <li class="doc-step"><span class="doc-step-n">1</span><div><h3>{str('ppStep1')}</h3><p>{str('ppStep1Copy')}</p><pre class="guide-code"><code>{str('ppInstallCommand')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">2</span><div><h3>{str('ppStep2')}</h3><p>{str('ppStep2Copy')}</p><pre class="guide-code"><code>{str('ppDownloadCommand')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">3</span><div><h3>{str('ppStep3')}</h3><p>{str('ppStep3Copy')}</p><pre class="guide-code"><code>{str('ppSynthCommand')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">4</span><div><h3>{str('ppStep4')}</h3><p>{str('ppStep4Copy')}</p>
+          <div class="doc-links">
+            <a class="doc-link" href={L('/model/tsukuyomi-chan-multilingual-6-language-voice/')}><Icon name="mic" size={14} />Tsukuyomi-chan</a>
+            <a class="doc-link" href={L('/model/css10-japanese-6-lang-piper-plus/')}><Icon name="mic" size={14} />CSS10</a>
+            <a class="doc-link" href={L('/model/mera-chan-multilingual-6-lang-medium/')}><Icon name="mic" size={14} />Mera</a>
+            <a class="doc-link doc-link-primary" href={L('/voices/?engine=plus')}><Icon name="filter" size={14} />{t(locale, 'docs.allPiperPlus')}</a>
+          </div>
+        </div></li>
+      </ol>
+      <div class="doc-links">
+        <a class="doc-link" href={piperPlusRepoUrl} target="_blank" rel="noreferrer"><Icon name="github" size={14} />{str('ppRepo')}</a>
+        <a class="doc-link" href={piperPlusModelsUrl} target="_blank" rel="noreferrer">{str('ppModels')}<Icon name="external" size={14} /></a>
+        <a class="doc-link" href={discordInviteUrl} target="_blank" rel="noreferrer"><Icon name="discord" size={14} />{str('ppDiscord')}</a>
       </div>
+      <div class="callout"><Icon name="info" size={20} /><div><p>{str('ppHelp')}</p></div></div>
     </section>
 
-    <section class="guide-section">
-      <div class="guide-rail"><span>02</span></div>
-      <div class="guide-content">
-        <h2>{copy.ppStep2}</h2>
-        <p class="guide-lede">{copy.ppStep2Copy}</p>
-        <pre class="guide-code"><code>{copy.ppDownloadCommand}</code></pre>
-      </div>
-    </section>
-
-    <section class="guide-section">
-      <div class="guide-rail"><span>03</span></div>
-      <div class="guide-content">
-        <h2>{copy.ppStep3}</h2>
-        <p class="guide-lede">{copy.ppStep3Copy}</p>
-        <pre class="guide-code"><code>{copy.ppSynthCommand}</code></pre>
-      </div>
-    </section>
-
-    <section class="guide-section">
-      <div class="guide-rail"><span>04</span></div>
-      <div class="guide-content">
-        <h2>{copy.ppStep4}</h2>
-        <p class="guide-lede">{copy.ppStep4Copy}</p>
-        <div class="guide-links"><a href={localizedPath(base, locale, '/model/tsukuyomi-chan-multilingual-6-language-voice/')}>Tsukuyomi-chan</a><a href={localizedPath(base, locale, '/model/css10-japanese-6-lang-piper-plus/')}>CSS10</a><a href={localizedPath(base, locale, '/model/mera-chan-multilingual-6-lang-medium/')}>Mera</a></div>
-        <div class="guide-references"><a href={piperPlusRepoUrl} target="_blank" rel="noreferrer">{copy.ppRepo} ↗</a><a href={piperPlusModelsUrl} target="_blank" rel="noreferrer">{copy.ppModels} ↗</a><a href={discordInviteUrl} target="_blank" rel="noreferrer">{copy.ppDiscord} ↗</a></div>
-        <p class="dim">{copy.ppHelp}</p>
-      </div>
-    </section>
-  </main>
+    <nav class="doc-pager" aria-label={t(locale, 'nav.docs')}>
+      <a href={L('/guides/#pipertts-guide')}><span>{t(locale, 'docs.previous')}</span><strong>{str('npmTitle')}</strong></a>
+    </nav>
+  </DocsShell>
 </Layout>

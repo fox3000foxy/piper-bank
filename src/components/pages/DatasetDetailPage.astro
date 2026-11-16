@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Icon from '../Icon.astro';
 import { languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
 
 const { locale = 'fr' as Locale } = Astro.props;
@@ -45,13 +46,17 @@ if (d.license) datasetSchema.license = d.license.startsWith('http')
     { name: d.name, path: `/dataset/${d.slug}/` },
   ]}
   description={t(locale, 'dataset.description', { class: d.class || '-', source: d.source || '-', language: languageLabel(d.lang, d.langName || d.lang, locale) })} subtitle={`${d.source || t(locale, 'dataset.titleFallback')} · ${languageLabel(d.lang, d.langName || d.lang, locale)}`}>
-  <a class="back" href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'detail.backDatasets')}</a>
-
+  <main class="detail">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href={localizedPath(base, locale, '/')}>{t(locale, 'nav.home')}</a><Icon name="chevronRight" size={14} />
+    <a href={localizedPath(base, locale, '/datasets/')}>{t(locale, 'nav.datasets')}</a><Icon name="chevronRight" size={14} />
+    <span aria-current="page">{d.name}</span>
+  </nav>
   <div class="hero model-hero">
-    <span class="avatar big dataset-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 7.5h6l2 2h9v9h-17z"/><path d="M3.5 7.5v-2h6l2 2"/></svg></span>
+    <span class="feature-ds" aria-hidden="true"><Icon name="database" size={36} /></span>
     <div>
       <h1>{d.name}</h1>
-      <p class="subtitle">{d.class} · {d.source}</p>
+      <p class="subtitle">{[d.class, d.source].filter(Boolean).join(' · ')}</p>
     </div>
   </div>
 
@@ -111,5 +116,7 @@ if (d.license) datasetSchema.license = d.license.startsWith('http')
       )}
     </aside>
   </div>
+  </main>
+
 
 </Layout>

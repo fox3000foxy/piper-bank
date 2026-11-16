@@ -1,94 +1,441 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Icon from '../Icon.astro';
+import ModelAvatar from '../ModelAvatar.astro';
 import data from '../../data/models.json';
-import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, localeMeta, t, type Locale, type MessageKey } from '../../i18n/ui';
+import { fold } from '../../lib/search';
 
 const { locale = 'fr' as Locale } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const L = (p: string) => localizedPath(base, locale, p);
 
 const models = data
   .filter((m) => m.usable || m.piperPlus)
   .sort((a, b) => (b.updated || '').localeCompare(a.updated || '') || a.name.localeCompare(b.name));
-const languages = [...new Set(models.map((m) => m.lang))].sort();
-const availableQualities = new Set(models.map((m) => m.quality));
-const qualities = ['high', 'medium', 'low', 'unknown'].filter((q) => availableQualities.has(q));
 const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
-// Description meta (og:, twitter:, SEO) avec les compteurs du catalogue,
-// calculés au build depuis les données : exacts à chaque déploiement.
+const freshCutoff = Date.now() - 14 * 864e5;
+
+// ---- Derived attributes, one place -------------------------------------------------
+const OPEN = /^(MIT|Apache|CC BY 4|CC0|GPL|BSD|MPL)/i;
+const NC = /^CC BY-NC/i;
+const licenseGroup = (l: string) => (!l ? 'none' : OPEN.test(l) ? 'open' : NC.test(l) ? 'nc' : 'restricted');
+const COLLECTIONS: Record<string, string> = {
+  valorant: 'Valorant', portal: 'Portal', hal: 'HAL 9000', fortune: 'Fortune', 'counter-strike': 'Counter-Strike',
+  dota: 'Dota 2', kurmanci: 'Kurmancî', starwars: 'Star Wars', fuze: 'Fuze', tf2: 'Team Fortress 2',
+};
+const langLabel = (m: (typeof models)[number]) => languageLabel(m.lang, m.langName, locale);
+const qKey = (q: string) => (q === 'high' ? 'quality.high' : q === 'medium' ? 'quality.medium' : q === 'low' ? 'quality.low' : 'quality.unknown') as MessageKey;
+const shortName = (n: string) => n.replace(/\s+(?:x[_\s]?)?(?:high|medium|low|unknown)$/i, '');
+
+const rows = models.map((m) => ({
+  m,
+  lang: m.lang,
+  quality: m.quality,
+  speakers: m.voices > 1 ? 'multi' : 'single',
+  source: m.avatar?.certified ? 'official' : 'community',
+  license: licenseGroup(m.license || ''),
+  collection: m.avatar?.universe && m.avatar.universe !== 'default' ? m.avatar.universe : '',
+  engine: m.piperPlus ? 'plus' : 'piper',
+  phonemes: m.phonemeType || 'espeak',
+  rate: String(m.sampleRate),
+  author: m.author,
+  dataset: m.dataset ? '1' : '',
+  recent: m.updated && new Date(m.updated + 'T00:00:00Z').getTime() >= freshCutoff ? '1' : '',
+}));
+
+type Opt = { v: string; label: string; n: number };
+const count = (key: keyof (typeof rows)[number], order?: string[]): [string, number][] => {
+  const c = new Map<string, number>();
+  for (const r of rows) { const v = r[key] as string; if (v) c.set(v, (c.get(v) || 0) + 1); }
+  const entries = [...c.entries()];
+  return order ? order.filter((o) => c.has(o)).map((o) => [o, c.get(o)!]) : entries.sort((a, b) => b[1] - a[1]);
+};
+const opts = (pairs: [string, number][], label: (v: string) => string): Opt[] => pairs.map(([v, n]) => ({ v, n, label: label(v) }));
+
+const facets: { id: string; title: string; search?: boolean; open?: boolean; options: Opt[] }[] = [
+  { id: 'lang', title: t(locale, 'filter.language'), search: true, open: true, options: opts(count('lang'), (v) => langLabel(models.find((m) => m.lang === v)!)).sort((a, b) => b.n - a.n || a.label.localeCompare(b.label)) },
+  { id: 'quality', title: t(locale, 'filter.quality'), open: true, options: opts(count('quality', ['high', 'medium', 'low', 'unknown']), (v) => t(locale, qKey(v))) },
+  { id: 'speakers', title: t(locale, 'filter.speakers'), open: true, options: opts(count('speakers', ['single', 'multi']), (v) => (v === 'multi' ? t(locale, 'filter.multiVoice') : t(locale, 'common.oneSpeaker'))) },
+  { id: 'source', title: t(locale, 'filter.source'), open: true, options: opts(count('source', ['official', 'community']), (v) => t(locale, v === 'official' ? 'filter.official' : 'filter.community')) },
+  { id: 'license', title: t(locale, 'filter.license'), open: true, options: opts(count('license', ['open', 'nc', 'restricted', 'none']), (v) => t(locale, `license.${v}` as MessageKey)) },
+  { id: 'collection', title: t(locale, 'filter.collection'), options: opts(count('collection'), (v) => COLLECTIONS[v] || v) },
+  { id: 'engine', title: t(locale, 'filter.engine'), options: opts(count('engine', ['piper', 'plus']), (v) => (v === 'plus' ? 'Piper Plus' : 'Piper')) },
+  { id: 'phonemes', title: t(locale, 'detail.phonemes'), options: opts(count('phonemes'), (v) => (v === 'text' ? t(locale, 'detail.textPhoneme') : v === 'espeak' ? 'eSpeak NG' : v.charAt(0).toUpperCase() + v.slice(1))) },
+  { id: 'rate', title: t(locale, 'detail.sampleRate'), options: opts(count('rate').sort((a, b) => Number(b[0]) - Number(a[0])), (v) => `${formatNumber(locale, Number(v))} Hz`) },
+  { id: 'author', title: t(locale, 'detail.author'), search: true, options: opts(count('author'), (v) => v) },
+];
+const langs = facets[0].options.length;
 const metaDescription = t(locale, 'voices.metaDescription', {
   models: formatNumber(locale, models.length),
-  langs: formatNumber(locale, languages.length),
+  langs: formatNumber(locale, langs),
   voices: formatNumber(locale, totalVoices),
 });
-const base = import.meta.env.BASE_URL;
+const ui = {
+  tag: localeMeta(locale).tag,
+  results: t(locale, 'voices.resultsCount'),
+  facetTitles: Object.fromEntries(facets.map((f) => [f.id, f.title])),
+  dataset: t(locale, 'filter.withDataset'),
+  recent: t(locale, 'filter.recent'),
+  remove: t(locale, 'filter.remove'),
+  showAll: t(locale, 'filter.showAll'),
+  showLess: t(locale, 'filter.showLess'),
+};
 ---
 <Layout title={t(locale, 'voices.title')} active="voices" locale={locale} pageUrl="/voices/" breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'nav.voices'), path: '/voices/' }]} description={metaDescription}>
-  <main class="catalog-page">
-    <section class="catalog-intro editorial-intro">
-      <div><p class="eyebrow">{t(locale, 'voices.eyebrow')}</p><h1>{t(locale, 'voices.heading')}</h1></div>
-      <div class="catalog-description"><p>{t(locale, 'voices.intro')}</p><span class="catalog-count">{formatNumber(locale, models.length)} {t(locale, 'voices.models')} <i>·</i> {formatNumber(locale, totalVoices)} {t(locale, 'voices.speakers')}</span><a class="rss-link" href={localizedPath(base, locale, '/rss.xml')} title={t(locale, 'voices.rss')} aria-label={t(locale, 'voices.rss')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 11a8 8 0 0 1 8 8M5 4a15 15 0 0 1 15 15" /><circle cx="5.6" cy="18.4" r="1.6" fill="currentColor" stroke="none" /></svg></a></div>
-    </section>
-    <section class="catalog-controls" aria-label={t(locale, 'voices.filters')}>
-      <label class="search-field"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.8"/><path d="m13 13 4.2 4.2"/></svg><input id="search" type="search" placeholder={t(locale, 'voices.searchPlaceholder')} autocomplete="off" aria-label={t(locale, 'voices.searchLabel')} /></label>
-      <label class="filter-select"><span>{t(locale, 'filter.language')}</span><select id="lang-filter"><option value="">{t(locale, 'filter.all')}</option>{languages.map((l) => <option value={l}>{languageLabel(l, models.find((m) => m.lang === l)?.langName || l, locale)}</option>)}</select></label>
-      <label class="filter-select"><span>{t(locale, 'filter.quality')}</span><select id="quality-filter"><option value="">{t(locale, 'filter.all')}</option>{qualities.map((q) => <option value={q}>{t(locale, q === 'high' ? 'quality.high' : q === 'medium' ? 'quality.medium' : q === 'low' ? 'quality.low' : 'quality.unknown')}</option>)}</select></label>
-      <label class="multi-filter"><input type="checkbox" id="multivoice-only" /><span>{t(locale, 'filter.multiVoice')}</span></label>
-    </section>
-    <div class="results-bar"><span id="count" class="count" data-template={t(locale, 'voices.results')} data-number-locale={locale === 'fr' ? 'fr-FR' : 'en-US'}>{t(locale, 'voices.results', { visible: formatNumber(locale, models.length), total: formatNumber(locale, models.length) })}</span><label class="sort-select"><span>{t(locale, 'filter.sort')}</span><select id="sort"><option value="updated-desc">{t(locale, 'sort.updatedDesc')}</option><option value="name">{t(locale, 'sort.name')}</option><option value="voices-desc">{t(locale, 'sort.voicesDesc')}</option><option value="voices-asc">{t(locale, 'sort.voicesAsc')}</option><option value="updated-asc">{t(locale, 'sort.updatedAsc')}</option></select></label></div>
-    <div id="grid" class="voice-index">
-      {models.map((m) => <a class="voice-row" href={localizedPath(base, locale, `/model/${m.slug}/`)} style={`--model-hue:${m.avatar?.hue ?? 260}`} data-name={m.name} data-lang={m.lang} data-quality={m.quality} data-multivoice={m.voices > 1 ? '1' : '0'} data-voices={m.voices} data-updated={m.updated || ''} data-search={`${m.name} ${m.author} ${m.langName} ${m.repo} ${(m.voiceNames || []).join(' ')}`.toLowerCase()}>
-        <span class="avatar-wrap"><span class="voice-row-avatar" style={`--h:${m.avatar?.hue ?? 260}`} aria-hidden="true">{m.avatar?.icon ? <img src={`${base}${m.avatar.icon}`} alt="" loading="lazy" /> : m.avatar?.universe === 'default' ? <svg class="avatar-wave" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 13v6m5-11v16m5-19v22m5-17v12m5-8v4" /></svg> : (m.avatar?.emoji || m.name[0])}</span>{m.avatar?.certified && <img class="cert" src={`${base}icons/certified.svg`} alt={t(locale, 'detail.modelOfficial')} title={t(locale, 'detail.modelOfficial')} loading="lazy" />}</span><span class="voice-row-title">{m.name.replace(/\s+(?:x[_\s]?)?(?:high|medium|low|unknown)$/i, '')}{m.updated && (Date.now() - new Date(m.updated + 'T00:00:00Z').getTime()) < 14 * 864e5 && <span class="new-pill">{t(locale, 'common.new')}</span>}{m.piperPlus && <span class="plus-pill">Piper+</span>}<small>{m.author} <i>·</i> {m.repo}{m.updated && <span> <i>·</i> {m.updated}</span>}</small></span><span class="voice-row-language">{languageLabel(m.lang, m.langName, locale)}</span><span class="voice-row-spec"><span class="quality-label">{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</span>{m.voices > 1 && <small>{t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) })}</small>}</span><span class="voice-row-arrow" aria-hidden="true">↗</span>
-      </a>)}
+  <header class="page-head">
+    <div class="page-head-grid">
+      <div><p class="label">{t(locale, 'voices.eyebrow')}</p><h1>{t(locale, 'voices.heading')}</h1></div>
+      <div>
+        <p class="lead">{t(locale, 'voices.intro')}</p>
+        <div class="page-stats">
+          <div><strong>{formatNumber(locale, models.length)}</strong><span>{t(locale, 'voices.models')}</span></div>
+          <div><strong>{formatNumber(locale, totalVoices)}</strong><span>{t(locale, 'voices.speakers')}</span></div>
+          <div><strong>{formatNumber(locale, langs)}</strong><span>{t(locale, 'search.languages')}</span></div>
+        </div>
+      </div>
     </div>
-    <p class="empty-results" hidden id="empty-results">{t(locale, 'voices.empty')} <button id="reset-filters">{t(locale, 'voices.clearFilters')}</button></p>
+  </header>
+
+  <main class="catalog" data-local-search>
+    <div class="facets-scrim" id="scrim"></div>
+    <aside class="facets" id="facets" aria-label={t(locale, 'voices.filters')}>
+      <div class="facets-head"><span>{t(locale, 'filter.filters')}</span><button class="icon-btn" type="button" id="facets-close" aria-label={t(locale, 'search.hintClose')}><Icon name="close" size={18} /></button></div>
+      <div class="facet">
+        <div class="facet-body" style="padding-top:0">
+          <label class="switch"><span>{t(locale, 'filter.withDataset')}</span><input type="checkbox" data-toggle="dataset" /></label>
+          <label class="switch"><span>{t(locale, 'filter.recent')}</span><input type="checkbox" data-toggle="recent" /></label>
+        </div>
+      </div>
+      {facets.map((f) => (
+        <details class="facet" open={f.open} data-facet={f.id}>
+          <summary>{f.title}<Icon name="chevronDown" size={16} /></summary>
+          <div class="facet-body">
+            {f.search && <label class="textbox facet-search"><Icon name="search" size={14} /><input type="text" data-facet-filter={f.id} placeholder={t(locale, 'filter.find')} aria-label={`${t(locale, 'filter.find')} · ${f.title}`} /></label>}
+            <div class={`facet-list${f.options.length > 8 ? ' is-collapsed' : ''}`}>
+              {f.options.map((o) => <label class="check" data-label={fold(o.label + ' ' + o.v)}><input type="checkbox" name={f.id} value={o.v} /><span class="check-label">{o.label}</span><span class="count" data-count>{formatNumber(locale, o.n)}</span></label>)}
+            </div>
+            <p class="facet-empty" hidden>{t(locale, 'voices.empty')}</p>
+            {f.options.length > 8 && <button type="button" class="facet-more" data-more>{t(locale, 'filter.showAll')} ({formatNumber(locale, f.options.length)})</button>}
+          </div>
+        </details>
+      ))}
+    </aside>
+
+    <div class="catalog-main">
+      <div class="catalog-toolbar">
+        <button class="btn filters-btn" type="button" id="facets-open"><Icon name="filter" size={16} />{t(locale, 'filter.filters')}<span class="n" id="filters-n" hidden>0</span></button>
+        <label class="textbox">
+          <Icon name="search" size={18} />
+          <input id="search" type="search" placeholder={t(locale, 'voices.searchPlaceholder')} autocomplete="off" spellcheck="false" aria-label={t(locale, 'voices.searchLabel')} />
+          <button type="button" class="clear-q" id="clear-q" aria-label={t(locale, 'filter.clearSearch')} hidden><Icon name="close" size={14} /></button>
+          <kbd class="kbd" id="slash-hint">/</kbd>
+        </label>
+        <div class="toolbar-group">
+          <label class="sort-field"><span>{t(locale, 'filter.sort')}</span>
+            <select id="sort">
+              <option value="relevance">{t(locale, 'sort.relevance')}</option>
+              <option value="updated-desc">{t(locale, 'sort.updatedDesc')}</option>
+              <option value="name">{t(locale, 'sort.name')}</option>
+              <option value="voices-desc">{t(locale, 'sort.voicesDesc')}</option>
+              <option value="voices-asc">{t(locale, 'sort.voicesAsc')}</option>
+              <option value="updated-asc">{t(locale, 'sort.updatedAsc')}</option>
+            </select>
+          </label>
+          <div class="segmented" role="group" aria-label={t(locale, 'filter.view')}>
+            <button type="button" data-view="list" aria-pressed="true" aria-label={t(locale, 'filter.viewList')} title={t(locale, 'filter.viewList')}><Icon name="list" size={16} /></button>
+            <button type="button" data-view="grid" aria-pressed="false" aria-label={t(locale, 'filter.viewGrid')} title={t(locale, 'filter.viewGrid')}><Icon name="grid" size={16} /></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-head">
+        <p class="results-count" id="count" aria-live="polite">{t(locale, 'voices.resultsCount', { visible: formatNumber(locale, models.length), total: formatNumber(locale, models.length) })}</p>
+        <div class="active-chips" id="chips"></div>
+      </div>
+
+      <div id="grid" class="vlist" data-view="list">
+        {rows.map((r) => {
+          const m = r.m;
+          return <a class="vrow" href={L(`/model/${m.slug}/`)}
+            data-lang={r.lang} data-quality={r.quality} data-speakers={r.speakers} data-source={r.source} data-license={r.license}
+            data-collection={r.collection} data-engine={r.engine} data-phonemes={r.phonemes} data-rate={r.rate} data-author={r.author}
+            data-dataset={r.dataset} data-recent={r.recent}
+            data-name={m.name} data-voices={m.voices} data-updated={m.updated || ''}
+            data-title={fold(m.name)}
+            data-search={fold(`${m.name} ${m.author} ${m.langName} ${langLabel(m)} ${m.lang} ${m.repo} ${m.license || ''} ${r.collection} ${(m.voiceNames || []).filter((v: string) => !/^voice-\d+$/.test(v)).join(' ')}`)}>
+            <ModelAvatar model={m} locale={locale} />
+            <span class="vrow-title"><strong><span data-hl>{shortName(m.name)}</span>{r.recent && <span class="new-pill">{t(locale, 'common.new')}</span>}{m.piperPlus && <span class="plus-pill">Piper+</span>}</strong><small>{m.author} · {m.repo}</small></span>
+            <span class="vrow-tags">
+              <span class="vrow-lang">{langLabel(m)}</span>
+              <span class="vrow-q"><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span></span>
+              <span class="vrow-speakers">{m.voices > 1 ? t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
+            </span>
+            <Icon name="chevronRight" size={18} class="go" />
+          </a>;
+        })}
+      </div>
+
+      <div class="empty-state" id="empty-results" hidden>
+        <Icon name="search" size={40} />
+        <h2>{t(locale, 'voices.empty')}</h2>
+        <p>{t(locale, 'voices.emptyCopy')}</p>
+        <button class="btn" type="button" id="reset-filters">{t(locale, 'voices.clearFilters')}</button>
+      </div>
+    </div>
   </main>
+  <script is:inline type="application/json" id="catalog-ui" set:html={JSON.stringify(ui)} />
+
   <script>
-    // Les ids ci-dessous sont tous présents dans le balisage de cette page : casts ciblés, aucune garde runtime ajoutée.
+    import { fold, scoreItem, tokens } from '../../lib/search';
+
+    const ui = JSON.parse(document.getElementById('catalog-ui')!.textContent || '{}');
+    const nf = new Intl.NumberFormat(ui.tag);
     const search = document.getElementById('search') as HTMLInputElement;
-    const langFilter = document.getElementById('lang-filter') as HTMLSelectElement;
-    const qualityFilter = document.getElementById('quality-filter') as HTMLSelectElement;
-    const multivoiceOnly = document.getElementById('multivoice-only') as HTMLInputElement;
-    const count = document.getElementById('count') as HTMLElement;
-    const grid = document.getElementById('grid') as HTMLElement;
-    const empty = document.getElementById('empty-results') as HTMLElement;
-    const reset = document.getElementById('reset-filters') as HTMLButtonElement;
+    const clearQ = document.getElementById('clear-q') as HTMLButtonElement;
+    const slashHint = document.getElementById('slash-hint') as HTMLElement;
     const sort = document.getElementById('sort') as HTMLSelectElement;
-    const rows = [...grid.querySelectorAll<HTMLAnchorElement>('.voice-row')];
-    const prefetched = new Set();
-    const prefetch = (a: HTMLAnchorElement | null) => {
+    const grid = document.getElementById('grid') as HTMLElement;
+    const countEl = document.getElementById('count') as HTMLElement;
+    const chipsEl = document.getElementById('chips') as HTMLElement;
+    const empty = document.getElementById('empty-results') as HTMLElement;
+    const facetsEl = document.getElementById('facets') as HTMLElement;
+    const scrim = document.getElementById('scrim') as HTMLElement;
+    const filtersN = document.getElementById('filters-n') as HTMLElement;
+    const rows = [...grid.querySelectorAll<HTMLAnchorElement>('.vrow')];
+    const original = new Map(rows.map((r) => [r, r.querySelector<HTMLElement>('[data-hl]')!.textContent || '']));
+    const FACETS = [...document.querySelectorAll<HTMLElement>('[data-facet]')].map((el) => el.dataset.facet!);
+    const TOGGLES = ['dataset', 'recent'];
+    const boxes = (id: string) => [...document.querySelectorAll<HTMLInputElement>(`input[name="${id}"]`)];
+    const toggle = (id: string) => document.querySelector<HTMLInputElement>(`input[data-toggle="${id}"]`)!;
+
+    // ---- State <-> URL ----
+    const params = new URLSearchParams(location.search);
+    search.value = params.get('q') || '';
+    for (const f of FACETS) {
+      const vals = (params.get(f) || '').split(',').filter(Boolean);
+      boxes(f).forEach((b) => (b.checked = vals.includes(b.value)));
+    }
+    for (const tg of TOGGLES) toggle(tg).checked = params.get(tg) === '1';
+    const legacyMulti = params.get('multi') === '1';
+    if (legacyMulti) boxes('speakers').forEach((b) => (b.checked = b.value === 'multi'));
+    sort.value = params.get('sort') || 'relevance';
+    if (![...sort.options].some((o) => o.value === sort.value)) sort.value = 'relevance';
+    let view = params.get('view') === 'grid' ? 'grid' : (localStorage.getItem('piper-view') || 'list');
+
+    const selected = () => Object.fromEntries(FACETS.map((f) => [f, new Set(boxes(f).filter((b) => b.checked).map((b) => b.value))])) as Record<string, Set<string>>;
+
+    function writeUrl(sel: Record<string, Set<string>>) {
+      const next = new URLSearchParams();
+      if (search.value.trim()) next.set('q', search.value.trim());
+      for (const f of FACETS) if (sel[f].size) next.set(f, [...sel[f]].join(','));
+      for (const tg of TOGGLES) if (toggle(tg).checked) next.set(tg, '1');
+      if (sort.value !== 'relevance') next.set('sort', sort.value);
+      if (view === 'grid') next.set('view', 'grid');
+      const qs = next.toString();
+      history.replaceState(null, '', location.pathname + (qs ? `?${qs}` : ''));
+    }
+
+    // ---- Highlight (diacritic-insensitive) ----
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    function highlight(text: string, toks: string[]): string {
+      if (!toks.length) return esc(text);
+      let folded = '';
+      const map: number[] = [];
+      for (let i = 0; i < text.length; i++) {
+        const f = text[i].normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[_\-./·,()]/g, ' ');
+        for (const ch of f) { folded += ch; map.push(i); }
+      }
+      const marks = new Array(text.length).fill(false);
+      for (const tok of toks) {
+        let at = folded.indexOf(tok);
+        while (at >= 0) { for (let k = at; k < at + tok.length; k++) marks[map[k]] = true; at = folded.indexOf(tok, at + tok.length); }
+      }
+      let out = '', open = false;
+      for (let i = 0; i < text.length; i++) {
+        if (marks[i] && !open) { out += '<mark>'; open = true; }
+        if (!marks[i] && open) { out += '</mark>'; open = false; }
+        out += esc(text[i]);
+      }
+      return out + (open ? '</mark>' : '');
+    }
+
+    // ---- Core ----
+    const scores = new Map<HTMLElement, number>();
+    function matchesFacets(r: HTMLElement, sel: Record<string, Set<string>>, skip?: string) {
+      for (const f of FACETS) if (f !== skip && sel[f].size && !sel[f].has(r.dataset[f] || '')) return false;
+      for (const tg of TOGGLES) if (toggle(tg).checked && r.dataset[tg] !== '1') return false;
+      return true;
+    }
+
+    function apply() {
+      const toks = tokens(search.value);
+      const sel = selected();
+      clearQ.hidden = !search.value;
+      slashHint.hidden = !!search.value;
+      // Text pass
+      const textOk: HTMLElement[] = [];
+      for (const r of rows) {
+        const sc = toks.length ? scoreItem(r.dataset.search!, r.dataset.title!, toks) : 1;
+        scores.set(r, sc);
+        if (sc > 0) textOk.push(r);
+      }
+      // Visibility
+      let visible = 0;
+      for (const r of rows) {
+        const ok = scores.get(r)! > 0 && matchesFacets(r, sel);
+        r.hidden = !ok;
+        if (ok) visible++;
+        const hl = r.querySelector<HTMLElement>('[data-hl]')!;
+        hl.innerHTML = highlight(original.get(r)!, ok ? toks : []);
+      }
+      // Facet counts: each facet counts against every other active filter (disjunctive faceting).
+      for (const f of FACETS) {
+        const c = new Map<string, number>();
+        for (const r of textOk) if (matchesFacets(r, sel, f)) c.set(r.dataset[f] || '', (c.get(r.dataset[f] || '') || 0) + 1);
+        for (const b of boxes(f)) {
+          const n = c.get(b.value) || 0;
+          const label = b.closest('.check') as HTMLElement;
+          label.querySelector('[data-count]')!.textContent = nf.format(n);
+          label.classList.toggle('is-zero', n === 0 && !b.checked);
+        }
+      }
+      // Count + empty
+      countEl.innerHTML = ui.results.replace('{visible}', `<strong>${nf.format(visible)}</strong>`).replace('{total}', nf.format(rows.length));
+      empty.hidden = visible > 0;
+      grid.hidden = visible === 0;
+      renderChips(sel);
+      order(toks.length > 0);
+      writeUrl(sel);
+    }
+
+    function order(hasQuery: boolean) {
+      const byName = (a: HTMLElement, b: HTMLElement) => a.dataset.name!.localeCompare(b.dataset.name!);
+      const v = (r: HTMLElement) => Number(r.dataset.voices || 0);
+      const u = (r: HTMLElement) => r.dataset.updated || '0000';
+      const mode = sort.value === 'relevance' && !hasQuery ? 'updated-desc' : sort.value;
+      const cmp: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+        relevance: (a, b) => scores.get(b)! - scores.get(a)! || u(b).localeCompare(u(a)) || byName(a, b),
+        name: byName,
+        'voices-desc': (a, b) => v(b) - v(a) || byName(a, b),
+        'voices-asc': (a, b) => v(a) - v(b) || byName(a, b),
+        'updated-desc': (a, b) => u(b).localeCompare(u(a)) || byName(a, b),
+        'updated-asc': (a, b) => u(a).localeCompare(u(b)) || byName(a, b),
+      };
+      const sorted = [...rows].sort(cmp[mode] || cmp['updated-desc']);
+      const frag = document.createDocumentFragment();
+      sorted.forEach((r) => frag.append(r));
+      grid.append(frag);
+    }
+
+    function chip(label: string, key: string, onRemove: () => void) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.setAttribute('aria-label', `${ui.remove}: ${label}`);
+      b.innerHTML = `${key ? `<span class="chip-k">${esc(key)}</span>` : ''}${esc(label)}<span class="chip-x" aria-hidden="true"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg></span>`;
+      b.addEventListener('click', () => { onRemove(); apply(); });
+      return b;
+    }
+
+    function renderChips(sel: Record<string, Set<string>>) {
+      chipsEl.replaceChildren();
+      let n = 0;
+      for (const f of FACETS) for (const b of boxes(f)) if (b.checked) {
+        n++;
+        chipsEl.append(chip(b.closest('.check')!.querySelector('.check-label')!.textContent || b.value, ui.facetTitles[f], () => { b.checked = false; }));
+      }
+      for (const tg of TOGGLES) if (toggle(tg).checked) { n++; chipsEl.append(chip(ui[tg], '', () => { toggle(tg).checked = false; })); }
+      filtersN.hidden = n === 0;
+      filtersN.textContent = String(n);
+      if (n > 1 || (n && search.value)) {
+        const all = document.createElement('button');
+        all.type = 'button';
+        all.className = 'clear-all';
+        all.textContent = (document.getElementById('reset-filters') as HTMLElement).textContent || '';
+        all.addEventListener('click', reset);
+        chipsEl.append(all);
+      }
+      void sel;
+    }
+
+    function reset() {
+      search.value = '';
+      FACETS.forEach((f) => boxes(f).forEach((b) => (b.checked = false)));
+      TOGGLES.forEach((tg) => (toggle(tg).checked = false));
+      apply();
+      search.focus();
+    }
+
+    function setView(next: string) {
+      view = next;
+      grid.dataset.view = next;
+      document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) => { if (b !== grid) b.setAttribute('aria-pressed', String(b.dataset.view === next)); });
+      try { localStorage.setItem('piper-view', next); } catch {}
+    }
+
+    // ---- Events ----
+    let tId = 0;
+    search.addEventListener('input', () => { clearTimeout(tId); tId = window.setTimeout(apply, 60); });
+    search.addEventListener('keydown', (e) => { if (e.key === 'Escape' && search.value) { e.stopPropagation(); search.value = ''; apply(); } });
+    clearQ.addEventListener('click', () => { search.value = ''; apply(); search.focus(); });
+    document.addEventListener('keydown', (e) => {
+      const typing = (e.target as HTMLElement).closest('input, textarea, select');
+      if (e.key === '/' && !typing) { e.preventDefault(); search.focus(); search.select(); }
+    });
+    facetsEl.addEventListener('change', apply);
+    sort.addEventListener('change', apply);
+    document.querySelectorAll<HTMLButtonElement>('.segmented [data-view]').forEach((b) => b.addEventListener('click', () => { setView(b.dataset.view!); writeUrl(selected()); }));
+    document.getElementById('reset-filters')!.addEventListener('click', reset);
+
+    // Facet "show all" + in-facet filtering
+    document.querySelectorAll<HTMLButtonElement>('[data-more]').forEach((btn) => {
+      const list = btn.parentElement!.querySelector('.facet-list')!;
+      const more = btn.textContent;
+      btn.addEventListener('click', () => {
+        const collapsed = list.classList.toggle('is-collapsed');
+        btn.textContent = collapsed ? more : ui.showLess;
+      });
+    });
+    document.querySelectorAll<HTMLInputElement>('[data-facet-filter]').forEach((inp) => {
+      const body = inp.closest('.facet-body')!;
+      const list = body.querySelector('.facet-list')!;
+      const emptyMsg = body.querySelector<HTMLElement>('.facet-empty')!;
+      const more = body.querySelector<HTMLElement>('[data-more]');
+      inp.addEventListener('input', () => {
+        const q = fold(inp.value);
+        let shown = 0;
+        list.classList.toggle('is-filtering', !!q);
+        list.querySelectorAll<HTMLElement>('.check').forEach((c) => {
+          const ok = !q || c.dataset.label!.includes(q);
+          c.hidden = !ok;
+          if (ok) shown++;
+        });
+        emptyMsg.hidden = shown > 0;
+        if (more) more.hidden = !!q;
+      });
+    });
+
+    // Mobile filter drawer
+    const openDrawer = (open: boolean) => { facetsEl.classList.toggle('is-open', open); scrim.classList.toggle('is-open', open); };
+    document.getElementById('facets-open')!.addEventListener('click', () => openDrawer(true));
+    document.getElementById('facets-close')!.addEventListener('click', () => openDrawer(false));
+    scrim.addEventListener('click', () => openDrawer(false));
+
+    // Prefetch detail pages on intent
+    const prefetched = new Set<string>();
+    const prefetch = (e: Event) => {
+      const a = (e.target as Element).closest<HTMLAnchorElement>('a.vrow');
       if (!a || prefetched.has(a.href)) return;
       prefetched.add(a.href);
       fetch(a.href).catch(() => {});
     };
-    grid.addEventListener('pointerover', (e) => { const a = (e.target as Element).closest<HTMLAnchorElement>('a.voice-row'); if (a) prefetch(a); });
-    grid.addEventListener('focusin', (e) => { const a = (e.target as Element).closest<HTMLAnchorElement>('a.voice-row'); if (a) prefetch(a); });
-    const state = new URLSearchParams(location.search);
-    search.value = state.get('q') || '';
-    langFilter.value = state.get('lang') || '';
-    qualityFilter.value = state.get('quality') || '';
-    multivoiceOnly.checked = state.get('multi') === '1';
-    function apply() {
-      const q = search.value.toLowerCase().trim(); let visible = 0;
-      for (const row of rows) {
-        const ok = (!q || row.dataset.search!.includes(q)) && (!langFilter.value || row.dataset.lang === langFilter.value) && (!qualityFilter.value || row.dataset.quality === qualityFilter.value) && (!multivoiceOnly.checked || row.dataset.multivoice === '1');
-        row.hidden = !ok; if (ok) visible++;
-      }
-      count.textContent = count.dataset.template!.replace('{visible}', new Intl.NumberFormat(count.dataset.numberLocale).format(visible)).replace('{total}', new Intl.NumberFormat(count.dataset.numberLocale).format(rows.length));
-      empty.hidden = visible > 0;
-      const next = new URLSearchParams();
-      if (search.value.trim()) next.set('q', search.value.trim());
-      if (langFilter.value) next.set('lang', langFilter.value);
-      if (qualityFilter.value) next.set('quality', qualityFilter.value);
-      if (multivoiceOnly.checked) next.set('multi', '1');
-      history.replaceState(null, '', `${location.pathname}${next.size ? `?${next}` : ''}`);
-    }
-    [search, langFilter, qualityFilter, multivoiceOnly].forEach((el) => el.addEventListener(el === search ? 'input' : 'change', apply));
-    sort.addEventListener('change', () => {
-      const byName = (a: HTMLAnchorElement, b: HTMLAnchorElement) => a.dataset.name!.localeCompare(b.dataset.name!);
-      const voicesOf = (row: HTMLAnchorElement) => Number(row.dataset.voices || 0);
-      const updatedOf = (row: HTMLAnchorElement) => row.dataset.updated || '0000';
-      rows.sort(sort.value === 'name' ? byName : sort.value === 'voices-desc' ? (a,b) => voicesOf(b)-voicesOf(a) || byName(a,b) : sort.value === 'voices-asc' ? (a,b) => voicesOf(a)-voicesOf(b) || byName(a,b) : sort.value === 'updated-desc' ? (a,b) => updatedOf(b).localeCompare(updatedOf(a)) || byName(a,b) : (a,b) => updatedOf(a).localeCompare(updatedOf(b)) || byName(a,b)).forEach(row => grid.append(row));
-    });
-    reset.addEventListener('click', () => { search.value = ''; langFilter.value = ''; qualityFilter.value = ''; multivoiceOnly.checked = false; apply(); search.focus(); });
+    grid.addEventListener('pointerover', prefetch);
+    grid.addEventListener('focusin', prefetch);
+
+    // Open facets that hold an active selection
+    for (const f of FACETS) if (boxes(f).some((b) => b.checked)) (document.querySelector(`[data-facet="${f}"]`) as HTMLDetailsElement).open = true;
+    setView(view);
     apply();
   </script>
 </Layout>

@@ -1,82 +1,166 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Icon from '../Icon.astro';
 import datasetsData from '../../data/datasets.json';
-import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, localeMeta, t, type Locale } from '../../i18n/ui';
+import { fold } from '../../lib/search';
 
 const { locale = 'fr' as Locale } = Astro.props;
-
 const datasets = datasetsData;
 const base = import.meta.env.BASE_URL;
-
-// Dépôt Hugging Face privé (champ `private` de datasets_mapping.csv) :
-// aucune URL publique accessible, donc pas de lien cliquable.
+const L = (p: string) => localizedPath(base, locale, p);
 const isPrivateRepo = (d: { private?: boolean }) => d.private === true;
+const withModel = datasets.filter((d) => d.modelSlug).length;
 
-const noModel = datasets.filter((d) => !d.modelSlug);
-const hasModel = datasets.filter((d) => d.modelSlug);
+const countBy = (f: (d: (typeof datasets)[number]) => string) => {
+  const c = new Map<string, number>();
+  for (const d of datasets) { const v = f(d); if (v) c.set(v, (c.get(v) || 0) + 1); }
+  return [...c.entries()].sort((a, b) => b[1] - a[1]);
+};
+const langName = (code: string) => languageLabel(code, datasets.find((d) => d.lang === code)?.langName || code, locale);
+const facets = [
+  { id: 'state', title: t(locale, 'datasets.modelState'), options: [['with', withModel], ['without', datasets.length - withModel]].map(([v, n]) => ({ v: v as string, n: n as number, label: v === 'with' ? t(locale, 'datasets.withModel') : t(locale, 'datasets.toTrain') })) },
+  { id: 'source', title: t(locale, 'dataset.source'), options: countBy((d) => d.source || '').map(([v, n]) => ({ v, n, label: v })) },
+  { id: 'lang', title: t(locale, 'filter.language'), options: countBy((d) => d.lang || '').map(([v, n]) => ({ v, n, label: langName(v) })) },
+];
+const ui = { tag: localeMeta(locale).tag, results: t(locale, 'datasets.resultsCount'), facetTitles: Object.fromEntries(facets.map((f) => [f.id, f.title])), remove: t(locale, 'filter.remove'), showLess: t(locale, 'filter.showLess') };
 ---
 
 <Layout title={t(locale, 'datasets.title')} active="datasets" locale={locale} pageUrl="/datasets/" breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'nav.datasets'), path: '/datasets/' }]}
-  description={t(locale, 'datasets.description')} subtitle={`${formatNumber(locale, datasets.length)} ${t(locale, 'datasets.count')} · LJSpeech`}>
-    <header class="catalog-intro editorial-intro dataset-intro">
-      <div><p class="eyebrow">{t(locale, 'datasets.eyebrow')}</p><h1>{t(locale, 'datasets.heading')}</h1></div>
-      <div class="catalog-description"><p>{t(locale, 'datasets.intro')}</p><span class="catalog-count">{formatNumber(locale, datasets.length)} {t(locale, 'datasets.count')} <i>·</i> {t(locale, 'datasets.licenses')}</span></div>
-    </header>
-
-    <section class="dataset-filters" aria-label={t(locale, 'datasets.filters')}>
-      <label class="search-field">
-        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.8"/><path d="m13 13 4.2 4.2"/></svg>
-        <input id="search" type="search" placeholder={t(locale, 'datasets.searchPlaceholder')} autocomplete="off" aria-label={t(locale, 'datasets.searchLabel')} />
-      </label>
-      <div class="dataset-filter-options" role="group" aria-label={t(locale, 'datasets.modelState')}>
-        <button class="filter-option is-on" data-f="all">{t(locale, 'datasets.all')} <span>{formatNumber(locale, datasets.length)}</span></button>
-        <button class="filter-option" data-f="with">{t(locale, 'datasets.withModel')} <span>{formatNumber(locale, hasModel.length)}</span></button>
-        <button class="filter-option" data-f="without">{t(locale, 'datasets.toTrain')} <span>{formatNumber(locale, noModel.length)}</span></button>
+  description={t(locale, 'datasets.description')}>
+  <header class="page-head">
+    <div class="page-head-grid">
+      <div><p class="label">{t(locale, 'datasets.eyebrow')}</p><h1>{t(locale, 'datasets.heading')}</h1></div>
+      <div>
+        <p class="lead">{t(locale, 'datasets.intro')}</p>
+        <div class="page-stats">
+          <div><strong>{formatNumber(locale, datasets.length)}</strong><span>{t(locale, 'datasets.count')}</span></div>
+          <div><strong>{formatNumber(locale, withModel)}</strong><span>{t(locale, 'datasets.withModel')}</span></div>
+          <div><strong>{formatNumber(locale, datasets.length - withModel)}</strong><span>{t(locale, 'datasets.toTrain')}</span></div>
+        </div>
       </div>
-      <span id="count" class="count" data-template={t(locale, 'datasets.results')} data-number-locale={locale === 'fr' ? 'fr-FR' : 'en-US'}>{t(locale, 'datasets.results', { visible: formatNumber(locale, datasets.length), total: formatNumber(locale, datasets.length) })}</span>
-    </section>
+    </div>
+  </header>
 
-    <main id="grid" class="grid">
-      {datasets.map((d) => (
-          <a class="card ds" data-has={d.modelSlug ? '1' : '0'}
-            href={localizedPath(base, locale, `/dataset/${d.slug}/`)}
-            data-search={`${d.name} ${d.class} ${d.source} ${d.repo}`.toLowerCase()}>
-            <h2>{d.name}</h2>
-            <div class="meta">
-              <span class="badge">{d.source || '-'}</span>
-              <span class="badge">{languageLabel(d.lang, d.langName || d.lang, locale)}</span>
-              {d.modelSlug
-                ? <span class="badge ok">{t(locale, 'datasets.associated')}</span>
-                : <span class="badge missing">{t(locale, 'datasets.toTrain')}</span>}
+  <main class="catalog" data-local-search>
+    <div class="facets-scrim" id="scrim"></div>
+    <aside class="facets" id="facets" aria-label={t(locale, 'datasets.filters')}>
+      <div class="facets-head"><span>{t(locale, 'filter.filters')}</span><button class="icon-btn" type="button" id="facets-close" aria-label={t(locale, 'search.hintClose')}><Icon name="close" size={18} /></button></div>
+      {facets.map((f) => (
+        <details class="facet" open data-facet={f.id}>
+          <summary>{f.title}<Icon name="chevronDown" size={16} /></summary>
+          <div class="facet-body">
+            <div class={`facet-list${f.options.length > 8 ? ' is-collapsed' : ''}`}>
+              {f.options.map((o) => <label class="check" data-label={fold(o.label)}><input type="checkbox" name={f.id} value={o.v} /><span class="check-label">{o.label}</span><span class="count" data-count>{formatNumber(locale, o.n)}</span></label>)}
+            </div>
+            {f.options.length > 8 && <button type="button" class="facet-more" data-more>{t(locale, 'filter.showAll')} ({formatNumber(locale, f.options.length)})</button>}
+          </div>
+        </details>
+      ))}
+    </aside>
+
+    <div class="catalog-main">
+      <div class="catalog-toolbar">
+        <button class="btn filters-btn" type="button" id="facets-open"><Icon name="filter" size={16} />{t(locale, 'filter.filters')}</button>
+        <label class="textbox">
+          <Icon name="search" size={18} />
+          <input id="search" type="search" placeholder={t(locale, 'datasets.searchPlaceholder')} autocomplete="off" spellcheck="false" aria-label={t(locale, 'datasets.searchLabel')} />
+          <kbd class="kbd">/</kbd>
+        </label>
+      </div>
+      <div class="results-head">
+        <p class="results-count" id="count" aria-live="polite"></p>
+        <div class="active-chips" id="chips"></div>
+      </div>
+      <div id="grid" class="dlist">
+        {datasets.map((d) => (
+          <a class="drow" href={L(`/dataset/${d.slug}/`)}
+            data-state={d.modelSlug ? 'with' : 'without'} data-source={d.source || ''} data-lang={d.lang || ''}
+            data-search={fold(`${d.name} ${d.class} ${d.source} ${d.repo} ${d.lang} ${langName(d.lang)} ${d.model || ''}`)} data-title={fold(d.name)}>
+            <div class="drow-head">
+              <span class="drow-icon"><Icon name="database" size={20} /></span>
+              <div style="min-width:0"><h3>{d.name}</h3><small>{d.repo && !d.repo.startsWith('↔') ? d.repo : (d.model || t(locale, 'datasets.noRepo'))}</small></div>
+            </div>
+            <div class="drow-tags">
+              {d.source && <span class="badge">{d.source}</span>}
+              {d.lang && <span class="badge">{langName(d.lang)}</span>}
+              {d.modelSlug ? <span class="badge badge-success"><span class="dot"></span>{t(locale, 'datasets.associated')}</span> : <span class="badge badge-warning"><span class="dot"></span>{t(locale, 'datasets.toTrain')}</span>}
               {isPrivateRepo(d) && <span class="badge">{t(locale, 'common.private')}</span>}
             </div>
-            <p class="author">{d.repo && !d.repo.startsWith('↔') ? d.repo : (d.model || t(locale, 'datasets.noRepo'))}</p>
           </a>
-      ))}
-    </main>
+        ))}
+      </div>
+      <div class="empty-state" id="empty-results" hidden>
+        <Icon name="search" size={40} />
+        <h2>{t(locale, 'voices.empty')}</h2>
+        <button class="btn" type="button" id="reset-filters">{t(locale, 'voices.clearFilters')}</button>
+      </div>
+    </div>
+  </main>
+  <script is:inline type="application/json" id="catalog-ui" set:html={JSON.stringify(ui)} />
 
-    <script>
-      const search = document.getElementById('search') as HTMLInputElement;
-      const chips = [...document.querySelectorAll<HTMLButtonElement>('.filter-option')];
-      const cards = [...document.querySelectorAll<HTMLAnchorElement>('.card')];
-      const count = document.getElementById('count') as HTMLElement;
-      // `f` peut être undefined si l'attribut data-f manque : même valeur runtime qu'avant, aucun comportement changé.
-      let f: string | undefined = 'all', q = '';
-      function apply() {
-        let n = 0;
-        for (const c of cards) {
-          const ok = (!q || c.dataset.search!.includes(q))
-            && (f === 'all' || (f === 'with') === (c.dataset.has === '1'));
-          c.style.display = ok ? '' : 'none';
-          if (ok) n++;
-        }
-        count.textContent = count.dataset.template!.replace('{visible}', new Intl.NumberFormat(count.dataset.numberLocale).format(n)).replace('{total}', new Intl.NumberFormat(count.dataset.numberLocale).format(cards.length));
+  <script>
+    import { scoreItem, tokens } from '../../lib/search';
+    const ui = JSON.parse(document.getElementById('catalog-ui')!.textContent || '{}');
+    const nf = new Intl.NumberFormat(ui.tag);
+    const search = document.getElementById('search') as HTMLInputElement;
+    const grid = document.getElementById('grid') as HTMLElement;
+    const cards = [...grid.querySelectorAll<HTMLElement>('.drow')];
+    const countEl = document.getElementById('count') as HTMLElement;
+    const chipsEl = document.getElementById('chips') as HTMLElement;
+    const empty = document.getElementById('empty-results') as HTMLElement;
+    const facetsEl = document.getElementById('facets') as HTMLElement;
+    const scrim = document.getElementById('scrim') as HTMLElement;
+    const FACETS = [...document.querySelectorAll<HTMLElement>('[data-facet]')].map((el) => el.dataset.facet!);
+    const boxes = (id: string) => [...document.querySelectorAll<HTMLInputElement>(`input[name="${id}"]`)];
+    const params = new URLSearchParams(location.search);
+    search.value = params.get('q') || '';
+    FACETS.forEach((f) => { const v = (params.get(f) || '').split(','); boxes(f).forEach((b) => (b.checked = v.includes(b.value))); });
+
+    const sel = () => Object.fromEntries(FACETS.map((f) => [f, new Set(boxes(f).filter((b) => b.checked).map((b) => b.value))])) as Record<string, Set<string>>;
+    const ok = (c: HTMLElement, s: Record<string, Set<string>>, skip?: string) => FACETS.every((f) => f === skip || !s[f].size || s[f].has(c.dataset[f] || ''));
+    function apply() {
+      const toks = tokens(search.value);
+      const s = sel();
+      const textOk = cards.filter((c) => scoreItem(c.dataset.search!, c.dataset.title!, toks) > 0);
+      let n = 0;
+      for (const c of cards) { const v = textOk.includes(c) && ok(c, s); c.hidden = !v; if (v) n++; }
+      for (const f of FACETS) {
+        const cnt = new Map<string, number>();
+        for (const c of textOk) if (ok(c, s, f)) cnt.set(c.dataset[f] || '', (cnt.get(c.dataset[f] || '') || 0) + 1);
+        for (const b of boxes(f)) { const k = cnt.get(b.value) || 0; const l = b.closest('.check') as HTMLElement; l.querySelector('[data-count]')!.textContent = nf.format(k); l.classList.toggle('is-zero', !k && !b.checked); }
       }
-      chips.forEach((c) => c.addEventListener('click', () => {
-        chips.forEach((x) => x.classList.remove('is-on')); c.classList.add('is-on');
-        f = c.dataset.f; apply();
-      }));
-      search.addEventListener('input', () => { q = search.value.toLowerCase().trim(); apply(); });
-      apply();
-    </script>
+      countEl.innerHTML = ui.results.replace('{visible}', `<strong>${nf.format(n)}</strong>`).replace('{total}', nf.format(cards.length));
+      empty.hidden = n > 0;
+      chipsEl.replaceChildren();
+      for (const f of FACETS) for (const b of boxes(f)) if (b.checked) {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'chip';
+        btn.innerHTML = `<span class="chip-k"></span><span></span><span class="chip-x" aria-hidden="true"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg></span>`;
+        (btn.children[0] as HTMLElement).textContent = ui.facetTitles[f];
+        (btn.children[1] as HTMLElement).textContent = b.closest('.check')!.querySelector('.check-label')!.textContent;
+        btn.setAttribute('aria-label', `${ui.remove}: ${btn.children[1].textContent}`);
+        btn.addEventListener('click', () => { b.checked = false; apply(); });
+        chipsEl.append(btn);
+      }
+      const next = new URLSearchParams();
+      if (search.value.trim()) next.set('q', search.value.trim());
+      FACETS.forEach((f) => { if (s[f].size) next.set(f, [...s[f]].join(',')); });
+      const qs = next.toString();
+      history.replaceState(null, '', location.pathname + (qs ? `?${qs}` : ''));
+    }
+    search.addEventListener('input', apply);
+    facetsEl.addEventListener('change', apply);
+    document.addEventListener('keydown', (e) => { if (e.key === '/' && !(e.target as HTMLElement).closest('input, textarea, select')) { e.preventDefault(); search.focus(); } });
+    document.getElementById('reset-filters')!.addEventListener('click', () => { search.value = ''; FACETS.forEach((f) => boxes(f).forEach((b) => (b.checked = false))); apply(); });
+    document.querySelectorAll<HTMLButtonElement>('[data-more]').forEach((btn) => {
+      const list = btn.parentElement!.querySelector('.facet-list')!; const more = btn.textContent;
+      btn.addEventListener('click', () => { btn.textContent = list.classList.toggle('is-collapsed') ? more : ui.showLess; });
+    });
+    const drawer = (o: boolean) => { facetsEl.classList.toggle('is-open', o); scrim.classList.toggle('is-open', o); };
+    document.getElementById('facets-open')!.addEventListener('click', () => drawer(true));
+    document.getElementById('facets-close')!.addEventListener('click', () => drawer(false));
+    scrim.addEventListener('click', () => drawer(false));
+    apply();
+  </script>
 </Layout>
