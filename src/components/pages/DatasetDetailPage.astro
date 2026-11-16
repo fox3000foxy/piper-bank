@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import Icon from '../Icon.astro';
+import Flag from '../Flag.astro';
 import { languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
 
 const { locale = 'fr' as Locale } = Astro.props;
@@ -61,7 +62,7 @@ if (d.license) datasetSchema.license = d.license.startsWith('http')
   </div>
 
   <section class="tags">
-    <span class="tag lang">{languageLabel(d.lang, d.langName || d.lang, locale)}</span>
+    <span class="tag lang"><Flag lang={d.lang} />{languageLabel(d.lang, d.langName || d.lang, locale)}</span>
     <span class="tag">{d.source || '-'}</span>
     {hasModel
       ? <a class="tag voices" href={localizedPath(base, locale, `/model/${d.modelSlug}/`)}>{t(locale, 'dataset.modelAssociated', { model: d.model })}</a>

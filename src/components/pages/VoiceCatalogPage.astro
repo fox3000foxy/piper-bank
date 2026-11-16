@@ -2,16 +2,20 @@
 import Layout from '../../layouts/Layout.astro';
 import Icon from '../Icon.astro';
 import ModelAvatar from '../ModelAvatar.astro';
+import Flag from '../Flag.astro';
 import data from '../../data/models.json';
 import { formatNumber, languageLabel, localizedPath, localeMeta, t, type Locale, type MessageKey } from '../../i18n/ui';
 import { fold } from '../../lib/search';
+import { sampleUrl, voiceTraits } from '../../lib/voices';
 
-const { locale = 'fr' as Locale } = Astro.props;
+// presetLang: renders a language landing page (/voices/language/<code>/) with only that language.
+const { locale = 'fr' as Locale, presetLang = '' } = Astro.props as { locale?: Locale; presetLang?: string };
 const base = import.meta.env.BASE_URL;
 const L = (p: string) => localizedPath(base, locale, p);
 
-const models = data
-  .filter((m) => m.usable || m.piperPlus)
+const allModels = data.filter((m) => m.usable || m.piperPlus);
+const models = allModels
+  .filter((m) => !presetLang || m.lang === presetLang)
   .sort((a, b) => (b.updated || '').localeCompare(a.updated || '') || a.name.localeCompare(b.name));
 const totalVoices = models.reduce((acc, m) => acc + m.voices, 0);
 const freshCutoff = Date.now() - 14 * 864e5;
@@ -42,19 +46,22 @@ const rows = models.map((m) => ({
   author: m.author,
   dataset: m.dataset ? '1' : '',
   recent: m.updated && new Date(m.updated + 'T00:00:00Z').getTime() >= freshCutoff ? '1' : '',
+  traits: voiceTraits(m as any).join(' '),
 }));
 
 type Opt = { v: string; label: string; n: number };
+// Space-separated values = multi-valued facet (traits).
 const count = (key: keyof (typeof rows)[number], order?: string[]): [string, number][] => {
   const c = new Map<string, number>();
-  for (const r of rows) { const v = r[key] as string; if (v) c.set(v, (c.get(v) || 0) + 1); }
+  for (const r of rows) for (const v of String(r[key] || '').split(' ').filter(Boolean)) c.set(v, (c.get(v) || 0) + 1);
   const entries = [...c.entries()];
   return order ? order.filter((o) => c.has(o)).map((o) => [o, c.get(o)!]) : entries.sort((a, b) => b[1] - a[1]);
 };
 const opts = (pairs: [string, number][], label: (v: string) => string): Opt[] => pairs.map(([v, n]) => ({ v, n, label: label(v) }));
 
-const facets: { id: string; title: string; search?: boolean; open?: boolean; options: Opt[] }[] = [
+const allFacets: { id: string; title: string; search?: boolean; open?: boolean; options: Opt[] }[] = [
   { id: 'lang', title: t(locale, 'filter.language'), search: true, open: true, options: opts(count('lang'), (v) => langLabel(models.find((m) => m.lang === v)!)).sort((a, b) => b.n - a.n || a.label.localeCompare(b.label)) },
+  { id: 'traits', title: t(locale, 'filter.traits'), open: true, options: opts(count('traits', ['expressive', 'character', 'female', 'male']), (v) => t(locale, `trait.${v}` as MessageKey)) },
   { id: 'quality', title: t(locale, 'filter.quality'), open: true, options: opts(count('quality', ['high', 'medium', 'low', 'unknown']), (v) => t(locale, qKey(v))) },
   { id: 'speakers', title: t(locale, 'filter.speakers'), open: true, options: opts(count('speakers', ['single', 'multi']), (v) => (v === 'multi' ? t(locale, 'filter.multiVoice') : t(locale, 'common.oneSpeaker'))) },
   { id: 'source', title: t(locale, 'filter.source'), open: true, options: opts(count('source', ['official', 'community']), (v) => t(locale, v === 'official' ? 'filter.official' : 'filter.community')) },
@@ -65,12 +72,28 @@ const facets: { id: string; title: string; search?: boolean; open?: boolean; opt
   { id: 'rate', title: t(locale, 'detail.sampleRate'), options: opts(count('rate').sort((a, b) => Number(b[0]) - Number(a[0])), (v) => `${formatNumber(locale, Number(v))} Hz`) },
   { id: 'author', title: t(locale, 'detail.author'), search: true, options: opts(count('author'), (v) => v) },
 ];
-const langs = facets[0].options.length;
-const metaDescription = t(locale, 'voices.metaDescription', {
-  models: formatNumber(locale, models.length),
-  langs: formatNumber(locale, langs),
-  voices: formatNumber(locale, totalVoices),
-});
+// A language page has a single language: drop that facet, and any facet left with one option.
+const facets = allFacets.filter((f) => !(presetLang && f.id === 'lang') && f.options.length > 0 && !(presetLang && f.options.length < 2 && f.id !== 'traits'));
+const langs = new Set(models.map((m) => m.lang)).size;
+const presetLabel = presetLang ? languageLabel(presetLang, models[0]?.langName || presetLang, locale) : '';
+// Lower-case form for languages that write language names in lower case mid-sentence (fr, es, it, pt…).
+const presetLower = ['en', 'de'].includes(locale) ? presetLabel : presetLabel.toLocaleLowerCase(localeMeta(locale).tag);
+const pageUrl = presetLang ? `/voices/language/${presetLang}/` : '/voices/';
+const metaDescription = presetLang
+  ? t(locale, 'langPage.metaDescription', { language: presetLabel, languageLower: presetLower, models: formatNumber(locale, models.length), voices: formatNumber(locale, totalVoices) })
+  : t(locale, 'voices.metaDescription', {
+      models: formatNumber(locale, models.length),
+      langs: formatNumber(locale, langs),
+      voices: formatNumber(locale, totalVoices),
+    });
+const pageTitle = presetLang ? t(locale, 'langPage.title', { language: presetLabel, languageLower: presetLower }) : t(locale, 'voices.title');
+const crumbs = [{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'nav.voices'), path: '/voices/' }, ...(presetLang ? [{ name: presetLabel, path: pageUrl }] : [])];
+// Other languages, for the language page footer links (internal linking for SEO).
+const otherLangs = presetLang
+  ? [...new Map(allModels.filter((m) => m.lang !== presetLang).map((m) => [m.lang, m])).values()]
+      .map((m) => ({ code: m.lang, label: languageLabel(m.lang, m.langName, locale), n: allModels.filter((x) => x.lang === m.lang).length }))
+      .sort((a, b) => b.n - a.n)
+  : [];
 const ui = {
   tag: localeMeta(locale).tag,
   results: t(locale, 'voices.resultsCount'),
@@ -82,16 +105,21 @@ const ui = {
   showLess: t(locale, 'filter.showLess'),
 };
 ---
-<Layout title={t(locale, 'voices.title')} active="voices" locale={locale} pageUrl="/voices/" breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'nav.voices'), path: '/voices/' }]} description={metaDescription}>
+<Layout title={pageTitle} active="voices" locale={locale} pageUrl={pageUrl} breadcrumbs={crumbs} description={metaDescription}>
   <header class="page-head">
     <div class="page-head-grid">
-      <div><p class="label">{t(locale, 'voices.eyebrow')}</p><h1>{t(locale, 'voices.heading')}</h1></div>
       <div>
-        <p class="lead">{t(locale, 'voices.intro')}</p>
+        {presetLang
+          ? <p class="label"><a class="crumb-link" href={L('/voices/')}>{t(locale, 'nav.voices')}</a> / {presetLabel}</p>
+          : <p class="label">{t(locale, 'voices.eyebrow')}</p>}
+        <h1 class={presetLang ? 'h1-lang' : ''}>{presetLang && <Flag lang={presetLang} class="flag-xl" />}{presetLang ? t(locale, 'langPage.heading', { language: presetLabel }) : t(locale, 'voices.heading')}</h1>
+      </div>
+      <div>
+        <p class="lead">{presetLang ? t(locale, 'langPage.intro', { language: presetLabel, languageLower: presetLower }) : t(locale, 'voices.intro')}</p>
         <div class="page-stats">
           <div><strong>{formatNumber(locale, models.length)}</strong><span>{t(locale, 'voices.models')}</span></div>
           <div><strong>{formatNumber(locale, totalVoices)}</strong><span>{t(locale, 'voices.speakers')}</span></div>
-          <div><strong>{formatNumber(locale, langs)}</strong><span>{t(locale, 'search.languages')}</span></div>
+          {!presetLang && <div><strong>{formatNumber(locale, langs)}</strong><span>{t(locale, 'search.languages')}</span></div>}
         </div>
       </div>
     </div>
@@ -113,7 +141,7 @@ const ui = {
           <div class="facet-body">
             {f.search && <label class="textbox facet-search"><Icon name="search" size={14} /><input type="text" data-facet-filter={f.id} placeholder={t(locale, 'filter.find')} aria-label={`${t(locale, 'filter.find')} · ${f.title}`} /></label>}
             <div class={`facet-list${f.options.length > 8 ? ' is-collapsed' : ''}`}>
-              {f.options.map((o) => <label class="check" data-label={fold(o.label + ' ' + o.v)}><input type="checkbox" name={f.id} value={o.v} /><span class="check-label">{o.label}</span><span class="count" data-count>{formatNumber(locale, o.n)}</span></label>)}
+              {f.options.map((o) => <label class="check" data-label={fold(o.label + ' ' + o.v)}><input type="checkbox" name={f.id} value={o.v} />{f.id === 'lang' && <Flag lang={o.v} />}<span class="check-label">{o.label}</span><span class="count" data-count>{formatNumber(locale, o.n)}</span></label>)}
             </div>
             <p class="facet-empty" hidden>{t(locale, 'voices.empty')}</p>
             {f.options.length > 8 && <button type="button" class="facet-more" data-more>{t(locale, 'filter.showAll')} ({formatNumber(locale, f.options.length)})</button>}
@@ -157,22 +185,31 @@ const ui = {
       <div id="grid" class="vlist" data-view="list">
         {rows.map((r) => {
           const m = r.m;
-          return <a class="vrow" href={L(`/model/${m.slug}/`)}
+          const sid = (m.voiceIds || [])[0] ?? 0;
+          return <div class="vrow" data-play-row data-href={L(`/model/${m.slug}/`)}
             data-lang={r.lang} data-quality={r.quality} data-speakers={r.speakers} data-source={r.source} data-license={r.license}
             data-collection={r.collection} data-engine={r.engine} data-phonemes={r.phonemes} data-rate={r.rate} data-author={r.author}
-            data-dataset={r.dataset} data-recent={r.recent}
+            data-dataset={r.dataset} data-recent={r.recent} data-traits={r.traits}
             data-name={m.name} data-voices={m.voices} data-updated={m.updated || ''}
             data-title={fold(m.name)}
-            data-search={fold(`${m.name} ${m.author} ${m.langName} ${langLabel(m)} ${m.lang} ${m.repo} ${m.license || ''} ${r.collection} ${(m.voiceNames || []).filter((v: string) => !/^voice-\d+$/.test(v)).join(' ')}`)}>
-            <ModelAvatar model={m} locale={locale} />
-            <span class="vrow-title"><strong><span data-hl>{shortName(m.name)}</span>{r.recent && <span class="new-pill">{t(locale, 'common.new')}</span>}{m.piperPlus && <span class="plus-pill">Piper+</span>}</strong><small>{m.author} · {m.repo}</small></span>
+            data-search={fold(`${m.name} ${m.author} ${m.langName} ${langLabel(m)} ${m.lang} ${m.repo} ${m.license || ''} ${r.collection} ${r.traits.split(' ').filter(Boolean).map((x) => t(locale, `trait.${x}` as MessageKey)).join(' ')} ${(m.voiceNames || []).filter((v: string) => !/^voice-\d+$/.test(v)).join(' ')}`)}>
+            <span class="vrow-lead">
+              <ModelAvatar model={m} locale={locale} />
+              <button type="button" class="vrow-play" data-play={sampleUrl(m.repo, m.onnx, sid, 0)} data-play-label={t(locale, 'voices.playSample', { name: shortName(m.name) })} data-pause-label={t(locale, 'voices.pauseSample', { name: shortName(m.name) })} aria-label={t(locale, 'voices.playSample', { name: shortName(m.name) })} aria-pressed="false">
+                <svg class="i-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 4.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L7.4 4.1a.6.6 0 0 0-.9.5Z"/></svg>
+                <svg class="i-pause" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg>
+              </button>
+            </span>
+            <span class="vrow-title"><strong><a class="vrow-link" href={L(`/model/${m.slug}/`)}><span data-hl>{shortName(m.name)}</span></a>{r.recent && <span class="new-pill">{t(locale, 'common.new')}</span>}{m.piperPlus && <span class="plus-pill">Piper+</span>}</strong><small>{m.author} · {m.repo}</small></span>
             <span class="vrow-tags">
-              <span class="vrow-lang">{langLabel(m)}</span>
+              <span class="vrow-lang"><Flag lang={m.lang} />{langLabel(m)}</span>
               <span class="vrow-q"><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span></span>
               <span class="vrow-speakers">{m.voices > 1 ? t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
             </span>
-            <Icon name="chevronRight" size={18} class="go" />
-          </a>;
+            <button type="button" class="vrow-fav" data-fav={m.slug} aria-pressed="false" aria-label={t(locale, 'fav.toggle', { name: shortName(m.name) })} title={t(locale, 'fav.add')}>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg>
+            </button>
+          </div>;
         })}
       </div>
 
@@ -184,10 +221,20 @@ const ui = {
       </div>
     </div>
   </main>
+  {presetLang && otherLangs.length > 0 && (
+    <section class="section other-langs" aria-labelledby="other-langs">
+      <div class="section-head"><div><h2 id="other-langs">{t(locale, 'langPage.others')}</h2></div><div class="section-head-side"><a class="link-arrow" href={L('/voices/')}>{t(locale, 'langPage.allVoices')}<Icon name="arrowRight" size={16} /></a></div></div>
+      <ul class="lang-links">
+        {otherLangs.map((o) => <li><a href={L(`/voices/language/${o.code}/`)}><Flag lang={o.code} /><span>{o.label}</span><small>{formatNumber(locale, o.n)}</small></a></li>)}
+      </ul>
+    </section>
+  )}
   <script is:inline type="application/json" id="catalog-ui" set:html={JSON.stringify(ui)} />
 
   <script>
     import { fold, scoreItem, tokens } from '../../lib/search';
+    import { bindFavButtons } from '../../lib/favorites';
+    import { bindQuickPlay } from '../../lib/quickplay';
 
     const ui = JSON.parse(document.getElementById('catalog-ui')!.textContent || '{}');
     const nf = new Intl.NumberFormat(ui.tag);
@@ -202,7 +249,7 @@ const ui = {
     const facetsEl = document.getElementById('facets') as HTMLElement;
     const scrim = document.getElementById('scrim') as HTMLElement;
     const filtersN = document.getElementById('filters-n') as HTMLElement;
-    const rows = [...grid.querySelectorAll<HTMLAnchorElement>('.vrow')];
+    const rows = [...grid.querySelectorAll<HTMLElement>('.vrow')];
     const original = new Map(rows.map((r) => [r, r.querySelector<HTMLElement>('[data-hl]')!.textContent || '']));
     const FACETS = [...document.querySelectorAll<HTMLElement>('[data-facet]')].map((el) => el.dataset.facet!);
     const TOGGLES = ['dataset', 'recent'];
@@ -262,8 +309,10 @@ const ui = {
 
     // ---- Core ----
     const scores = new Map<HTMLElement, number>();
+    // Facet values of a row; multi-valued facets (traits) are space-separated.
+    const vals = (r: HTMLElement, f: string) => (r.dataset[f] || '').split(' ').filter(Boolean);
     function matchesFacets(r: HTMLElement, sel: Record<string, Set<string>>, skip?: string) {
-      for (const f of FACETS) if (f !== skip && sel[f].size && !sel[f].has(r.dataset[f] || '')) return false;
+      for (const f of FACETS) if (f !== skip && sel[f].size && !vals(r, f).some((v) => sel[f].has(v))) return false;
       for (const tg of TOGGLES) if (toggle(tg).checked && r.dataset[tg] !== '1') return false;
       return true;
     }
@@ -292,7 +341,7 @@ const ui = {
       // Facet counts: each facet counts against every other active filter (disjunctive faceting).
       for (const f of FACETS) {
         const c = new Map<string, number>();
-        for (const r of textOk) if (matchesFacets(r, sel, f)) c.set(r.dataset[f] || '', (c.get(r.dataset[f] || '') || 0) + 1);
+        for (const r of textOk) if (matchesFacets(r, sel, f)) for (const v of vals(r, f)) c.set(v, (c.get(v) || 0) + 1);
         for (const b of boxes(f)) {
           const n = c.get(b.value) || 0;
           const label = b.closest('.check') as HTMLElement;
@@ -425,7 +474,7 @@ const ui = {
     // Prefetch detail pages on intent
     const prefetched = new Set<string>();
     const prefetch = (e: Event) => {
-      const a = (e.target as Element).closest<HTMLAnchorElement>('a.vrow');
+      const a = (e.target as Element).closest('.vrow')?.querySelector<HTMLAnchorElement>('a.vrow-link');
       if (!a || prefetched.has(a.href)) return;
       prefetched.add(a.href);
       fetch(a.href).catch(() => {});
@@ -435,6 +484,18 @@ const ui = {
 
     // Open facets that hold an active selection
     for (const f of FACETS) if (boxes(f).some((b) => b.checked)) (document.querySelector(`[data-facet="${f}"]`) as HTMLDetailsElement).open = true;
+    // Whole row opens the model page; buttons and links inside keep their own action.
+    grid.addEventListener('click', (e) => {
+      const el = e.target as Element;
+      if (el.closest('button, a')) return;
+      const row = el.closest<HTMLElement>('.vrow');
+      if (!row) return;
+      const me = e as MouseEvent;
+      if (me.ctrlKey || me.metaKey) window.open(row.dataset.href, '_blank');
+      else location.href = row.dataset.href!;
+    });
+    bindFavButtons(grid);
+    bindQuickPlay(grid);
     setView(view);
     apply();
   </script>

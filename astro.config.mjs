@@ -10,6 +10,8 @@ const SITE = 'https://piperhub.org';
 
 // lastmod par page modèle depuis les données (dates de commit ONNX).
 const rootDir = dirname(fileURLToPath(import.meta.url));
+// Absolute project root for build-time endpoints that read files from public/ (OG images).
+process.env.PIPERHUB_ROOT = rootDir;
 const lastmod = new Map();
 try {
   const models = JSON.parse(readFileSync(join(rootDir, 'src/data/models.json'), 'utf8'));
@@ -30,7 +32,7 @@ export default defineConfig({
       // (Plus aucune route /en/ : l'anglais canonique vit à la racine.)
       filter: (page) => {
         const path = new URL(page).pathname;
-        return !/\/(privacy|terms|legal)\/?$/.test(path);
+        return !/\/(privacy|terms|legal|library|compare)\/?$/.test(path);
       },
       serialize(item) {
         // hreflang servis dans le <head> de chaque page (Layout.astro),

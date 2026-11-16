@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import Icon from '../Icon.astro';
 import ModelAvatar from '../ModelAvatar.astro';
+import Flag from '../Flag.astro';
 import data from '../../data/models.json';
 import datasets from '../../data/datasets.json';
 import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
@@ -103,8 +104,8 @@ const userLang = locale === 'en' ? 'en' : locale;
         <a class="link-arrow" href={L('/voices/')}>{t(locale, 'home.browseModels', { count: formatNumber(locale, models.length) })}<Icon name="arrowRight" size={16} /></a>
       </div>
       <div class="lang-grid">
-        {topLangs.map(([code, info]) => <a class="lang-tile" href={L(`/voices/?lang=${code}`)}>
-          <span class="lang-tile-top"><span class="lang-tile-code">{code}</span><Icon name="arrowUpRight" size={18} /></span>
+        {topLangs.map(([code, info]) => <a class="lang-tile" href={L(`/voices/language/${code}/`)}>
+          <span class="lang-tile-top"><span class="lang-tile-flag"><Flag lang={code} /><span class="lang-tile-code">{code}</span></span><Icon name="arrowUpRight" size={18} /></span>
           <span><strong>{languageLabel(code, info.name, locale)}</strong><span class="n">{formatNumber(locale, info.n)} {t(locale, 'voices.models')}</span></span>
         </a>)}
       </div>

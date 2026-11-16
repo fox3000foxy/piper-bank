@@ -2,12 +2,17 @@
 // Pages and docs entries are localized in the layout; this file only holds data.
 import models from '../data/models.json';
 import datasets from '../data/datasets.json';
+import { flagFor } from '../lib/flags';
 
 export function GET() {
   const m = models
     .filter((x) => x.usable || x.piperPlus)
     .map((x) => ({
       s: x.slug,
+      r: x.repo,
+      o: x.onnx,
+      fl: flagFor(x.lang),
+      u: x.updated || '',
       n: x.name,
       l: x.lang,
       ln: x.langName,
