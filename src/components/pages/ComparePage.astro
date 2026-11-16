@@ -1,0 +1,208 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../Icon.astro';
+import { localizedPath, localeMeta, t, type Locale } from '../../i18n/ui';
+
+const { locale = 'en' as Locale } = Astro.props as { locale?: Locale };
+const base = import.meta.env.BASE_URL;
+const L = (p: string) => localizedPath(base, locale, p);
+const ui = {
+  tag: localeMeta(locale).tag,
+  home: L('/'),
+  base,
+  add: t(locale, 'compare.add'),
+  remove: t(locale, 'compare.remove'),
+  speaker: t(locale, 'compare.speaker'),
+  searchPh: t(locale, 'compare.searchPlaceholder'),
+  waiting: t(locale, 'compare.waiting'),
+  ready: t(locale, 'compare.ready'),
+  failed: t(locale, 'compare.failed'),
+  needText: t(locale, 'detail.enterTextStatus'),
+  needVoices: t(locale, 'compare.needVoices'),
+  play: t(locale, 'detail.playSynthesis'),
+  pause: t(locale, 'detail.pauseSynthesis'),
+  download: t(locale, 'detail.downloadAudio'),
+  plusOnly: t(locale, 'compare.plusOnly'),
+  q: { high: t(locale, 'quality.high'), medium: t(locale, 'quality.medium'), low: t(locale, 'quality.low'), unknown: t(locale, 'quality.unknown') },
+};
+---
+<Layout title={t(locale, 'compare.title')} locale={locale} pageUrl="/compare/" noindex
+  breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'compare.title'), path: '/compare/' }]}
+  description={t(locale, 'compare.intro')}>
+  <header class="page-head">
+    <div class="page-head-grid">
+      <div><p class="label">{t(locale, 'compare.label')}</p><h1>{t(locale, 'compare.title')}</h1></div>
+      <div><p class="lead">{t(locale, 'compare.intro')}</p></div>
+    </div>
+  </header>
+
+  <main class="wrap compare">
+    <section class="cmp-text">
+      <label for="cmp-text" class="label">{t(locale, 'compare.textLabel')}</label>
+      <textarea id="cmp-text" rows="3" placeholder={t(locale, 'detail.enterText')}></textarea>
+      <div class="editor-submit"><span id="cmp-global" class="dim" aria-live="polite"></span><button id="cmp-run" type="button">{t(locale, 'compare.run')} <span aria-hidden="true">→</span></button></div>
+    </section>
+    <section class="cmp-slots" id="slots" aria-label={t(locale, 'compare.title')}></section>
+  </main>
+  <script is:inline type="application/json" id="compare-ui" set:html={JSON.stringify(ui)} />
+
+  <script>
+    import { fold, scoreItem, tokens } from '../../lib/search';
+    type M = { s: string; n: string; r: string; o: string; fl: string; l: string; q: string; a: string; v: number; h: number; i: string; p: number };
+    type Slot = { m: M; sid: number; names?: string[]; ids?: number[]; status: string; url?: string; err?: boolean };
+    const ui = JSON.parse(document.getElementById('compare-ui')!.textContent || '{}');
+    const B = ui.base.replace(/\/?$/, '/');
+    const MAX = 4;
+    const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    const short = (n: string) => n.replace(/\s+(?:x[_\s]?)?(?:high|medium|low|unknown)$/i, '');
+    let langName: (c: string) => string = (c) => c;
+    try { const dn = new Intl.DisplayNames([ui.tag], { type: 'language' }); langName = (c) => { const v = dn.of(c) || c; return v.charAt(0).toLocaleUpperCase(ui.tag) + v.slice(1); }; } catch {}
+    const text = document.getElementById('cmp-text') as HTMLTextAreaElement;
+    const box = document.getElementById('slots')!;
+    const global = document.getElementById('cmp-global')!;
+    const slots: Slot[] = [];
+    let index: M[] = [];
+    let hay: string[] = [];
+    const dataCache = new Map<string, any>();
+    const getData = async (slug: string) => {
+      if (!dataCache.has(slug)) dataCache.set(slug, fetch(`${B}model-data/${slug}.json`).then((r) => r.json()));
+      return dataCache.get(slug);
+    };
+
+    function syncUrl() {
+      const p = new URLSearchParams();
+      if (slots.length) p.set('v', slots.map((s) => s.m.s + (s.sid ? `:${s.sid}` : '')).join(','));
+      if (text.value.trim()) p.set('t', text.value.trim());
+      history.replaceState(null, '', location.pathname + (p.toString() ? `?${p}` : ''));
+    }
+
+    async function addSlot(slug: string, sid = 0) {
+      const m = index.find((x) => x.s === slug);
+      if (!m || m.p || slots.length >= MAX || slots.some((s) => s.m.s === slug && s.sid === sid)) return;
+      const slot: Slot = { m, sid, status: '' };
+      slots.push(slot);
+      render();
+      if (m.v > 1) {
+        const d = await getData(slug);
+        slot.names = d.voiceNames; slot.ids = d.voiceIds;
+        render();
+      }
+      syncUrl();
+    }
+
+    const avatar = (m: M) => `<span class="mavatar mavatar-lg" style="--h:${m.h}"><span class="mavatar-face" aria-hidden="true">${m.i ? `<img src="${B}${esc(m.i)}" alt="">` : '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 8.5v3M7 6v8M10 3.5v13M13 6.5v7M16 8.5v3"/></svg>'}</span></span>`;
+
+    function render() {
+      const cards = slots.map((s, i) => `
+        <article class="cmp-slot${s.url ? ' has-audio' : ''}${s.err ? ' is-error' : ''}" data-i="${i}" style="--h:${s.m.h}">
+          <header>
+            ${avatar(s.m)}
+            <div class="cmp-slot-title"><a class="vrow-link" href="${esc(ui.home.replace(/\/$/, '') + `/model/${s.m.s}/`)}">${esc(short(s.m.n))}</a>
+              <small>${s.m.fl ? `<img class="flag" src="${B}flags/${s.m.fl}.svg" alt="" width="20" height="15">` : ''}${esc(langName(s.m.l))} · ${esc(ui.q[s.m.q] || s.m.q)}</small></div>
+            <button type="button" class="icon-btn" data-remove="${i}" aria-label="${esc(ui.remove)}" title="${esc(ui.remove)}"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
+          </header>
+          ${s.names && s.names.length > 1 ? `<label class="cmp-speaker">${esc(ui.speaker)}<select data-sid="${i}">${s.names.map((n, k) => `<option value="${s.ids?.[k] ?? k}" ${((s.ids?.[k] ?? k) === s.sid) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>` : ''}
+          <div class="cmp-out">
+            ${s.url ? `<button type="button" class="sample-play" data-toggle="${i}" aria-label="${esc(ui.play)}"><svg class="play-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 4.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L7.4 4.1a.6.6 0 0 0-.9.5Z"/></svg><svg class="pause-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10m6-10v10"/></svg></button>
+              <span class="cmp-bar"><span data-bar="${i}"></span></span>
+              <a class="synthesis-dl" href="${s.url}" download="${esc(s.m.s)}.wav" aria-label="${esc(ui.download)}" title="${esc(ui.download)}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 17h12"/></svg></a>
+              <audio src="${s.url}" data-audio="${i}" preload="auto"></audio>`
+              : `<span class="cmp-status dim">${esc(s.status || ui.waiting)}</span>`}
+          </div>
+        </article>`).join('');
+      const adder = slots.length < MAX ? `
+        <div class="cmp-slot cmp-add">
+          <label class="textbox"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="icon"><circle cx="8.75" cy="8.75" r="5.75"/><path d="m13 13 4.5 4.5"/></svg><input type="text" id="cmp-search" placeholder="${esc(ui.searchPh)}" autocomplete="off" aria-label="${esc(ui.add)}"></label>
+          <div class="cmp-suggest" id="cmp-suggest" role="listbox"></div>
+          ${slots.length === 0 ? `<p class="dim">${esc(ui.needVoices)}</p>` : ''}
+        </div>` : '';
+      box.innerHTML = cards + adder;
+      const inp = document.getElementById('cmp-search') as HTMLInputElement | null;
+      if (inp) inp.addEventListener('input', () => suggest(inp.value));
+    }
+
+    function suggest(q: string) {
+      const out = document.getElementById('cmp-suggest')!;
+      const toks = tokens(q);
+      if (!toks.length) { out.innerHTML = ''; return; }
+      const hits = index.map((m, i) => ({ m, sc: m.p ? 0 : scoreItem(hay[i], fold(m.n), toks) })).filter((h) => h.sc > 0).sort((a, b) => b.sc - a.sc).slice(0, 6);
+      out.innerHTML = hits.map(({ m }) => `<button type="button" role="option" data-add="${esc(m.s)}">${m.fl ? `<img class="flag" src="${B}flags/${m.fl}.svg" alt="" width="20" height="15">` : ''}<span>${esc(short(m.n))}</span><small>${esc(m.a)}</small></button>`).join('');
+    }
+
+    box.addEventListener('click', (e) => {
+      const el = e.target as Element;
+      const add = el.closest<HTMLElement>('[data-add]');
+      if (add) { addSlot(add.dataset.add!).then(() => (document.getElementById('cmp-search') as HTMLInputElement | null)?.focus()); return; }
+      const rm = el.closest<HTMLElement>('[data-remove]');
+      if (rm) { const s = slots.splice(Number(rm.dataset.remove), 1)[0]; if (s?.url) URL.revokeObjectURL(s.url); render(); syncUrl(); return; }
+      const tg = el.closest<HTMLElement>('[data-toggle]');
+      if (tg) {
+        const a = box.querySelector<HTMLAudioElement>(`[data-audio="${tg.dataset.toggle}"]`)!;
+        box.querySelectorAll<HTMLAudioElement>('audio').forEach((o) => { if (o !== a) o.pause(); });
+        if (a.paused) a.play(); else a.pause();
+      }
+    });
+    box.addEventListener('change', (e) => {
+      const sel = (e.target as Element).closest<HTMLSelectElement>('[data-sid]');
+      if (!sel) return;
+      const s = slots[Number(sel.dataset.sid)];
+      s.sid = Number(sel.value); s.url = undefined; s.status = '';
+      render(); syncUrl();
+    });
+    // Audio state → button + progress bar
+    ['play', 'pause', 'ended', 'timeupdate'].forEach((ev) => box.addEventListener(ev, (e) => {
+      const a = e.target as HTMLAudioElement;
+      if (!(a instanceof HTMLAudioElement)) return;
+      const i = a.dataset.audio;
+      box.querySelector(`[data-toggle="${i}"]`)?.classList.toggle('is-playing', !a.paused && !a.ended);
+      const bar = box.querySelector<HTMLElement>(`[data-bar="${i}"]`);
+      if (bar) bar.style.width = `${a.duration ? (a.currentTime / a.duration) * 100 : 0}%`;
+    }, true));
+
+    document.getElementById('cmp-run')!.addEventListener('click', async () => {
+      const value = text.value.trim();
+      if (!value) { global.textContent = ui.needText; text.focus(); return; }
+      if (!slots.length) { global.textContent = ui.needVoices; return; }
+      syncUrl();
+      global.textContent = '';
+      const lib = await import(/* @vite-ignore */ `${B}piper-infer.js`);
+      const btn = document.getElementById('cmp-run') as HTMLButtonElement;
+      btn.disabled = true;
+      // Download every voice in parallel, then synthesize one after the other.
+      slots.forEach((s) => lib.prefetchVoice?.(s.m.r, s.m.o));
+      for (const s of slots) {
+        s.err = false;
+        try {
+          const d = await getData(s.m.s);
+          const blob = await lib.synthesize({ ...d, text: value, speakerId: d.voices > 1 ? s.sid : undefined }, (st: string) => {
+            s.status = st;
+            const el = box.querySelector(`[data-i="${slots.indexOf(s)}"] .cmp-status`);
+            if (el) el.textContent = st;
+          });
+          if (s.url) URL.revokeObjectURL(s.url);
+          s.url = URL.createObjectURL(blob);
+        } catch (e) {
+          s.err = true;
+          s.status = ui.failed.replace('{message}', (e as Error).message || String(e));
+        }
+        render();
+      }
+      btn.disabled = false;
+      global.textContent = ui.ready;
+    });
+    text.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); document.getElementById('cmp-run')!.click(); } });
+
+    (async () => {
+      const data = await fetch(`${B}search-index.json`).then((r) => r.json());
+      index = data.m;
+      hay = index.map((m) => fold(`${m.n} ${m.a} ${m.l} ${langName(m.l)}`));
+      const p = new URLSearchParams(location.search);
+      text.value = p.get('t') || '';
+      render();
+      for (const part of (p.get('v') || '').split(',').filter(Boolean).slice(0, MAX)) {
+        const [slug, sid] = part.split(':');
+        await addSlot(slug, Number(sid || 0));
+      }
+    })();
+  </script>
+</Layout>

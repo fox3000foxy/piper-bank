@@ -1,36 +1,16 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import DocsShell from '../DocsShell.astro';
+import Icon from '../Icon.astro';
 import { localizedPath, t, type Locale } from '../../i18n/ui';
-import guidesFr from '../../i18n/guides/fr.json';
-import guidesEn from '../../i18n/guides/en.json';
-import guidesDe from '../../i18n/guides/de.json';
-import guidesEs from '../../i18n/guides/es.json';
-import guidesIt from '../../i18n/guides/it.json';
-import guidesPt from '../../i18n/guides/pt.json';
-import guidesRu from '../../i18n/guides/ru.json';
-import guidesTr from '../../i18n/guides/tr.json';
-import guidesJa from '../../i18n/guides/ja.json';
-import guidesKo from '../../i18n/guides/ko.json';
-import guidesZh from '../../i18n/guides/zh.json';
-import guidesId from '../../i18n/guides/id.json';
-import guidesHi from '../../i18n/guides/hi.json';
-import guidesAr from '../../i18n/guides/ar.json';
-import guidesVi from '../../i18n/guides/vi.json';
-import guidesTh from '../../i18n/guides/th.json';
+import { guideCopy } from '../../i18n/guides';
+import { docsNav } from '../../lib/docs-nav';
 
 const { locale = 'en' as Locale } = Astro.props as { locale?: Locale };
 const base = import.meta.env.BASE_URL;
-
-// Traductions des guides : un fichier par locale (src/i18n/guides/<code>.json).
-// Les locales sans fichier retombent sur l'anglais (repli ci-dessous).
-const copyByLocale = {
-  fr: guidesFr, en: guidesEn, de: guidesDe, es: guidesEs, it: guidesIt,
-  pt: guidesPt, ru: guidesRu, tr: guidesTr, ja: guidesJa, ko: guidesKo,
-  zh: guidesZh, id: guidesId, hi: guidesHi, ar: guidesAr, vi: guidesVi,
-  th: guidesTh,
-};
-// Pages annexes : repli anglais tant que la locale n'a pas sa version.
-const copy = (copyByLocale as unknown as Record<string, typeof copyByLocale.en>)[locale] ?? copyByLocale.en; // repli anglais (pages annexes non traduites)
+const L = (p: string) => localizedPath(base, locale, p);
+const { str, list } = guideCopy(locale);
+const overview = docsNav(locale).flatMap((g) => g.items).slice(1);
 
 const kaggleQuotaUrl = 'https://www.kaggle.com/docs/efficient-gpu-usage';
 const kaggleNotebooksUrl = 'https://www.kaggle.com/docs/notebooks';
@@ -41,131 +21,114 @@ const piperttsUrl = 'https://www.npmjs.com/package/pipertts';
 const piperttsRepoUrl = 'https://github.com/itsrealfortune/pipertts';
 const piperttsTypedocUrl = 'https://itsrealfortune.fr/pipertts/';
 
-// HowTo (résultats enrichis) : reprend les deux listes ordonnées de la page
-// (dataset 6 étapes + utilisation 7 étapes), dans la langue de la page.
-const c = copy as unknown as Record<string, unknown>;
-const enCopy = copyByLocale.en as unknown as Record<string, unknown>;
-// Per-key English fallback: locales that have not translated a new key yet
-// render the English text instead of a blank.
-const str = (k: string) => (typeof c[k] === 'string' ? (c[k] as string) : (typeof enCopy[k] === 'string' ? (enCopy[k] as string) : ''));
-const howtoSteps: Record<string, unknown>[] = [];
+// HowTo rich result: both ordered lists of the page, in the page language.
 const stepPairs: [string, string][] = [
   ['step1', 'step1copy'], ['step2', 'step2copy'], ['step3', 'step3copy'],
   ['step4', 'step4copy'], ['step5', 'step5copy'], ['step6', 'step6copy'],
   ['installTitle', 'installCopy'], ['downloadTitle', 'downloadCopy'],
   ['synthTitle', 'synthCopy'], ['textFileTitle', 'textFileTitle'],
   ['pythonTitle', 'pythonTitle'], ['homeAssistantTitle', 'homeAssistantCopy'],
-  ['adviceTitle', 'adviceCopy'],
-  ['npmHubTitle', 'npmHubCopy'],
+  ['adviceTitle', 'adviceCopy'], ['npmHubTitle', 'npmHubCopy'],
 ];
-stepPairs.forEach(([nk, tk], i) => {
-  const name = str(nk);
-  if (!name) return;
-  howtoSteps.push({
-    '@type': 'HowToStep',
-    position: i + 1,
-    name,
-    text: str(tk) || name,
-  });
-});
 const howtoSchema: Record<string, unknown> = {
   '@context': 'https://schema.org',
   '@type': 'HowTo',
-  name: copy.title,
-  description: copy.description,
+  name: str('title'),
+  description: str('description'),
   inLanguage: locale,
-  step: howtoSteps,
+  step: stepPairs.filter(([n]) => str(n)).map(([n, tx], i) => ({ '@type': 'HowToStep', position: i + 1, name: str(n), text: str(tx) || str(n) })),
 };
+const headline = str('headline').split('\n');
 ---
-<Layout title={copy.title} description={copy.description} active="guides" locale={locale} pageUrl="/guides/"
+<Layout title={str('title')} description={str('description')} active="guides" locale={locale} pageUrl="/guides/"
+  breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'nav.docs'), path: '/guides/' }]}
   jsonLdExtra={[howtoSchema]}>
-  <main class="guide-page">
-    <header class="guide-intro">
-      <p class="eyebrow">{copy.eyebrow}</p>
-      <h1>{copy.headline.split('\n')[0]}<br />{copy.headline.split('\n')[1]}</h1>
-      <p>{copy.intro}</p>
+  <DocsShell locale={locale} current="/guides/">
+    <header class="docs-head" id="top">
+      <p class="label">{t(locale, 'nav.docs')}</p>
+      <h1>{headline[0]} {headline[1]}</h1>
+      <p class="lead">{str('intro')}</p>
     </header>
 
-    <nav class="guide-index" aria-label={copy.contents}>
-      <span>{copy.contents}</span>
-      <a href="#dataset-guide">01 <i>·</i> {copy.datasetTitle}</a>
-      <a href="#training-guide">02 <i>·</i> {copy.trainingTitle}</a>
-      <a href="#use-voice-guide">03 <i>·</i> {copy.useVoiceTitle}</a>
-      <a href="#pipertts-guide">04 <i>·</i> pipertts / Node.js</a>
-      <a href={localizedPath(base, locale, '/guides-piper-plus/')}>05 <i>·</i> {copy.ppTitle}</a>
+    <section id="overview" class="doc-section">
+      <p class="doc-section-label">{t(locale, 'docs.groupStart')}</p>
+      <h2>{t(locale, 'docs.overview')}</h2>
+      <p class="doc-lede">{t(locale, 'docs.overviewCopy')}</p>
+      <div class="overview-grid">
+        {overview.map((d) => <a class="doc-card" href={L(d.path)}>
+          <span class="doc-card-icon"><Icon name={d.icon} size={20} /></span>
+          <h3>{d.title}</h3>
+          <p>{d.summary}</p>
+        </a>)}
+      </div>
+      <div class="callout"><Icon name="info" size={20} /><div><h3>{t(locale, 'docs.calloutTitle')}</h3><p>{t(locale, 'docs.calloutCopy')}</p></div></div>
+    </section>
+
+    <section id="dataset-guide" class="doc-section">
+      <p class="doc-section-label">{str('archiveLabel')}</p>
+      <h2>{str('datasetTitle')}</h2>
+      <p class="doc-lede">{str('datasetIntro')}</p>
+      <pre class="guide-code"><code>{str('archive')}</code></pre>
+      <ol class="doc-steps">
+        <li class="doc-step"><span class="doc-step-n">1</span><div><h3>{str('step1')}</h3><p>{str('step1copy')}</p><div class="doc-links"><a class="doc-link" href="https://huggingface.co/datasets?search=ljspeech" target="_blank" rel="noreferrer">{str('hfSearch')}<Icon name="external" size={14} /></a></div><p class="doc-note">{str('ytDlp')}</p></div></li>
+        <li class="doc-step"><span class="doc-step-n">2</span><div><h3>{str('step2')}</h3><p>{str('step2copy')}</p><ul>{list('tools').map((tool) => <li>{tool}</li>)}</ul></div></li>
+        <li class="doc-step"><span class="doc-step-n">3</span><div><h3>{str('step3')}</h3><p>{str('step3copy')}</p><pre class="guide-code"><code>{str('metadata')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">4</span><div><h3>{str('step4')}</h3><p>{str('step4copy')}</p><pre class="guide-code guide-code-command"><code>{str('zip')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">5</span><div><h3>{str('step5')}</h3><p>{str('step5copy')}</p><pre class="guide-code"><code>{str('yaml')}</code></pre><div class="doc-links"><a class="doc-link" href="https://huggingface.co/new-dataset" target="_blank" rel="noreferrer">{str('newDataset')}<Icon name="external" size={14} /></a><a class="doc-link" href="https://huggingface.co/fox3000foxy" target="_blank" rel="noreferrer">{str('exampleProfile')}<Icon name="external" size={14} /></a></div></div></li>
+        <li class="doc-step"><span class="doc-step-n">6</span><div><h3>{str('step6')}</h3><p>{str('step6copy')}</p><div class="doc-links"><a class="doc-link doc-link-primary" href={discordUrl} target="_blank" rel="noreferrer"><Icon name="discord" size={14} />{str('forum')}</a></div></div></li>
+      </ol>
+    </section>
+
+    <section id="training-guide" class="doc-section">
+      <p class="doc-section-label">Kaggle · GPU</p>
+      <h2>{str('trainingTitle')}</h2>
+      <p class="doc-lede">{str('trainingIntro')}</p>
+      <div class="facts">
+        <article><span>{str('quotaTitle')}</span><strong>{str('quotaValue')}</strong><p>{str('quotaCopy')}</p></article>
+        <article><span>{str('sessionTitle')}</span><strong>{str('sessionValue')}</strong><p>{str('sessionCopy')}</p></article>
+        <article><span>{str('acceleratorTitle')}</span><strong>T4 ×2</strong><p>{str('acceleratorCopy')}</p></article>
+      </div>
+      <div class="callout"><Icon name="clock" size={20} /><div><h3>{str('resumeTitle')}</h3><p>{str('resumeCopy')}</p></div></div>
+      <div class="doc-checklist"><h3>{str('beforeTitle')}</h3><ul>{list('beforeList').map((item) => <li>{item}</li>)}</ul></div>
+      <div class="doc-links">
+        <a class="doc-link" href={kaggleQuotaUrl} target="_blank" rel="noreferrer">{str('kaggleQuota')}<Icon name="external" size={14} /></a>
+        <a class="doc-link" href={kaggleNotebooksUrl} target="_blank" rel="noreferrer">{str('kaggleNotebooks')}<Icon name="external" size={14} /></a>
+        <a class="doc-link" href={p100NoticeUrl} target="_blank" rel="noreferrer">{str('p100Notice')}<Icon name="external" size={14} /></a>
+      </div>
+      <div class="callout callout-warning"><Icon name="warning" size={20} /><div><p>{str('footnote')}</p></div></div>
+    </section>
+
+    <section id="use-voice-guide" class="doc-section">
+      <p class="doc-section-label">Piper · CLI · Python</p>
+      <h2>{str('useVoiceTitle')}</h2>
+      <p class="doc-lede">{str('useVoiceIntro')}</p>
+      <ol class="doc-steps">
+        <li class="doc-step"><span class="doc-step-n">1</span><div><h3>{str('installTitle')}</h3><p>{str('installCopy')}</p><pre class="guide-code guide-code-command"><code>python -m pip install piper-tts</code></pre><pre class="guide-code guide-code-command"><code>python -m piper.download_voices en_US-lessac-medium</code></pre><div class="doc-links"><a class="doc-link" href="https://github.com/OHF-Voice/piper1-gpl/releases" target="_blank" rel="noreferrer">{str('piperProject')}<Icon name="external" size={14} /></a></div></div></li>
+        <li class="doc-step"><span class="doc-step-n">2</span><div><h3>{str('downloadTitle')}</h3><p>{str('downloadCopy')}</p><pre class="guide-code"><code>voice.onnx{'\n'}voice.onnx.json</code></pre><div class="doc-links"><a class="doc-link doc-link-primary" href={L('/voices/')}><Icon name="mic" size={14} />{t(locale, 'docs.browseCatalog')}</a><a class="doc-link" href="https://huggingface.co/rhasspy/piper-voices" target="_blank" rel="noreferrer">{str('voiceCatalog')}<Icon name="external" size={14} /></a><a class="doc-link" href={voiceForumUrl} target="_blank" rel="noreferrer">{str('voiceForum')}<Icon name="external" size={14} /></a></div></div></li>
+        <li class="doc-step"><span class="doc-step-n">3</span><div><h3>{str('synthTitle')}</h3><p>{str('synthCopy')}</p><pre class="guide-code"><code>{str('synthCommand')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">4</span><div><h3>{str('textFileTitle')}</h3><pre class="guide-code"><code>python -m piper -m ./voice.onnx -f output.wav --input-file input.txt</code></pre><h4>{str('rawTitle')}</h4><p>{str('rawCopy')}</p><pre class="guide-code"><code>{str('rawCommand')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">5</span><div><h3>{str('pythonTitle')}</h3><pre class="guide-code"><code>{str('pythonExample')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">6</span><div><h3>{str('homeAssistantTitle')}</h3><p>{str('homeAssistantCopy')}</p><div class="doc-links"><a class="doc-link" href="https://www.home-assistant.io/integrations/piper/" target="_blank" rel="noreferrer">{str('homeAssistantLink')}<Icon name="external" size={14} /></a></div><h4>{str('nodeRedTitle')}</h4><p>{str('nodeRedCopy')}</p><div class="doc-links"><a class="doc-link" href="https://nodered.org/docs/user-guide/nodes" target="_blank" rel="noreferrer">Node-RED<Icon name="external" size={14} /></a></div></div></li>
+        <li class="doc-step"><span class="doc-step-n">7</span><div><h3>{str('adviceTitle')}</h3><p>{str('adviceCopy')}</p><pre class="guide-code"><code>{str('slowCommand')}</code></pre><div class="doc-links"><a class="doc-link" href="https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/CLI.md" target="_blank" rel="noreferrer">{str('piperDocs')}<Icon name="external" size={14} /></a><a class="doc-link" href="https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/API_PYTHON.md" target="_blank" rel="noreferrer">{str('pythonDocs')}<Icon name="external" size={14} /></a><a class="doc-link" href="https://github.com/rhasspy/piper" target="_blank" rel="noreferrer">rhasspy/piper<Icon name="external" size={14} /></a></div></div></li>
+      </ol>
+    </section>
+
+    <section id="pipertts-guide" class="doc-section">
+      <p class="doc-section-label">Node.js · TypeScript</p>
+      <h2>{str('npmTitle')}</h2>
+      <p class="doc-lede">{str('npmIntro')}</p>
+      <ol class="doc-steps">
+        <li class="doc-step"><span class="doc-step-n">1</span><div><h3>{str('npmInstall')}</h3><p>{str('npmInstallCopy')}</p><pre class="guide-code"><code>{str('npmInstallCommand')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">2</span><div><h3>{str('npmQuickStart')}</h3><pre class="guide-code"><code>{str('npmExample')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">3</span><div><h3>{str('npmHubTitle')}</h3><p>{str('npmHubCopy')}</p><pre class="guide-code"><code>{str('npmHubExample')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">4</span><div><h3>{str('npmCustomVoice')}</h3><p>{str('npmCustomCopy')}</p><pre class="guide-code"><code>{str('npmCustomExample')}</code></pre></div></li>
+        <li class="doc-step"><span class="doc-step-n">5</span><div><h3>{str('npmApi')}</h3><p>{str('npmApiCopy')}</p></div></li>
+        <li class="doc-step"><span class="doc-step-n">6</span><div><h3>{str('npmLegacy')}</h3><p>{str('npmLegacyCopy')}</p><pre class="guide-code"><code>{str('npmLegacyExample')}</code></pre><div class="doc-links"><a class="doc-link" href={piperttsUrl} target="_blank" rel="noreferrer">{str('npmHome')}<Icon name="external" size={14} /></a><a class="doc-link" href={piperttsRepoUrl} target="_blank" rel="noreferrer">{str('npmRepo')}<Icon name="external" size={14} /></a><a class="doc-link" href={piperttsTypedocUrl} target="_blank" rel="noreferrer">{str('npmTypedoc')}<Icon name="external" size={14} /></a></div></div></li>
+      </ol>
+    </section>
+
+    <nav class="doc-pager" aria-label={t(locale, 'nav.docs')}>
+      <a class="next" href={L('/guides-piper-plus/')}><span>{t(locale, 'docs.next')}</span><strong>{str('ppTitle')}</strong></a>
     </nav>
-
-    <section id="dataset-guide" class="guide-section">
-      <div class="guide-rail"><span>01</span><span>{copy.archiveLabel}</span></div>
-      <div class="guide-content">
-        <h2>{copy.datasetTitle}</h2>
-        <p class="guide-lede">{copy.datasetIntro}</p>
-        <pre class="guide-code"><code>{copy.archive}</code></pre>
-        <ol class="guide-steps">
-          <li><span class="guide-step-number">01</span><div><h3>{copy.step1}</h3><p>{copy.step1copy}</p><div class="guide-links"><a href="https://huggingface.co/datasets?search=ljspeech" target="_blank" rel="noreferrer">{copy.hfSearch} ↗</a><span>{copy.ytDlp}</span></div></div></li>
-          <li><span class="guide-step-number">02</span><div><h3>{copy.step2}</h3><p>{copy.step2copy}</p><ul class="guide-tool-list">{(copy.tools as string[]).map((tool: string) => <li>{tool}</li>)}</ul></div></li>
-          <li><span class="guide-step-number">03</span><div><h3>{copy.step3}</h3><p>{copy.step3copy}</p><pre class="guide-code"><code>{copy.metadata}</code></pre></div></li>
-          <li><span class="guide-step-number">04</span><div><h3>{copy.step4}</h3><p>{copy.step4copy}</p><pre class="guide-code guide-code-command"><code>{copy.zip}</code></pre></div></li>
-          <li><span class="guide-step-number">05</span><div><h3>{copy.step5}</h3><p>{copy.step5copy}</p><pre class="guide-code"><code>{copy.yaml}</code></pre><div class="guide-links"><a href="https://huggingface.co/new-dataset" target="_blank" rel="noreferrer">{copy.newDataset} ↗</a><a href="https://huggingface.co/fox3000foxy" target="_blank" rel="noreferrer">{copy.exampleProfile} ↗</a></div></div></li>
-          <li><span class="guide-step-number">06</span><div><h3>{copy.step6}</h3><p>{copy.step6copy}</p><a class="guide-action" href={discordUrl} target="_blank" rel="noreferrer">{copy.forum} ↗</a></div></li>
-        </ol>
-      </div>
-    </section>
-
-    <section id="training-guide" class="guide-section guide-training">
-      <div class="guide-rail"><span>02</span><span>KAGGLE · GPU</span></div>
-      <div class="guide-content">
-        <h2>{copy.trainingTitle}</h2>
-        <p class="guide-lede">{copy.trainingIntro}</p>
-        <div class="guide-facts">
-          <article><span>{copy.quotaTitle}</span><strong>{copy.quotaValue}</strong><p>{copy.quotaCopy}</p></article>
-          <article><span>{copy.sessionTitle}</span><strong>{copy.sessionValue}</strong><p>{copy.sessionCopy}</p></article>
-          <article><span>{copy.acceleratorTitle}</span><strong>T4 x2</strong><p>{copy.acceleratorCopy}</p></article>
-        </div>
-        <div class="guide-resume"><span>↻</span><div><h3>{copy.resumeTitle}</h3><p>{copy.resumeCopy}</p></div></div>
-        <div class="guide-checklist"><h3>{copy.beforeTitle}</h3><ul>{(copy.beforeList as string[]).map((item: string) => <li>{item}</li>)}</ul></div>
-        <div class="guide-references" aria-label={t(locale, 'guide.officialRefs')}>
-          <a href={kaggleQuotaUrl} target="_blank" rel="noreferrer">{copy.kaggleQuota} ↗</a>
-          <a href={kaggleNotebooksUrl} target="_blank" rel="noreferrer">{copy.kaggleNotebooks} ↗</a>
-          <a href={p100NoticeUrl} target="_blank" rel="noreferrer">{copy.p100Notice} ↗</a>
-        </div>
-        <p class="guide-footnote">{copy.footnote}</p>
-      </div>
-    </section>
-
-    <section id="use-voice-guide" class="guide-section guide-use-voice">
-      <div class="guide-rail"><span>03</span><span>PIPER · LOCAL TTS</span></div>
-      <div class="guide-content">
-        <h2>{copy.useVoiceTitle}</h2>
-        <p class="guide-lede">{copy.useVoiceIntro}</p>
-        <ol class="guide-steps">
-          <li><span class="guide-step-number">01</span><div><h3>{copy.installTitle}</h3><p>{copy.installCopy}</p><pre class="guide-code guide-code-command"><code>python -m pip install piper-tts</code></pre><pre class="guide-code guide-code-command"><code>python -m piper.download_voices en_US-lessac-medium</code></pre><div class="guide-links"><a href="https://github.com/OHF-Voice/piper1-gpl/releases" target="_blank" rel="noreferrer">{copy.piperProject} · binaires ↗</a></div></div></li>
-          <li><span class="guide-step-number">02</span><div><h3>{copy.downloadTitle}</h3><p>{copy.downloadCopy}</p><div class="guide-links"><a href="https://huggingface.co/rhasspy/piper-voices" target="_blank" rel="noreferrer">{copy.voiceCatalog} ↗</a><a href={voiceForumUrl} target="_blank" rel="noreferrer">{copy.voiceForum} ↗</a></div><pre class="guide-code"><code>voice.onnx<br />voice.onnx.json</code></pre></div></li>
-          <li><span class="guide-step-number">03</span><div><h3>{copy.synthTitle}</h3><p>{copy.synthCopy}</p><pre class="guide-code"><code>{copy.synthCommand}</code></pre></div></li>
-          <li><span class="guide-step-number">04</span><div><h3>{copy.textFileTitle}</h3><pre class="guide-code"><code>python -m piper -m ./voice.onnx -f output.wav --input-file mon_texte.txt</code></pre><h3 class="guide-subheading">{copy.rawTitle}</h3><p>{copy.rawCopy}</p><pre class="guide-code"><code>{copy.rawCommand}</code></pre></div></li>
-          <li><span class="guide-step-number">05</span><div><h3>{copy.pythonTitle}</h3><pre class="guide-code"><code>{copy.pythonExample}</code></pre></div></li>
-          <li><span class="guide-step-number">06</span><div><h3>{copy.homeAssistantTitle}</h3><p>{copy.homeAssistantCopy}</p><a class="guide-action" href="https://www.home-assistant.io/integrations/piper/" target="_blank" rel="noreferrer">{copy.homeAssistantLink} ↗</a><h3 class="guide-subheading">{copy.nodeRedTitle}</h3><p>{copy.nodeRedCopy}</p><div class="guide-links"><a href="https://nodered.org/docs/user-guide/nodes" target="_blank" rel="noreferrer">Node-RED · core nodes ↗</a></div></div></li>
-          <li><span class="guide-step-number">07</span><div><h3>{copy.adviceTitle}</h3><p>{copy.adviceCopy}</p><pre class="guide-code"><code>{copy.slowCommand}</code></pre><div class="guide-references"><a href="https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/CLI.md" target="_blank" rel="noreferrer">{copy.piperDocs} ↗</a><a href="https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/API_PYTHON.md" target="_blank" rel="noreferrer">{copy.pythonDocs} ↗</a><a href="https://github.com/rhasspy/piper" target="_blank" rel="noreferrer">GitHub · rhasspy/piper (archive) ↗</a></div></div></li>
-        </ol>
-      </div>
-    </section>
-
-    <section id="pipertts-guide" class="guide-section guide-pipertts">
-      <div class="guide-rail"><span>04</span><span>NODE.JS · TYPESCRIPT</span></div>
-      <div class="guide-content">
-        <h2>{copy.npmTitle}</h2>
-        <p class="guide-lede">{copy.npmIntro}</p>
-        <ol class="guide-steps">
-          <li><span class="guide-step-number">01</span><div><h3>{copy.npmInstall}</h3><p>{copy.npmInstallCopy}</p><pre class="guide-code"><code>{copy.npmInstallCommand}</code></pre></div></li>
-          <li><span class="guide-step-number">02</span><div><h3>{copy.npmQuickStart}</h3><pre class="guide-code"><code>{copy.npmExample}</code></pre></div></li>
-          <li><span class="guide-step-number">03</span><div><h3>{copy.npmCustomVoice}</h3><p>{copy.npmCustomCopy}</p><pre class="guide-code"><code>{copy.npmCustomExample}</code></pre></div></li>
-          <li><span class="guide-step-number">04</span><div><h3>{copy.npmApi}</h3><p>{copy.npmApiCopy}</p></div></li>
-          <li><span class="guide-step-number">05</span><div><h3>{copy.npmLegacy}</h3><p>{copy.npmLegacyCopy}</p><pre class="guide-code"><code>{copy.npmLegacyExample}</code></pre><div class="guide-references"><a href={piperttsUrl} target="_blank" rel="noreferrer">{copy.npmHome} ↗</a><a href={piperttsRepoUrl} target="_blank" rel="noreferrer">{copy.npmRepo} ↗</a><a href={piperttsTypedocUrl} target="_blank" rel="noreferrer">{str('npmTypedoc')} ↗</a><a href={`${piperttsRepoUrl}#readme`} target="_blank" rel="noreferrer">{copy.npmDocs} ↗</a></div></div></li>
-          <li><span class="guide-step-number">06</span><div><h3>{str('npmHubTitle')}</h3><p>{str('npmHubCopy')}</p><pre class="guide-code"><code>{str('npmHubExample')}</code></pre></div></li>
-        </ol>
-      </div>
-    </section>
-
-
-  </main>
+  </DocsShell>
 </Layout>

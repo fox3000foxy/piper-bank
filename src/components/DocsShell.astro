@@ -1,0 +1,96 @@
+---
+import Icon from './Icon.astro';
+import { docsNav } from '../lib/docs-nav';
+import { localizedPath, t, type Locale } from '../i18n/ui';
+
+const { locale = 'en' as Locale, current = '/guides/' } = Astro.props as { locale?: Locale; current?: string };
+const base = import.meta.env.BASE_URL;
+const L = (p: string) => localizedPath(base, locale, p);
+const groups = docsNav(locale);
+const flat = groups.flatMap((g) => g.items);
+---
+<div class="docs">
+  <nav class="docs-nav" aria-label={t(locale, 'nav.docs')}>
+    {groups.map((g) => (
+      <div class="docs-nav-group">
+        <span class="docs-nav-label">{g.label}</span>
+        {g.items.map((it) => <a href={L(it.path)} data-doc-link={it.path} class={it.path.startsWith(current) && current !== '/guides/' ? 'is-current' : ''}><Icon name={it.icon} size={16} />{it.title}</a>)}
+      </div>
+    ))}
+  </nav>
+  <article class="docs-article" id="doc-article">
+    <div class="docs-mobile-nav">
+      <select aria-label={t(locale, 'nav.docs')} id="docs-jump">
+        {groups.map((g) => <optgroup label={g.label}>{g.items.map((it) => <option value={L(it.path)} selected={it.path.startsWith(current) && current !== '/guides/'}>{it.title}</option>)}</optgroup>)}
+      </select>
+    </div>
+    <slot />
+  </article>
+  <aside class="docs-toc" aria-label={t(locale, 'docs.onThisPage')}>
+    <span class="docs-toc-title">{t(locale, 'docs.onThisPage')}</span>
+    <ol id="docs-toc-list"></ol>
+    <div class="docs-toc-foot">
+      <a href="https://github.com/fox3000foxy/piper-bank/tree/main/src/i18n/guides" target="_blank" rel="noreferrer"><Icon name="github" size={14} />{t(locale, 'docs.edit')}</a>
+      <a href="https://discord.gg/xDmDJwfbfp" target="_blank" rel="noreferrer"><Icon name="discord" size={14} />{t(locale, 'docs.ask')}</a>
+      <a href="#top" data-top><Icon name="arrowUpRight" size={14} />{t(locale, 'docs.backToTop')}</a>
+    </div>
+  </aside>
+</div>
+<script is:inline type="application/json" id="docs-ui" set:html={JSON.stringify({ copy: t(locale, 'detail.copySnippet'), copied: t(locale, 'detail.copied'), flat: flat.map((f) => L(f.path)) })} />
+<script>
+  const ui = JSON.parse(document.getElementById('docs-ui')!.textContent || '{}');
+  const article = document.getElementById('doc-article')!;
+  const tocList = document.getElementById('docs-toc-list')!;
+  const slug = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  // TOC from headings
+  const heads = [...article.querySelectorAll<HTMLElement>('.doc-section > h2, .doc-step > div > h3')];
+  const seen = new Set<string>();
+  for (const h of heads) {
+    if (!h.id) {
+      let id = slug(h.textContent || '') || 'section';
+      while (seen.has(id) || document.getElementById(id)) id += '-2';
+      h.id = id;
+    }
+    seen.add(h.id);
+    const a = document.createElement('a');
+    a.className = 'anchor'; a.href = `#${h.id}`; a.textContent = '#'; a.setAttribute('aria-hidden', 'true'); a.tabIndex = -1;
+    h.append(a);
+    const li = document.createElement('li');
+    if (h.tagName === 'H3') li.className = 'sub';
+    const link = document.createElement('a');
+    link.href = `#${h.id}`;
+    link.textContent = (h.firstChild?.textContent || h.textContent || '').trim();
+    li.append(link);
+    tocList.append(li);
+  }
+  const tocLinks = [...tocList.querySelectorAll('a')];
+  const sectionLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-doc-link]')];
+  const sections = [...article.querySelectorAll<HTMLElement>('.doc-section[id]')];
+  const spy = () => {
+    const y = window.scrollY + 120;
+    let cur: HTMLElement | undefined;
+    for (const h of heads) if (h.getBoundingClientRect().top + window.scrollY <= y) cur = h;
+    tocLinks.forEach((l) => l.classList.toggle('is-active', !!cur && l.getAttribute('href') === `#${cur.id}`));
+    let sec: HTMLElement | undefined;
+    for (const s of sections) if (s.getBoundingClientRect().top + window.scrollY <= y) sec = s;
+    if (sec && location.pathname.match(/\/guides\/?$/)) sectionLinks.forEach((l) => l.classList.toggle('is-current', l.dataset.docLink!.endsWith('#' + sec!.id)));
+  };
+  addEventListener('scroll', spy, { passive: true });
+  spy();
+
+  // Copy buttons on code blocks
+  for (const pre of article.querySelectorAll<HTMLPreElement>('pre.guide-code')) {
+    const wrap = document.createElement('div');
+    wrap.className = 'code-block';
+    pre.before(wrap); wrap.append(pre);
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'code-copy'; b.textContent = ui.copy;
+    b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(pre.innerText.trim()); b.textContent = ui.copied; setTimeout(() => (b.textContent = ui.copy), 1600); } catch {}
+    });
+    wrap.append(b);
+  }
+  document.getElementById('docs-jump')?.addEventListener('change', (e) => { location.href = (e.target as HTMLSelectElement).value; });
+  document.querySelector('[data-top]')?.addEventListener('click', (e) => { e.preventDefault(); scrollTo({ top: 0, behavior: 'smooth' }); });
+</script>

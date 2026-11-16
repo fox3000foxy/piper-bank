@@ -1,0 +1,9 @@
+---
+import { flagFor } from '../lib/flags';
+const { lang, class: cls = '' } = Astro.props as { lang: string; class?: string };
+const code = flagFor(lang);
+const base = import.meta.env.BASE_URL;
+---
+{code
+  ? <img class={`flag ${cls}`} src={`${base}flags/${code}.svg`} alt="" width="20" height="15" loading="lazy" decoding="async" />
+  : <span class={`flag flag-none ${cls}`} aria-hidden="true"></span>}

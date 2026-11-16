@@ -19,10 +19,11 @@ export type Locale =
   | 'fr' | 'en' | 'de' | 'es' | 'it' | 'pt' | 'ru' | 'tr'
   | 'ja' | 'ko' | 'zh' | 'id' | 'hi' | 'ar' | 'vi' | 'th';
 
-export type MessageKey = keyof typeof fr;
+export type MessageKey = keyof typeof enJson;
 
-type Messages = Record<MessageKey, string>;
-const en: Messages = enJson;
+// English is the reference: any key missing in a locale falls back to it.
+type Messages = Partial<Record<MessageKey, string>>;
+const en = enJson as Record<MessageKey, string>;
 const deMsg: Messages = de;
 const esMsg: Messages = es;
 const itMsg: Messages = it;
@@ -39,7 +40,7 @@ const viMsg: Messages = vi;
 const thMsg: Messages = th;
 
 export const messages: Record<Locale, Messages> = {
-  fr, en, de: deMsg, es: esMsg, it: itMsg, pt: ptMsg, ru: ruMsg, tr: trMsg,
+  fr: fr as Messages, en, de: deMsg, es: esMsg, it: itMsg, pt: ptMsg, ru: ruMsg, tr: trMsg,
   ja: jaMsg, ko: koMsg, zh: zhMsg, id: idMsg, hi: hiMsg, ar: arMsg,
   vi: viMsg, th: thMsg,
 };
@@ -82,7 +83,7 @@ export function ogLocale(locale: Locale): string {
 }
 
 export function t(locale: Locale, key: MessageKey, values: Record<string, string | number> = {}): string {
-  return messages[locale][key].replace(/\{(\w+)\}/g, (match, name: string) =>
+  return (messages[locale][key] ?? en[key] ?? key).replace(/\{(\w+)\}/g, (match, name: string) =>
     Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : match,
   );
 }
@@ -111,7 +112,7 @@ export function localizedPath(base: string, locale: Locale, path: string): strin
 export function languageLabel(code: string, fallback: string, locale: Locale): string {
   try {
     const displayName = new Intl.DisplayNames([localeMeta(locale).tag], { type: 'language' }).of(code);
-    if (displayName && displayName.toLowerCase() !== code.toLowerCase()) return displayName;
+    if (displayName && displayName.toLowerCase() !== code.toLowerCase()) return displayName.charAt(0).toLocaleUpperCase(localeMeta(locale).tag) + displayName.slice(1);
   } catch {
     // Unknown or nonstandard source language tags keep their supplied display name.
   }

@@ -1,5 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Icon from '../Icon.astro';
+import Flag from '../Flag.astro';
+import ModelAvatar from '../ModelAvatar.astro';
 import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
 
 const { locale = 'fr' as Locale } = Astro.props;
@@ -22,7 +25,7 @@ const productSchema: Record<string, unknown> = {
   name: m.name,
   description: `Piper TTS voice model "${m.name}" (${m.langName || m.lang}, ${m.quality || 'n/a'}). ${nVoices} voice(s) by ${m.author}. Free download on Hugging Face.`,
   url: `https://piperhub.org${base === '/' ? '' : base}/model/${m.slug}/`,
-  image: 'https://piperhub.org' + base + 'logo.png',
+  image: `https://piperhub.org${base === '/' ? '' : base.replace(/\/$/, '')}/og/${m.slug}.png`,
   inLanguage: m.lang,
   brand: { '@type': 'Brand', name: m.author },
   offers: {
@@ -113,29 +116,33 @@ function hlJS(src: string): string {
     quality: m.quality || 'n/a',
     author: m.author,
   })} subtitle={`${t(locale, 'common.by')} ${m.author}`}
+  image={`${base === '/' ? '' : base.replace(/\/$/, '')}/og/${m.slug}.png`}
   jsonLdExtra={[productSchema]}>
 
-    <a class="back" href={localizedPath(base, locale, '/voices/')}>{t(locale, 'detail.backVoices')}</a>
+  <main class="detail">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={localizedPath(base, locale, '/')}>{t(locale, 'nav.home')}</a><Icon name="chevronRight" size={14} />
+      <a href={localizedPath(base, locale, '/voices/')}>{t(locale, 'nav.voices')}</a><Icon name="chevronRight" size={14} />
+      <span aria-current="page">{m.name}</span>
+    </nav>
     <div class="hero model-hero">
-      <span class="avatar-wrap">
-        <span class="avatar big" style={`--h:${avatar.hue ?? 260}`} aria-hidden="true">
-          {avatar.icon
-            ? <img src={`${base}${avatar.icon}`} alt="" />
-            : avatar.universe === 'default'
-              ? <svg class="avatar-wave" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 13v6m5-11v16m5-19v22m5-17v12m5-8v4" /></svg>
-              : avatar.emoji}
-        </span>
-        {avatar.certified && <img class="cert big-cert" src={`${base}icons/certified.svg`} alt={t(locale, 'detail.modelOfficial')} title={t(locale, 'detail.modelOfficial')} />}
-      </span>
-      <div>
+      <ModelAvatar model={m} size="xl" locale={locale} lazy={false} />
+      <div class="model-hero-text">
         <h1>{m.name}</h1>
-        <p class="subtitle">{t(locale, 'common.by')} {m.author} · {m.repo}</p>
+        <p class="subtitle">{m.author} · {m.repo}</p>
+      </div>
+      <div class="model-hero-actions">
+        <button type="button" class="btn fav-toggle" data-fav={m.slug} aria-pressed="false" aria-label={t(locale, 'fav.toggle', { name: m.name })}>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg>
+          <span class="fav-off">{t(locale, 'fav.add')}</span><span class="fav-on">{t(locale, 'fav.added')}</span>
+        </button>
+        {m.usable && <a class="btn" href={localizedPath(base, locale, `/compare/?v=${m.slug}`)}><Icon name="layers" size={16} />{t(locale, 'compare.withOthers')}</a>}
       </div>
     </div>
 
     <section class="tags">
-      <span class="tag lang">{languageLabel(m.lang, m.langName, locale)}</span>
-      <span class={`tag q-${m.quality}`}>{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</span>
+      <span class="tag lang"><Flag lang={m.lang} />{languageLabel(m.lang, m.langName, locale)}</span>
+      <span class={`tag tag-quality q-${m.quality}`}>{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</span>
       {m.piperPlus && <span class="plus-pill" title="piper-plus">Piper+</span>}
       {m.voices > 1
         ? <span class="tag voices">{formatNumber(locale, m.voices)} {t(locale, 'common.voicesUnit')}</span>
@@ -155,6 +162,8 @@ function hlJS(src: string): string {
     <section class="sec first" hidden={!m.usable}>
       <h2>{t(locale, 'detail.synthesis')}</h2>
       <textarea id="text" rows="7" placeholder={t(locale, 'detail.enterText')}></textarea>
+      <p class="model-size" id="model-size" hidden data-repo={m.repo} data-onnx={m.onnx}
+        data-tpl-size={t(locale, 'size.model')} data-tpl-cached={t(locale, 'size.cached')}></p>
       <div class="editor-submit"><span id="status" class="dim" aria-live="polite"></span><button id="go">{t(locale, 'detail.generateAudio')} <span aria-hidden="true">→</span></button></div>
       <div id="synthesis-player" class="synthesis-player" style={`--synth-hue:${avatar.hue ?? 260}`} hidden>
         <button id="synthesis-toggle" class="sample-play" type="button" aria-label={t(locale, 'detail.playSynthesis')} data-play-label={t(locale, 'detail.playSynthesis')} data-pause-label={t(locale, 'detail.pauseSynthesis')}>
@@ -303,6 +312,7 @@ function hlJS(src: string): string {
     </section>
       </aside>
     </div>
+  </main>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
     <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus') } })} />
@@ -467,6 +477,23 @@ function hlJS(src: string): string {
       // la page reste légère au chargement initial.
       const loadStack = () => new Function('u', 'return import(u)')(window.__BASE__ + 'piper-infer.js');
       const go = document.getElementById('go');
+      // Warm-up: as soon as the visitor shows intent (focus on the text box,
+      // typing, hovering the button), load the engine and start downloading the
+      // voice in the background. Cached voices open instantly on later visits.
+      let warmed = false;
+      const warm = () => {
+        if (warmed || !model.usable) return;
+        warmed = true;
+        loadStack().then((lib) => {
+          lib.loadStack?.().catch(() => {});
+          lib.prefetchVoice?.(model.repo, model.onnx);
+        }).catch(() => { warmed = false; });
+      };
+      const textBox = document.getElementById('text');
+      textBox?.addEventListener('focus', warm, { once: true });
+      textBox?.addEventListener('input', warm, { once: true });
+      go?.addEventListener('pointerenter', warm, { once: true });
+      if (textBox && textBox.value.trim()) warm();
       if (go) {
       document.getElementById('text').addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); go.click(); }
@@ -629,4 +656,34 @@ function hlJS(src: string): string {
       }
       }
     </script>
+<script>
+  import { bindFavButtons } from '../../lib/favorites';
+  bindFavButtons(document);
+  // Model size and cache state before any download.
+  const el = document.getElementById('model-size');
+  if (el) {
+    const url = `https://huggingface.co/${el.dataset.repo}/resolve/main/${el.dataset.onnx!.split('/').map(encodeURIComponent).join('/')}`;
+    const fmtMb = (n: number) => new Intl.NumberFormat(document.documentElement.lang, { maximumFractionDigits: 0 }).format(n / 1048576);
+    (async () => {
+      try {
+        const cache = 'caches' in window ? await caches.open('piperhub-voices-v1') : null;
+        const hit = cache ? await cache.match(url) : null;
+        if (hit) {
+          el.textContent = el.dataset.tplCached!.replace('{size}', fmtMb(Number(hit.headers.get('x-size') || 0)));
+          el.classList.add('is-cached');
+          el.hidden = false;
+          return;
+        }
+        const head = await fetch(url, { method: 'HEAD' });
+        const size = Number(head.headers.get('content-length') || 0);
+        if (!size) return;
+        // Rough estimate on a typical 2 MB/s home connection.
+        const secs = Math.max(5, Math.round(size / (2 * 1048576) / 5) * 5);
+        const time = secs < 60 ? `${secs} s` : `${Math.round(secs / 60)} min`;
+        el.textContent = el.dataset.tplSize!.replace('{size}', fmtMb(size)).replace('{time}', time);
+        el.hidden = false;
+      } catch {}
+    })();
+  }
+</script>
 </Layout>

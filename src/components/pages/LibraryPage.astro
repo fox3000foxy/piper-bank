@@ -1,0 +1,147 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../Icon.astro';
+import { localizedPath, localeMeta, t, type Locale } from '../../i18n/ui';
+
+const { locale = 'en' as Locale } = Astro.props as { locale?: Locale };
+const base = import.meta.env.BASE_URL;
+const L = (p: string) => localizedPath(base, locale, p);
+const ui = {
+  tag: localeMeta(locale).tag,
+  home: L('/'),
+  base,
+  speakers: t(locale, 'voices.speakerCount'),
+  one: t(locale, 'common.oneSpeaker'),
+  remove: t(locale, 'library.remove'),
+  removeFav: t(locale, 'library.removeFav'),
+  play: t(locale, 'voices.playSample'),
+  pause: t(locale, 'voices.pauseSample'),
+  unknownVoice: t(locale, 'library.unknownVoice'),
+  storageUsage: t(locale, 'library.storageUsage'),
+  q: { high: t(locale, 'quality.high'), medium: t(locale, 'quality.medium'), low: t(locale, 'quality.low'), unknown: t(locale, 'quality.unknown') },
+};
+---
+<Layout title={t(locale, 'library.title')} locale={locale} pageUrl="/library/" noindex
+  breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'library.title'), path: '/library/' }]}
+  description={t(locale, 'library.intro')}>
+  <header class="page-head">
+    <div class="page-head-grid">
+      <div><p class="label">{t(locale, 'library.label')}</p><h1>{t(locale, 'library.title')}</h1></div>
+      <div><p class="lead">{t(locale, 'library.intro')}</p></div>
+    </div>
+  </header>
+
+  <main class="wrap library">
+    <section class="lib-section" aria-labelledby="favs-title">
+      <div class="lib-head">
+        <h2 id="favs-title">{t(locale, 'library.favorites')} <span class="lib-n" id="favs-n"></span></h2>
+        <a class="btn" id="compare-favs" href={L('/compare/')} hidden><Icon name="layers" size={16} />{t(locale, 'library.compareFavs')}</a>
+      </div>
+      <div class="vcards" id="favs"></div>
+      <div class="empty-state" id="favs-empty" hidden>
+        <svg viewBox="0 0 20 20" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true" class="icon"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg>
+        <h2>{t(locale, 'library.noFavs')}</h2>
+        <p>{t(locale, 'library.noFavsCopy')}</p>
+        <a class="btn" href={L('/voices/')}>{t(locale, 'home.openCatalog')}</a>
+      </div>
+    </section>
+
+    <section class="lib-section" aria-labelledby="stored-title">
+      <div class="lib-head">
+        <div>
+          <h2 id="stored-title">{t(locale, 'library.stored')} <span class="lib-n" id="stored-n"></span></h2>
+          <p class="dim" id="storage-usage"></p>
+        </div>
+        <button class="btn" type="button" id="clear-all" hidden><Icon name="close" size={16} />{t(locale, 'library.clearAll')}</button>
+      </div>
+      <p class="dim lib-note">{t(locale, 'library.storedCopy')}</p>
+      <div class="stored-list" id="stored"></div>
+      <p class="dim" id="stored-empty" hidden>{t(locale, 'library.noStored')}</p>
+    </section>
+  </main>
+  <script is:inline type="application/json" id="library-ui" set:html={JSON.stringify(ui)} />
+
+  <script>
+    import { getFavorites, toggleFavorite, onFavoritesChange } from '../../lib/favorites';
+    import { bindQuickPlay } from '../../lib/quickplay';
+    import { sampleUrl } from '../../lib/voices';
+
+    type M = { s: string; n: string; r: string; o: string; fl: string; l: string; ln: string; q: string; a: string; v: number; h: number; i: string };
+    const ui = JSON.parse(document.getElementById('library-ui')!.textContent || '{}');
+    const nf = new Intl.NumberFormat(ui.tag, { maximumFractionDigits: 1 });
+    let langName: (c: string) => string = (c) => c;
+    try { const dn = new Intl.DisplayNames([ui.tag], { type: 'language' }); langName = (c) => { const v = dn.of(c) || c; return v.charAt(0).toLocaleUpperCase(ui.tag) + v.slice(1); }; } catch {}
+    const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    const link = (p: string) => ui.home.replace(/\/$/, '') + p;
+    const short = (n: string) => n.replace(/\s+(?:x[_\s]?)?(?:high|medium|low|unknown)$/i, '');
+    const fr = ui.tag.startsWith('fr');
+    const mb = (b: number) => b >= 1073741824 ? `${nf.format(b / 1073741824)} ${fr ? 'Go' : 'GB'}` : `${nf.format(b / 1048576)} ${fr ? 'Mo' : 'MB'}`;
+
+    (async () => {
+    const index: { m: M[] } = await fetch(ui.base.replace(/\/?$/, '/') + 'search-index.json').then((r) => r.json());
+    const bySlug = new Map(index.m.map((m) => [m.s, m]));
+    const byUrl = new Map(index.m.map((m) => [`https://huggingface.co/${m.r}/resolve/main/${m.o.split('/').map(encodeURIComponent).join('/')}`, m]));
+
+    const avatar = (m: M) => `<span class="mavatar" style="--h:${m.h}"><span class="mavatar-face" aria-hidden="true">${m.i ? `<img src="${ui.base.replace(/\/?$/, '/')}${esc(m.i)}" alt="">` : '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 8.5v3M7 6v8M10 3.5v13M13 6.5v7M16 8.5v3"/></svg>'}</span></span>`;
+    const flag = (m: M) => (m.fl ? `<img class="flag" src="${ui.base.replace(/\/?$/, '/')}flags/${m.fl}.svg" alt="" width="20" height="15">` : '');
+
+    function renderFavs() {
+      const favs = getFavorites().map((s) => bySlug.get(s)).filter(Boolean) as M[];
+      const box = document.getElementById('favs')!;
+      document.getElementById('favs-n')!.textContent = favs.length ? String(favs.length) : '';
+      document.getElementById('favs-empty')!.hidden = favs.length > 0;
+      const cmp = document.getElementById('compare-favs') as HTMLAnchorElement;
+      cmp.hidden = favs.length < 2;
+      cmp.href = link(`/compare/?v=${favs.slice(0, 4).map((m) => m.s).join(',')}`);
+      box.innerHTML = favs.map((m) => `
+        <div class="vcard lib-card" data-play-row>
+          <div class="vcard-top">
+            <span class="vrow-lead">${avatar(m)}<button type="button" class="vrow-play" data-play="${esc(sampleUrl(m.r, m.o, 0, 0))}" data-play-label="${esc(ui.play.replace('{name}', short(m.n)))}" data-pause-label="${esc(ui.pause.replace('{name}', short(m.n)))}" aria-label="${esc(ui.play.replace('{name}', short(m.n)))}"><svg class="i-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 4.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L7.4 4.1a.6.6 0 0 0-.9.5Z"/></svg><svg class="i-pause" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg></button></span>
+            <button type="button" class="vrow-fav" aria-pressed="true" data-unfav="${esc(m.s)}" aria-label="${esc(ui.removeFav)}" title="${esc(ui.removeFav)}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg></button>
+          </div>
+          <div><h3><a class="vrow-link" href="${esc(link(`/model/${m.s}/`))}">${esc(short(m.n))}</a></h3><p class="vcard-meta">${esc(m.a)}</p></div>
+          <div class="vcard-tags"><span class="badge">${flag(m)}${esc(langName(m.l))}</span><span class="badge badge-q-${esc(m.q)}">${esc(ui.q[m.q] || m.q)}</span>${m.v > 1 ? `<span class="badge">${esc(ui.speakers.replace('{count}', nf.format(m.v)))}</span>` : ''}</div>
+        </div>`).join('');
+    }
+
+    async function renderStored() {
+      const list = document.getElementById('stored')!;
+      const cache = 'caches' in window ? await caches.open('piperhub-voices-v1') : null;
+      const keys = cache ? await cache.keys() : [];
+      const rows = await Promise.all(keys.map(async (k) => {
+        const res = await cache!.match(k);
+        return { url: k.url, size: Number(res?.headers.get('x-size') || 0), saved: Number(res?.headers.get('x-saved') || 0), m: byUrl.get(k.url) };
+      }));
+      rows.sort((a, b) => b.saved - a.saved);
+      const total = rows.reduce((a, r) => a + r.size, 0);
+      document.getElementById('stored-n')!.textContent = rows.length ? String(rows.length) : '';
+      document.getElementById('stored-empty')!.hidden = rows.length > 0;
+      document.getElementById('clear-all')!.hidden = rows.length === 0;
+      try {
+        const est = await navigator.storage?.estimate?.();
+        document.getElementById('storage-usage')!.textContent = rows.length ? ui.storageUsage.replace('{size}', mb(total)).replace('{free}', est?.quota ? mb(Math.max(0, (est.quota || 0) - (est.usage || 0))) : '—') : '';
+      } catch {}
+      const date = new Intl.DateTimeFormat(ui.tag, { dateStyle: 'medium' });
+      list.innerHTML = rows.map((r) => `
+        <div class="stored-row">
+          ${r.m ? avatar(r.m) : '<span class="mavatar"><span class="mavatar-face"></span></span>'}
+          <div class="stored-text">${r.m ? `<a class="vrow-link" href="${esc(link(`/model/${r.m.s}/`))}">${esc(short(r.m.n))}</a>` : `<span>${esc(ui.unknownVoice)}</span>`}<small>${esc(mb(r.size))}${r.saved ? ' · ' + esc(date.format(new Date(r.saved))) : ''}</small></div>
+          <button type="button" class="btn btn-subtle" data-evict="${esc(r.url)}"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4.5 6h11M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg>${esc(ui.remove)}</button>
+        </div>`).join('');
+    }
+
+    document.addEventListener('click', async (e) => {
+      const el = e.target as Element;
+      const un = el.closest<HTMLElement>('[data-unfav]');
+      if (un) { toggleFavorite(un.dataset.unfav!); return; }
+      const ev = el.closest<HTMLElement>('[data-evict]');
+      if (ev) { await (await caches.open('piperhub-voices-v1')).delete(ev.dataset.evict!); renderStored(); return; }
+      if (el.closest('#clear-all')) { await caches.delete('piperhub-voices-v1'); renderStored(); }
+    });
+    onFavoritesChange(renderFavs);
+    bindQuickPlay(document.getElementById('favs')!);
+    renderFavs();
+    renderStored();
+    })();
+  </script>
+</Layout>

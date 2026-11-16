@@ -1,0 +1,12 @@
+---
+import VoiceCatalogPage from '../../../../components/pages/VoiceCatalogPage.astro';
+import models from '../../../../data/models.json';
+
+export async function getStaticPaths() {
+  const langs = [...new Set(models.filter((m) => m.usable || m.piperPlus).map((m) => m.lang))];
+  return langs.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+---
+<VoiceCatalogPage locale="ja" presetLang={lang} />

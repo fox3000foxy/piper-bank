@@ -733,48 +733,207 @@ export async function loadStack(onStatus) {
   return ortMod;
 }
 
-export async function getSession(repo, onnx, onStatus) {
-  const key = repo + '|' + onnx;
-  if (sessions.has(key)) return sessions.get(key);
-  const ort = (await loadStack(onStatus)).default ?? (await loadStack(onStatus));
-  const O = ort.InferenceSession ? ort : ort.default;
-  const url = `https://huggingface.co/${repo}/resolve/main/${onnx.split('/').map(encodeURIComponent).join('/')}`;
-  const open = (bytes) => O.InferenceSession.create(bytes, { executionProviders: ['wasm'] });
-  const cached = await idbGet(key);
-  if (cached && cached.data) {
-    onStatus?.('voix en cache…');
-    const session = await open(cached.data);
-    sessions.set(key, session);
-    refreshVoice(key, url, cached.size, onStatus);
-    return session;
-  }
-  onStatus?.('téléchargement voix…');
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('voix introuvable (' + res.status + ')');
-  const data = await res.arrayBuffer();
-  idbPut({ key, data, size: data.byteLength, savedAt: Date.now() });
-  const session = await open(data);
-  sessions.set(key, session);
-  return session;
+// ── Voice download & cache ────────────────────────────────────────────────
+// 1. Memory: one in-flight promise per voice (prefetch and click share it).
+// 2. Cache Storage (disk, streamed, no 2 GB structured-clone limit), with
+//    persistent storage requested so the browser does not evict voices.
+// 3. Legacy IndexedDB entries from earlier versions are read once and migrated.
+// 4. Network: the Hugging Face redirect is resolved once, then the file is
+//    fetched as parallel byte ranges from the CDN (much faster than a single
+//    stream for 60–120 MB models), with progress. Falls back to one stream.
+const VOICE_CACHE = 'piperhub-voices-v1';
+const VOICE_MAX = 12;            // voices kept on disk (LRU)
+const CHUNK = 8 * 1024 * 1024;   // 8 MB ranges
+const PARALLEL = 6;
+const REVALIDATE_MS = 24 * 3600 * 1000;
+const bytesInflight = new Map(); // key -> Promise<ArrayBuffer>
+let persistAsked = false;
+
+const voiceUrl = (repo, onnx) => `https://huggingface.co/${repo}/resolve/main/${onnx.split('/').map(encodeURIComponent).join('/')}`;
+const mb = (n) => (n / 1048576).toFixed(n > 10485760 ? 0 : 1);
+
+function askPersist() {
+  if (persistAsked) return;
+  persistAsked = true;
+  try { navigator.storage?.persist?.().catch(() => {}); } catch {}
 }
 
-// Revalide en arrière-plan : si le fichier HF a changé de taille, on
-// retélécharge et on remplace la session (les modèles en entraînement bougent).
-async function refreshVoice(key, url, cachedSize, onStatus) {
+async function cacheOpen() {
+  try { return 'caches' in self ? await caches.open(VOICE_CACHE) : null; } catch { return null; }
+}
+
+async function cacheGet(url) {
+  const c = await cacheOpen();
+  if (!c) return null;
   try {
-    const head = await fetch(url, { method: 'HEAD' });
-    const len = Number(head.headers.get('content-length') || 0);
-    if (!len || len === cachedSize) return;
-    onStatus?.('mise à jour voix…');
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const data = await res.arrayBuffer();
-    idbPut({ key, data, size: data.byteLength, savedAt: Date.now() });
-    const ort = await loadStack();
-    const O = ort.InferenceSession ? ort : ort.default;
-    sessions.set(key, await O.InferenceSession.create(data, { executionProviders: ['wasm'] }));
-    onStatus?.('voix à jour.');
+    const res = await c.match(url);
+    if (!res) return null;
+    const meta = { size: Number(res.headers.get('x-size') || 0), savedAt: Number(res.headers.get('x-saved') || 0) };
+    return { data: await res.arrayBuffer(), ...meta };
+  } catch { return null; }
+}
+
+async function cachePut(url, data) {
+  const c = await cacheOpen();
+  if (!c) return idbPut({ key: url, data, size: data.byteLength, savedAt: Date.now() });
+  try {
+    await c.put(url, new Response(data, { headers: { 'content-type': 'application/octet-stream', 'x-size': String(data.byteLength), 'x-saved': String(Date.now()) } }));
+    const keys = await c.keys();
+    if (keys.length > VOICE_MAX) {
+      const dated = await Promise.all(keys.map(async (k) => ({ k, t: Number((await c.match(k))?.headers.get('x-saved') || 0) })));
+      dated.sort((a, b) => a.t - b.t);
+      for (const { k } of dated.slice(0, keys.length - VOICE_MAX)) await c.delete(k);
+    }
+  } catch {
+    // Quota exceeded or private mode: the voice still works for this session.
+  }
+}
+
+async function touch(url, data) {
+  // Refresh LRU timestamp without blocking the caller.
+  cachePut(url, data).catch(() => {});
+}
+
+async function resolveTarget(url) {
+  // HEAD follows the HF 302 to the signed CDN URL and gives the real size.
+  const head = await fetch(url, { method: 'HEAD' });
+  if (!head.ok) throw new Error('voix introuvable (' + head.status + ')');
+  return { target: head.url || url, size: Number(head.headers.get('content-length') || 0), ranges: (head.headers.get('accept-ranges') || '').includes('bytes') };
+}
+
+async function streamDownload(url, size, onStatus) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('voix introuvable (' + res.status + ')');
+  const total = size || Number(res.headers.get('content-length') || 0);
+  if (!res.body || !total) return res.arrayBuffer();
+  const out = new Uint8Array(total);
+  const reader = res.body.getReader();
+  let got = 0, last = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (got + value.length > out.length) return new Blob([out.subarray(0, got), value]).arrayBuffer();
+    out.set(value, got);
+    got += value.length;
+    const pct = Math.floor((got / total) * 100);
+    if (pct !== last) { last = pct; onStatus?.(`téléchargement voix… ${pct} % · ${mb(got)}/${mb(total)} Mo`); }
+  }
+  return got === total ? out.buffer : out.slice(0, got).buffer;
+}
+
+async function rangeDownload(target, size, onStatus) {
+  const out = new Uint8Array(size);
+  const parts = [];
+  for (let start = 0; start < size; start += CHUNK) parts.push([start, Math.min(size, start + CHUNK) - 1]);
+  let done = 0, next = 0, last = -1;
+  const report = () => {
+    const pct = Math.floor((done / size) * 100);
+    if (pct !== last) { last = pct; onStatus?.(`téléchargement voix… ${pct} % · ${mb(done)}/${mb(size)} Mo`); }
+  };
+  const worker = async () => {
+    while (next < parts.length) {
+      const [a, b] = parts[next++];
+      let attempt = 0;
+      for (;;) {
+        try {
+          const res = await fetch(target, { headers: { Range: `bytes=${a}-${b}` } });
+          if (res.status !== 206) throw new Error('range ' + res.status);
+          const reader = res.body.getReader();
+          let off = a;
+          for (;;) {
+            const { done: end, value } = await reader.read();
+            if (end) break;
+            out.set(value, off);
+            off += value.length;
+            done += value.length;
+            report();
+          }
+          if (off !== b + 1) throw new Error('short range');
+          break;
+        } catch (e) {
+          if (++attempt >= 3) throw e;
+        }
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(PARALLEL, parts.length) }, worker));
+  return out.buffer;
+}
+
+async function downloadVoice(url, onStatus) {
+  onStatus?.('téléchargement voix…');
+  let info = null;
+  try { info = await resolveTarget(url); } catch {}
+  if (info && info.size > 2 * CHUNK) {
+    try { return await rangeDownload(info.target, info.size, onStatus); } catch { /* fall back */ }
+  }
+  return streamDownload(info?.target || url, info?.size || 0, onStatus);
+}
+
+/** Bytes of a voice model, from memory, disk cache, or the network (in that order). */
+export function getVoiceBytes(repo, onnx, onStatus) {
+  const url = voiceUrl(repo, onnx);
+  if (bytesInflight.has(url)) {
+    const p = bytesInflight.get(url);
+    if (onStatus) p.__listeners?.add(onStatus);
+    return p;
+  }
+  const listeners = new Set(onStatus ? [onStatus] : []);
+  const emit = (s) => listeners.forEach((fn) => { try { fn(s); } catch {} });
+  const p = (async () => {
+    askPersist();
+    let hit = await cacheGet(url);
+    if (!hit) {
+      const legacy = await idbGet(repo + '|' + onnx);
+      if (legacy?.data) { hit = { data: legacy.data, size: legacy.size, savedAt: legacy.savedAt || 0 }; cachePut(url, legacy.data); }
+    }
+    if (hit) {
+      emit('voix en cache…');
+      if (Date.now() - (hit.savedAt || 0) > REVALIDATE_MS) revalidate(url, hit.size);
+      else touch(url, hit.data);
+      return hit.data;
+    }
+    const data = await downloadVoice(url, emit);
+    cachePut(url, data);
+    return data;
+  })();
+  p.__listeners = listeners;
+  bytesInflight.set(url, p);
+  p.catch(() => bytesInflight.delete(url));
+  return p;
+}
+
+/** Start downloading a voice in the background (no-op if cached or already loading). */
+export function prefetchVoice(repo, onnx, onStatus) {
+  return getVoiceBytes(repo, onnx, onStatus).then(() => true, () => false);
+}
+
+// Background check (at most once a day per voice): if the file on Hugging Face
+// changed size, download it again so the next visit uses the new version.
+async function revalidate(url, cachedSize) {
+  try {
+    const { size } = await resolveTarget(url);
+    if (!size || size === cachedSize) {
+      const hit = await cacheGet(url);
+      if (hit) touch(url, hit.data);
+      return;
+    }
+    const data = await downloadVoice(url);
+    await cachePut(url, data);
+    for (const [k] of sessions) if (k === url) sessions.delete(k);
   } catch {}
+}
+
+export async function getSession(repo, onnx, onStatus) {
+  const key = voiceUrl(repo, onnx);
+  if (sessions.has(key)) return sessions.get(key);
+  // Engine and voice load in parallel.
+  const [ort, data] = await Promise.all([loadStack(onStatus), getVoiceBytes(repo, onnx, onStatus)]);
+  const O = ort.InferenceSession ? ort : (ort.default ?? ort);
+  onStatus?.('initialisation de la voix…');
+  const session = await O.InferenceSession.create(data, { executionProviders: ['wasm'] });
+  sessions.set(key, session);
+  return session;
 }
 
 const IDB_DB = 'piper-bank', IDB_STORE = 'voices', IDB_MAX = 15;
