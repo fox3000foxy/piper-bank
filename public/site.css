@@ -319,6 +319,7 @@ select option { background: var(--layer-2); color: var(--text); }
 /* ---------- App bar ---------- */
 .appbar {
   position: sticky; top: 0; z-index: 50;
+  isolation: isolate;
   height: var(--appbar-h);
   border-bottom: 1px solid var(--divider);
   background: var(--acrylic);
@@ -402,12 +403,11 @@ select option { background: var(--layer-2); color: var(--text); }
   position: fixed; inset: 0 0 0 auto; z-index: 70;
   width: min(340px, 88vw); max-height: none; padding: 0 20px 24px; border-top: 0;
   background: var(--layer); box-shadow: var(--shadow-28);
-  transform: translateX(102%); transition: transform 280ms var(--ease);
-  overflow-y: auto;
+  transform: translateX(102%); transition: transform 280ms var(--ease), visibility 280ms;
+  overflow-y: auto; visibility: hidden;
 }
+.menu-flyout.is-open { transform: none; visibility: visible; }
 :root[data-theme="light"] .menu-flyout { background: #fff; }
-.menu-flyout.is-open { transform: none; }
-.menu-flyout .flyout-panel { position: static; display: grid; max-height: none; overflow: visible; padding: 0; border: 0; background: none; box-shadow: none; animation: none; }
 .flyout-head { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; height: 60px; margin-bottom: 8px; background: inherit; border-bottom: 1px solid var(--divider); font-weight: 600; }
 .flyout-head span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
