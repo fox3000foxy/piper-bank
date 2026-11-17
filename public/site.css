@@ -398,15 +398,20 @@ select option { background: var(--layer-2); color: var(--text); }
 .flyout-panel a[aria-checked="true"] { color: var(--text); font-weight: 600; }
 .flyout-panel a[aria-checked="true"] .icon { color: var(--accent-text); }
 .menu-scrim { display: none; }
-.menu-flyout-btn { display: none; }
-.menu-flyout {
-  position: fixed; inset: 0 0 0 auto; z-index: 70;
-  width: min(340px, 88vw); max-height: none; padding: 0 20px 24px; border-top: 0;
-  background: var(--layer); box-shadow: var(--shadow-28);
-  overflow-y: auto;
-}
+[data-menu-btn] { display: none; }
+.menu-dropdown > summary { display: inline-flex; }
+.menu-flyout { display: none; }
 @media (max-width: 920px) {
-  .menu-flyout { transform: translateX(102%); transition: transform 280ms var(--ease), visibility 280ms; visibility: hidden; }
+  .menu-dropdown { display: none; }
+  [data-menu-btn] { display: inline-flex; }
+  .menu-flyout {
+    display: block;
+    position: fixed; inset: 0 0 0 auto; z-index: 70;
+    width: min(340px, 88vw); max-height: none; padding: 0 20px 24px; border-top: 0;
+    background: var(--layer); box-shadow: var(--shadow-28);
+    overflow-y: auto;
+    transform: translateX(102%); transition: transform 280ms var(--ease), visibility 280ms; visibility: hidden;
+  }
   .menu-flyout.is-open { transform: none; visibility: visible; }
 }
 :root[data-theme="light"] .menu-flyout { background: #fff; }

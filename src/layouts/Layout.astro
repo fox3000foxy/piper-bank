@@ -167,7 +167,19 @@ if (breadcrumbs.length) {
           </button>
           <a class="icon-btn lib-link" href={L('/library/')} aria-label={t(locale, 'library.title')} title={t(locale, 'library.title')}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg><span class="lib-count" data-fav-count hidden>0</span></a>
           <a class="icon-btn hide-sm" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub"><Icon name="github" size={18} /></a>
-          <button class="icon-btn menu-flyout-btn" type="button" id="menu-open" aria-label={t(locale, 'nav.main')} aria-expanded="false" aria-controls="menu-drawer"><Icon name="menu" size={18} /></button>
+          <button class="icon-btn menu-flyout-btn" type="button" id="menu-open" aria-label={t(locale, 'nav.main')} aria-expanded="false" aria-controls="menu-drawer" data-menu-btn><Icon name="menu" size={18} /></button>
+          <details class="flyout menu-dropdown" data-menu-dropdown>
+            <summary class="icon-btn menu-flyout-btn" aria-label={t(locale, 'nav.main')}><Icon name="menu" size={18} /></summary>
+            <div class="flyout-panel" role="menu">
+              <a role="menuitem" href={L('/voices/')}><Icon name="mic" size={16} />{t(locale, 'nav.voices')}</a>
+              <a role="menuitem" href={L('/datasets/')}><Icon name="database" size={16} />{t(locale, 'nav.datasets')}</a>
+              <a role="menuitem" href={L('/guides/')}><Icon name="book" size={16} />{t(locale, 'nav.docs')}</a>
+              <a role="menuitem" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer"><Icon name="github" size={16} />GitHub</a>
+              <span class="flyout-sep" aria-hidden="true"></span>
+              <span class="flyout-label">{t(locale, 'language.label')}</span>
+              {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
+            </div>
+          </details>
         </div>
       </div>
     </header>
