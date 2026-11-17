@@ -167,8 +167,10 @@ if (breadcrumbs.length) {
           </button>
           <a class="icon-btn lib-link" href={L('/library/')} aria-label={t(locale, 'library.title')} title={t(locale, 'library.title')}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg><span class="lib-count" data-fav-count hidden>0</span></a>
           <a class="icon-btn hide-sm" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub"><Icon name="github" size={18} /></a>
-          <details class="flyout menu-flyout">
-            <summary class="icon-btn" aria-label={t(locale, 'nav.main')}><Icon name="menu" size={18} /></summary>
+          <button class="icon-btn menu-flyout-btn" type="button" id="menu-open" aria-label={t(locale, 'nav.main')} aria-expanded="false" aria-controls="menu-drawer"><Icon name="menu" size={18} /></button>
+          <div class="menu-scrim" id="menu-scrim"></div>
+          <nav class="flyout menu-flyout" id="menu-drawer" aria-label={t(locale, 'nav.main')}>
+            <div class="flyout-head"><span>{t(locale, 'nav.main')}</span><button class="icon-btn" type="button" id="menu-close" aria-label={t(locale, 'search.hintClose')}><Icon name="close" size={18} /></button></div>
             <div class="flyout-panel" role="menu">
               <a role="menuitem" href={L('/voices/')}><Icon name="mic" size={16} />{t(locale, 'nav.voices')}</a>
               <a role="menuitem" href={L('/datasets/')}><Icon name="database" size={16} />{t(locale, 'nav.datasets')}</a>
@@ -178,7 +180,7 @@ if (breadcrumbs.length) {
               <span class="flyout-label">{t(locale, 'language.label')}</span>
               {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
             </div>
-          </details>
+          </nav>
         </div>
       </div>
     </header>
@@ -253,6 +255,22 @@ if (breadcrumbs.length) {
         });
         document.querySelectorAll('[data-locale]').forEach(function (a) {
           a.addEventListener('click', function () { try { localStorage.setItem('piper-locale', a.getAttribute('data-locale')); } catch (e) {} });
+        });
+        // Menu drawer (same pattern as the voice filters).
+        var menuBtn = document.getElementById('menu-open');
+        var menuClose = document.getElementById('menu-close');
+        var menuDrawer = document.getElementById('menu-drawer');
+        var menuScrim = document.getElementById('menu-scrim');
+        var setMenu = function (open) {
+          if (menuDrawer) menuDrawer.classList.toggle('is-open', open);
+          if (menuScrim) menuScrim.classList.toggle('is-open', open);
+          if (menuBtn) menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+        if (menuBtn) menuBtn.addEventListener('click', function () { setMenu(true); });
+        if (menuClose) menuClose.addEventListener('click', function () { setMenu(false); });
+        if (menuScrim) menuScrim.addEventListener('click', function () { setMenu(false); });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && menuDrawer && menuDrawer.classList.contains('is-open')) setMenu(false);
         });
         // Close flyouts on outside click / Escape.
         document.addEventListener('click', function (e) {
