@@ -174,6 +174,9 @@ if (breadcrumbs.length) {
               <a role="menuitem" href={L('/datasets/')}><Icon name="database" size={16} />{t(locale, 'nav.datasets')}</a>
               <a role="menuitem" href={L('/guides/')}><Icon name="book" size={16} />{t(locale, 'nav.docs')}</a>
               <a role="menuitem" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer"><Icon name="github" size={16} />GitHub</a>
+              <span class="flyout-sep" aria-hidden="true"></span>
+              <span class="flyout-label">{t(locale, 'language.label')}</span>
+              {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
             </div>
           </details>
         </div>

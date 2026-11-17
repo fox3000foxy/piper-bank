@@ -389,7 +389,10 @@ select option { background: var(--layer-2); color: var(--text); }
 }
 :root[data-theme="light"] .flyout-panel { background: #fff; }
 .flyout-panel a { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 36px; padding: 0 10px; border-radius: var(--r-sm); color: var(--text-2); font-size: 14px; }
-.menu-flyout .flyout-panel a { justify-content: flex-start; }
+.menu-flyout .flyout-panel a { display: flex; align-items: center; gap: 10px; justify-content: flex-start; }
+.flyout-sep { display: block; height: 1px; margin: 4px 6px; background: var(--stroke-2); }
+.flyout-label { display: block; padding: 8px 10px 4px; color: var(--text-4); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.menu-flyout .flyout-panel [aria-checked="true"] { color: var(--text); font-weight: 600; }
 .flyout-panel a:hover { background: var(--control-hover); color: var(--text); }
 .flyout-panel a[aria-checked="true"] { color: var(--text); font-weight: 600; }
 .flyout-panel a[aria-checked="true"] .icon { color: var(--accent-text); }
@@ -403,6 +406,7 @@ select option { background: var(--layer-2); color: var(--text); }
 }
 @media (max-width: 560px) {
   :root { --appbar-h: 60px; }
+  .lang-flyout { display: none; }
   .search-trigger { flex: 0 0 auto; width: 38px; padding: 0; justify-content: center; border-color: transparent; background: transparent; }
   .search-trigger-label, .search-trigger .kbd, .hide-sm, .lang-code { display: none; }
   .brand { gap: 8px; }
@@ -755,8 +759,12 @@ mark { padding: 0 1px; border-radius: 3px; background: var(--accent-soft-2); col
 .vlist[data-view="grid"] .vrow-lang, .vlist[data-view="grid"] .vrow-speakers { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid var(--stroke); border-radius: var(--r-xs); font-size: 12px; font-weight: 500; color: var(--text-2); }
 .vlist[data-view="grid"] .vrow-lang .flag { width: 16px; height: 12px; }
 @media (max-width: 860px) {
-  .vrow { grid-template-columns: 44px minmax(0, 1fr) auto 36px; }
-  .vrow-lang, .vrow-speakers { display: none; }
+  .vrow { grid-template-columns: 44px minmax(0, 1fr) 36px; grid-template-areas: "av title fav" "av tags fav"; column-gap: 14px; row-gap: 8px; align-items: start; }
+  .vrow-lead { grid-area: av; }
+  .vrow-title { grid-area: title; }
+  .vrow-fav { grid-area: fav; }
+  .vrow-tags { grid-area: tags; display: flex; flex-wrap: wrap; gap: 6px; }
+  .vrow-lang, .vrow-speakers { display: inline-flex; align-items: center; font-size: 12px; }
   .vlist[data-view="grid"] .vrow-lang, .vlist[data-view="grid"] .vrow-speakers { display: inline-flex; }
 }
 
