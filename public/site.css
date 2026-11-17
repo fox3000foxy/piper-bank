@@ -410,6 +410,7 @@ select option { background: var(--layer-2); color: var(--text); }
   .menu-flyout.is-open { transform: none; visibility: visible; }
 }
 :root[data-theme="light"] .menu-flyout { background: #fff; }
+.menu-flyout .flyout-panel { position: static; display: grid; max-height: none; overflow: visible; padding: 0; border: 0; background: none; box-shadow: none; animation: none; }
 .flyout-head { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; height: 60px; margin-bottom: 8px; background: inherit; border-bottom: 1px solid var(--divider); font-weight: 600; }
 .flyout-head span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
