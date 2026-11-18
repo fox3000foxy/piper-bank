@@ -736,7 +736,7 @@ a.mega-more:hover { background: var(--control-hover); }
 @keyframes burst-in { to { opacity: 1; transform: none; } }
 @keyframes burst-float { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(-5px); } }
 /* Text centred in the taller block; the button stays at the bottom under its burst. */
-@media (min-width: 901px) { .cta:has(.cta-burst) { min-height: 380px; } .cta:has(.cta-burst) > div:first-child { align-self: center; } }
+@media (min-width: 901px) { .cta:has(.cta-burst) { min-height: 380px; } .cta:has(.cta-burst) > div:first-child { align-self: center; } .cta:has(.cta-burst) .cta-action { margin-right: clamp(24px, 6vw, 88px); } }
 @media (max-width: 900px) { .cta-burst { display: none; } }
 @media (prefers-reduced-motion: reduce) { .burst-item, .cta.is-in .burst-item { opacity: 1; transform: none; animation: none; } }
 
