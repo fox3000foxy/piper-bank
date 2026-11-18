@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import Icon from '../Icon.astro';
 import datasetsData from '../../data/datasets.json';
-import { formatNumber, languageLabel, localizedPath, localeMeta, t, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, localeMeta, t, tp, type Locale } from '../../i18n/ui';
 import { fold } from '../../lib/search';
 
 const { locale = 'fr' as Locale } = Astro.props;
@@ -34,7 +34,7 @@ const ui = { tag: localeMeta(locale).tag, results: t(locale, 'datasets.resultsCo
       <div>
         <p class="lead">{t(locale, 'datasets.intro')}</p>
         <div class="page-stats">
-          <div><strong>{formatNumber(locale, datasets.length)}</strong><span>{t(locale, 'datasets.count')}</span></div>
+          <div><strong>{formatNumber(locale, datasets.length)}</strong><span>{tp(locale, 'datasets.count', datasets.length)}</span></div>
           <div><strong>{formatNumber(locale, withModel)}</strong><span>{t(locale, 'datasets.withModel')}</span></div>
           <div><strong>{formatNumber(locale, datasets.length - withModel)}</strong><span>{t(locale, 'datasets.toTrain')}</span></div>
         </div>

@@ -4,9 +4,10 @@ import Icon from '../Icon.astro';
 import ModelAvatar from '../ModelAvatar.astro';
 import Flag from '../Flag.astro';
 import data from '../../data/models.json';
-import { formatNumber, languageLabel, localizedPath, localeMeta, t, type Locale, type MessageKey } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, localeMeta, t, tp, type Locale, type MessageKey } from '../../i18n/ui';
 import { fold } from '../../lib/search';
-import { sampleUrl, voiceTraits } from '../../lib/voices';
+import { sampleUrl } from '../../lib/voices';
+import { modelTraits, TRAIT_ORDER } from '../../lib/traits';
 
 // presetLang: renders a language landing page (/voices/language/<code>/) with only that language.
 const { locale = 'fr' as Locale, presetLang = '' } = Astro.props as { locale?: Locale; presetLang?: string };
@@ -46,7 +47,7 @@ const rows = models.map((m) => ({
   author: m.author,
   dataset: m.dataset ? '1' : '',
   recent: m.updated && new Date(m.updated + 'T00:00:00Z').getTime() >= freshCutoff ? '1' : '',
-  traits: voiceTraits(m as any).join(' '),
+  traits: modelTraits(m as any).traits.join(' '),
 }));
 
 type Opt = { v: string; label: string; n: number };
@@ -61,7 +62,7 @@ const opts = (pairs: [string, number][], label: (v: string) => string): Opt[] =>
 
 const allFacets: { id: string; title: string; search?: boolean; open?: boolean; options: Opt[] }[] = [
   { id: 'lang', title: t(locale, 'filter.language'), search: true, open: true, options: opts(count('lang'), (v) => langLabel(models.find((m) => m.lang === v)!)).sort((a, b) => b.n - a.n || a.label.localeCompare(b.label)) },
-  { id: 'traits', title: t(locale, 'filter.traits'), open: true, options: opts(count('traits', ['expressive', 'character', 'female', 'male']), (v) => t(locale, `trait.${v}` as MessageKey)) },
+  { id: 'traits', title: t(locale, 'filter.traits'), open: true, options: opts(count('traits', [...TRAIT_ORDER]), (v) => t(locale, `trait.${v}` as MessageKey)) },
   { id: 'quality', title: t(locale, 'filter.quality'), open: true, options: opts(count('quality', ['high', 'medium', 'low', 'unknown']), (v) => t(locale, qKey(v))) },
   { id: 'speakers', title: t(locale, 'filter.speakers'), open: true, options: opts(count('speakers', ['single', 'multi']), (v) => (v === 'multi' ? t(locale, 'filter.multiVoice') : t(locale, 'common.oneSpeaker'))) },
   { id: 'source', title: t(locale, 'filter.source'), open: true, options: opts(count('source', ['official', 'community']), (v) => t(locale, v === 'official' ? 'filter.official' : 'filter.community')) },
@@ -200,11 +201,11 @@ const ui = {
                 <svg class="i-pause" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg>
               </button>
             </span>
-            <span class="vrow-title"><strong><a class="vrow-link" href={L(`/model/${m.slug}/`)}><span data-hl>{shortName(m.name)}</span></a>{r.recent && <span class="new-pill">{t(locale, 'common.new')}</span>}{m.piperPlus && <span class="plus-pill">Piper+</span>}</strong><small>{m.author} · {m.repo}</small></span>
+            <span class="vrow-title"><strong><a class="vrow-link" href={L(`/model/${m.slug}/`)}><span data-hl>{shortName(m.name)}</span></a>{r.recent && <span class="new-pill">{t(locale, 'common.new')}</span>}{m.piperPlus && <span class="plus-pill">Piper+</span>}</strong><small>{r.traits.split(' ').filter(Boolean).slice(0, 2).map((x) => <span class="trait-pill">{t(locale, `traitShort.${x}` as MessageKey)}</span>)}{m.author} · {m.repo}</small></span>
             <span class="vrow-tags">
               <span class="vrow-lang"><Flag lang={m.lang} />{langLabel(m)}</span>
               <span class="vrow-q"><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span></span>
-              <span class="vrow-speakers">{m.voices > 1 ? t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
+              <span class="vrow-speakers">{m.voices > 1 ? tp(locale, 'voices.speakerCount', m.voices, { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
             </span>
             <button type="button" class="vrow-fav" data-fav={m.slug} aria-pressed="false" aria-label={t(locale, 'fav.toggle', { name: shortName(m.name) })} title={t(locale, 'fav.add')}>
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg>

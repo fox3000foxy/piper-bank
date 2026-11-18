@@ -1,6 +1,8 @@
 ---
-import { LOCALES, localeMeta, localizedPath, ogLocale, t, type Locale } from '../i18n/ui';
+import { LOCALES, localeMeta, localizedPath, ogLocale, pluralForms, t, type Locale } from '../i18n/ui';
 import Icon from '../components/Icon.astro';
+import MegaMenu from '../components/MegaMenu.astro';
+import Flag from '../components/Flag.astro';
 import { docsNav } from '../lib/docs-nav';
 
 const { title, rawTitle, active, description, pageUrl, image, locale = 'fr' as Locale, noindex = false, breadcrumbs = [], jsonLdExtra = [] as Record<string, unknown>[] } = Astro.props;
@@ -26,7 +28,7 @@ const paletteUi = {
   home, base, locale, tag: localeMeta(locale).tag,
   voices: t(locale, 'nav.voices'), datasets: t(locale, 'nav.datasets'), languages: t(locale, 'search.languages'),
   pages: t(locale, 'search.pages'), empty: t(locale, 'search.noResults'), all: t(locale, 'search.seeAll'),
-  speakers: t(locale, 'voices.speakerCount'), one: t(locale, 'common.oneSpeaker'), models: t(locale, 'voices.models'),
+  speakers: pluralForms(locale, 'voices.speakerCount'), one: t(locale, 'common.oneSpeaker'), models: t(locale, 'voices.models'),
   q: { high: t(locale, 'quality.high'), medium: t(locale, 'quality.medium'), low: t(locale, 'quality.low'), unknown: t(locale, 'quality.unknown') },
 };
 const jsonLd: Record<string, unknown>[] = [];
@@ -141,14 +143,11 @@ if (breadcrumbs.length) {
     <header class="appbar">
       <div class="appbar-inner">
         <a class="brand" href={home} aria-label="PiperHub">
-          <img class="brand-mark brand-mark-dark" src={`${base}brand/logo.png`} alt="" width="44" height="44" />
-          <img class="brand-mark brand-mark-light" src={`${base}brand/logo-light.png`} alt="" width="44" height="44" />
+          <img class="brand-mark" src={`${base}brand/logo.png`} alt="" width="44" height="44" />
           <span class="brand-name" aria-hidden="true">Piper<b>Hub</b></span>
         </a>
         <nav class="appnav" aria-label={t(locale, 'nav.main')}>
-          <a aria-current={active === 'voices' ? 'page' : undefined} href={L('/voices/')}>{t(locale, 'nav.voices')}</a>
-          <a aria-current={active === 'datasets' ? 'page' : undefined} href={L('/datasets/')}>{t(locale, 'nav.datasets')}</a>
-          <a aria-current={active === 'guides' ? 'page' : undefined} href={L('/guides/')}>{t(locale, 'nav.docs')}</a>
+          <MegaMenu part="nav" locale={locale} active={active} />
         </nav>
         <button class="search-trigger" type="button" data-palette-open aria-label={t(locale, 'search.open')}>
           <Icon name="search" size={16} />
@@ -157,15 +156,15 @@ if (breadcrumbs.length) {
         </button>
         <div class="appbar-tools">
           <details class="flyout lang-flyout">
-            <summary class="icon-btn" aria-label={t(locale, 'language.label')} title={t(locale, 'language.label')}><Icon name="globe" size={18} /><span class="lang-code">{locale.toUpperCase()}</span></summary>
+            <summary class="icon-btn lang-btn" aria-label={t(locale, 'language.label')} title={t(locale, 'language.label')}><Flag lang={locale} class="lang-flag" eager /><span class="lang-code">{locale.toUpperCase()}</span></summary>
             <div class="flyout-panel" role="menu">
-              {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
+              {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><Flag lang={l.code} eager /><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
             </div>
           </details>
           <button class="icon-btn" type="button" id="theme-toggle" aria-label={t(locale, 'theme.change')} title={t(locale, 'theme.change')}>
             <span class="theme-dark-icon"><Icon name="moon" size={18} /></span><span class="theme-light-icon"><Icon name="sun" size={18} /></span>
           </button>
-          <a class="icon-btn lib-link" href={L('/library/')} aria-label={t(locale, 'library.title')} title={t(locale, 'library.title')}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg><span class="lib-count" data-fav-count hidden>0</span></a>
+          <a class="icon-btn lib-link" href={L('/library/')} aria-label={t(locale, 'library.title')} title={t(locale, 'library.title')} aria-current={active === 'library' ? 'page' : undefined}><Icon name="library" size={18} /><span class="lib-label">{t(locale, 'library.navLabel')}</span><span class="lib-count" data-fav-count hidden>0</span></a>
           <a class="icon-btn hide-sm" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub"><Icon name="github" size={18} /></a>
           <button class="icon-btn menu-flyout-btn" type="button" id="menu-open" aria-label={t(locale, 'nav.main')} aria-expanded="false" aria-controls="menu-drawer" data-menu-btn><Icon name="menu" size={18} /></button>
           <details class="flyout menu-dropdown" data-menu-dropdown>
@@ -177,12 +176,14 @@ if (breadcrumbs.length) {
               <a role="menuitem" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer"><Icon name="github" size={16} />GitHub</a>
               <span class="flyout-sep" aria-hidden="true"></span>
               <span class="flyout-label">{t(locale, 'language.label')}</span>
-              {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
+              {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><Flag lang={l.code} eager /><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
             </div>
           </details>
         </div>
       </div>
+      <MegaMenu part="panels" locale={locale} />
     </header>
+    <div class="mega-scrim" data-mega-scrim></div>
     <div class="menu-scrim" id="menu-scrim"></div>
     <nav class="flyout menu-flyout" id="menu-drawer" aria-label={t(locale, 'nav.main')}>
         <div class="flyout-head"><span>{t(locale, 'nav.main')}</span><button class="icon-btn" type="button" id="menu-close" aria-label={t(locale, 'search.hintClose')}><Icon name="close" size={18} /></button></div>
@@ -193,7 +194,7 @@ if (breadcrumbs.length) {
           <a role="menuitem" href="https://github.com/fox3000foxy/piper-bank" target="_blank" rel="noreferrer"><Icon name="github" size={16} />GitHub</a>
           <span class="flyout-sep" aria-hidden="true"></span>
           <span class="flyout-label">{t(locale, 'language.label')}</span>
-          {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
+          {LOCALES.map((l) => <a role="menuitemradio" aria-checked={locale === l.code ? 'true' : 'false'} lang={l.tag} data-locale={l.code} href={localizedPath(base, l.code, pageUrl || '/')}><Flag lang={l.code} eager /><span>{l.name}</span>{locale === l.code && <Icon name="check" size={16} />}</a>)}
         </div>
       </nav>
     <div id="content" class="page">
@@ -203,8 +204,7 @@ if (breadcrumbs.length) {
       <div class="footer-grid">
         <div class="footer-brand">
           <a class="brand brand-lg" href={home} aria-label="PiperHub">
-            <img class="brand-mark brand-mark-dark" src={`${base}brand/logo.png`} alt="" width="60" height="60" loading="lazy" />
-            <img class="brand-mark brand-mark-light" src={`${base}brand/logo-light.png`} alt="" width="60" height="60" loading="lazy" />
+            <img class="brand-mark" src={`${base}brand/logo.png`} alt="" width="60" height="60" loading="lazy" />
             <span class="brand-name" aria-hidden="true">Piper<b>Hub</b></span>
           </a>
           <p>{t(locale, 'footer.description')} {t(locale, 'footer.licenses')}</p>
@@ -297,7 +297,9 @@ if (breadcrumbs.length) {
     <script>
       import { initPalette } from '../lib/palette';
       import { getFavorites, onFavoritesChange } from '../lib/favorites';
+      import { initMegaMenu } from '../lib/mega-menu';
       initPalette();
+      initMegaMenu();
       const syncFavCount = () => { const n = getFavorites().length; document.querySelectorAll<HTMLElement>('[data-fav-count]').forEach((el) => { el.textContent = String(n); el.hidden = n === 0; }); };
       onFavoritesChange(syncFavCount);
       syncFavCount();

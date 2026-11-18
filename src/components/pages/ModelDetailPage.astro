@@ -3,7 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import Icon from '../Icon.astro';
 import Flag from '../Flag.astro';
 import ModelAvatar from '../ModelAvatar.astro';
-import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, t, tp, type Locale, type MessageKey } from '../../i18n/ui';
+import { modelTraits, speakerGender } from '../../lib/traits';
 
 const { locale = 'fr' as Locale } = Astro.props;
 const { model: m } = Astro.props;
@@ -12,6 +13,8 @@ const avatar = m.avatar || { emoji: '?', hue: 260, icon: null };
 const voicePairs: { name: string; sid: number }[] = (m.voiceNames || []).map((vn: string, i: number) => ({
   name: vn, sid: (m.voiceIds || [])[i] ?? i,
 }));
+const { traits: mTraits, genderSource } = modelTraits(m);
+const traitLabel = (x: string) => t(locale, `traitShort.${x}` as MessageKey);
 const updatedDate = m.updated ? new Date(m.updated + 'T00:00:00Z') : null;
 const isFresh = !!updatedDate && (Date.now() - updatedDate.getTime()) < 14 * 864e5;
 const updatedLabel = updatedDate ? updatedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
@@ -134,7 +137,7 @@ function hlJS(src: string): string {
       <div class="model-hero-actions">
         <button type="button" class="btn fav-toggle" data-fav={m.slug} aria-pressed="false" aria-label={t(locale, 'fav.toggle', { name: m.name })}>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg>
-          <span class="fav-off">{t(locale, 'fav.add')}</span><span class="fav-on">{t(locale, 'fav.added')}</span>
+          <span class="fav-label"><span class="fav-off">{t(locale, 'fav.add')}</span><span class="fav-on" aria-hidden="true">{t(locale, 'fav.added')}</span></span>
         </button>
         {m.usable && <a class="btn" href={localizedPath(base, locale, `/compare/?v=${m.slug}`)}><Icon name="layers" size={16} />{t(locale, 'compare.withOthers')}</a>}
       </div>
@@ -144,6 +147,7 @@ function hlJS(src: string): string {
       <span class="tag lang"><Flag lang={m.lang} />{languageLabel(m.lang, m.langName, locale)}</span>
       <span class={`tag tag-quality q-${m.quality}`}>{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</span>
       {m.piperPlus && <span class="plus-pill" title="piper-plus">Piper+</span>}
+      {mTraits.map((x) => <span class="tag">{traitLabel(x)}</span>)}
       {m.voices > 1
         ? <span class="tag voices">{formatNumber(locale, m.voices)} {t(locale, 'common.voicesUnit')}</span>
         : <span class="tag">{t(locale, 'common.oneSpeaker')}</span>}
@@ -164,7 +168,9 @@ function hlJS(src: string): string {
       <textarea id="text" rows="7" placeholder={t(locale, 'detail.enterText')}></textarea>
       <p class="model-size" id="model-size" hidden data-repo={m.repo} data-onnx={m.onnx}
         data-tpl-size={t(locale, 'size.model')} data-tpl-cached={t(locale, 'size.cached')}></p>
-      <div class="editor-submit"><span id="status" class="dim" aria-live="polite"></span><button id="go">{t(locale, 'detail.generateAudio')} <span aria-hidden="true">→</span></button></div>
+      <div class="editor-submit"><span id="status" class="dim" aria-live="polite"></span><span class="editor-actions"><button id="share" class="btn btn-subtle" type="button" title={t(locale, 'detail.shareHint')}><Icon name="share" size={16} />{t(locale, 'detail.share')}</button><button id="go">{t(locale, 'detail.generateAudio')} <span aria-hidden="true">→</span></button></span></div>
+      <div class="synth-progress" id="synth-progress" hidden></div>
+      <div class="synth-done" id="synth-done" role="status" hidden><span class="synth-done-ico" aria-hidden="true"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3.2 3.2L15 7"/></svg></span><span><strong>{t(locale, 'progress.doneTitle')}</strong> {t(locale, 'progress.doneCopy')}</span></div>
       <div id="synthesis-player" class="synthesis-player" style={`--synth-hue:${avatar.hue ?? 260}`} hidden>
         <button id="synthesis-toggle" class="sample-play" type="button" aria-label={t(locale, 'detail.playSynthesis')} data-play-label={t(locale, 'detail.playSynthesis')} data-pause-label={t(locale, 'detail.pauseSynthesis')}>
           <svg class="play-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4.8 8 5.2-8 5.2z"/></svg>
@@ -203,6 +209,7 @@ function hlJS(src: string): string {
         <button id="cmp-go" class="btn-dl">{t(locale, 'detail.compareRun')}</button>
       </div>
       <div id="cmp-status" class="dim" aria-live="polite"></div>
+      <div class="synth-progress is-compact" id="cmp-progress" hidden></div>
       <div id="cmp-results" class="cmp-results"></div>
     </section>
     )}
@@ -215,6 +222,7 @@ function hlJS(src: string): string {
         <div><dt>{t(locale, 'detail.language')}</dt><dd>{languageLabel(m.lang, m.langName, locale)}</dd></div>
         <div><dt>{t(locale, 'detail.quality')}</dt><dd class="cap">{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</dd></div>
         <div><dt>{t(locale, 'detail.speakers')}</dt><dd>{formatNumber(locale, m.voices)}</dd></div>
+        {mTraits.length > 0 && <div><dt>{t(locale, 'filter.traits')}</dt><dd>{mTraits.map(traitLabel).join(', ')}{genderSource && <small class="trait-source">{t(locale, `detail.genderSource.${genderSource}` as MessageKey)}</small>}</dd></div>}
         <div><dt>{t(locale, 'detail.phonemes')}</dt><dd>{m.phonemeType === 'text' ? t(locale, 'detail.textPhoneme') : (((m.configs || {}).espeak || {}).voice || 'espeak')}</dd></div>
         <div><dt>{t(locale, 'detail.sampleRate')}</dt><dd>{formatNumber(locale, m.sampleRate)} Hz</dd></div>
         <div><dt>{t(locale, 'detail.license')}</dt><dd>{m.license || t(locale, 'detail.noLicense')}</dd></div>
@@ -265,8 +273,8 @@ function hlJS(src: string): string {
       </div>
       </div>
       <div class="dl-row">
-        <a class="btn-dl ghost" href="https://www.npmjs.com/package/pipertts">pipertts · npm ↗</a>
-        <a class="btn-dl ghost" href="https://itsrealfortune.fr/pipertts/">{t(locale, 'detail.apiReference')} ↗</a>
+        <a class="btn-dl ghost btn-brand" href="https://www.npmjs.com/package/pipertts"><svg class="brand-ico" viewBox="0 0 18 18" aria-hidden="true"><path fill="#cb3837" d="M0 0h18v18H0z"/><path fill="#fff" d="M3 3h12v12h-3V6H9v9H3z"/></svg>pipertts · npm ↗</a>
+        <a class="btn-dl ghost btn-brand" href="https://itsrealfortune.fr/pipertts/"><img class="brand-ico" src={`${base}brand/itsrealfortune.png`} alt="" width="18" height="18" loading="lazy" />{t(locale, 'detail.apiReference')} ↗</a>
       </div>
     </section>
     }
@@ -286,6 +294,7 @@ function hlJS(src: string): string {
             <div class="pbody">
               <div class="prow">
                 <button class="pname" title={v.name}>{v.name}</button>
+                {m.voices > 1 && speakerGender(m.slug, v.sid) && <span class="ptrait">{traitLabel(speakerGender(m.slug, v.sid)!)}</span>}
                 <span class="ex-sw">
                   <button class="ex on" data-n="0" title={t(locale, 'detail.sampleN', { number: 1 })}>1</button><button class="ex" data-n="1" title={t(locale, 'detail.sampleN', { number: 2 })}>2</button>
                 </span>
@@ -307,7 +316,7 @@ function hlJS(src: string): string {
           </div>
           );
         })}
-        {voicePairs.length > 120 && <p class="dim">{t(locale, 'detail.moreSpeakers', { count: formatNumber(locale, voicePairs.length - 120) })}</p>}
+        {voicePairs.length > 120 && <p class="dim">{tp(locale, 'detail.moreSpeakers', voicePairs.length - 120, { count: formatNumber(locale, voicePairs.length - 120) })}</p>}
       </div>
     </section>
       </aside>
@@ -315,7 +324,7 @@ function hlJS(src: string): string {
   </main>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
-    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus') } })} />
+    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus'), shareCopied: t(locale, 'detail.shareCopied'), shareTitle: t(locale, 'detail.shareTitle', { name: m.name }), progress: { engine: t(locale, 'progress.engine'), download: t(locale, 'progress.download'), cached: t(locale, 'progress.cached'), init: t(locale, 'progress.init'), phonemize: t(locale, 'progress.phonemize'), synth: t(locale, 'progress.synth'), remaining: t(locale, 'progress.remaining'), bytes: t(locale, 'progress.bytes'), stepModel: t(locale, 'progress.stepModel'), stepPrepare: t(locale, 'progress.stepPrepare'), stepAudio: t(locale, 'progress.stepAudio') } } })} />
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
     <script type="module">
       const model = JSON.parse(document.getElementById('model-data').textContent);
@@ -490,6 +499,26 @@ function hlJS(src: string): string {
         }).catch(() => { warmed = false; });
       };
       const textBox = document.getElementById('text');
+      // Share link: this page with the current text and speaker, ready to synthesize.
+      document.getElementById('share')?.addEventListener('click', async () => {
+        const params = new URLSearchParams();
+        const value = textBox?.value.trim();
+        if (value) params.set('text', value);
+        if (window.__selSid !== null && window.__selSid !== undefined && window.__selSid !== 0) params.set('sid', String(window.__selSid));
+        const url = `${location.origin}${location.pathname}${params.toString() ? `?${params}` : ''}`;
+        const status = document.getElementById('status');
+        if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+          try { await navigator.share({ title: ui.labels.shareTitle, text: value || undefined, url }); return; } catch (e) { if (e?.name === 'AbortError') return; }
+        }
+        try { await navigator.clipboard.writeText(url); }
+        catch {
+          const ta = document.createElement('textarea');
+          ta.value = url; document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); } catch {}
+          ta.remove();
+        }
+        if (status) status.textContent = ui.labels.shareCopied;
+      });
       textBox?.addEventListener('focus', warm, { once: true });
       textBox?.addEventListener('input', warm, { once: true });
       go?.addEventListener('pointerenter', warm, { once: true });
@@ -548,6 +577,51 @@ function hlJS(src: string): string {
           paintSynthesis();
         }
       });
+      // Loading component (src/lib/synth-progress.ts, exposed by the bundled script below).
+      const lang = document.documentElement.lang || 'en';
+      const isCached = () => !!document.getElementById('model-size')?.classList.contains('is-cached');
+      const makeProgress = (box, opts) => {
+        let view = null, tracker = null;
+        return {
+          start() {
+            const P = window.__piperProgress;
+            if (!P) return;
+            tracker = new P.ProgressTracker(isCached());
+            if (!view) view = P.mountProgress(box, ui.labels.progress, lang, opts);
+            tracker.update({ phase: 'init' });
+            view.apply(tracker);
+            box.hidden = false;
+          },
+          update(info) { if (tracker && view && tracker.update(info)) view.apply(tracker); },
+          hide() { box.hidden = true; },
+        };
+      };
+      const progress = (() => {
+        const main = makeProgress(document.getElementById('synth-progress'));
+        const doneEl = document.getElementById('synth-done');
+        let doneTimer = 0, statusEl = null;
+        return {
+          start(st) {
+            statusEl = st;
+            clearTimeout(doneTimer);
+            doneEl.hidden = true; doneEl.classList.remove('is-leaving');
+            if (statusEl) { statusEl.textContent = ''; statusEl.classList.remove('is-error'); }
+            main.start();
+          },
+          update: main.update,
+          hide: main.hide,
+          done() {
+            main.hide();
+            if (statusEl) statusEl.textContent = '';
+            doneEl.hidden = false;
+            doneEl.classList.remove('is-leaving');
+            clearTimeout(doneTimer);
+            doneTimer = setTimeout(() => { doneEl.classList.add('is-leaving'); doneTimer = setTimeout(() => { doneEl.hidden = true; }, 400); }, 4500);
+            // The model is now on this device: refresh the size chip.
+            window.dispatchEvent(new CustomEvent('piperhub:model-cached'));
+          },
+        };
+      })();
       go.addEventListener('click', async () => {
         const text = document.getElementById('text').value.trim();
         const status = document.getElementById('status');
@@ -565,6 +639,7 @@ function hlJS(src: string): string {
         if (synthesisUrl) URL.revokeObjectURL(synthesisUrl);
         synthesisUrl = '';
         go.disabled = true;
+        progress.start(status);
         try {
           const { synthesize } = await loadStack();
           const blob = await synthesize({
@@ -574,7 +649,7 @@ function hlJS(src: string): string {
             speakerId: window.__selSid ?? null,
             lengthScale: parseFloat(document.getElementById('len').value) || undefined,
             noiseScale: parseFloat(document.getElementById('noise').value) || undefined,
-          }, (s) => { status.textContent = message(ui.labels.synthProgress, { progress: s }); });
+          }, (s, info) => progress.update(info));
           synthesisUrl = URL.createObjectURL(blob);
           synthesisAudio.src = synthesisUrl;
           synthesisDownload.href = synthesisUrl;
@@ -584,9 +659,10 @@ function hlJS(src: string): string {
           synthesisControl.hidden = false;
           synthesisAudio.load();
           paintSynthesis();
-          status.textContent = ui.labels.audioReady;
+          progress.done();
           synthesisAudio.play().catch(() => {});
-        } catch (e) { status.textContent = message(ui.labels.synthFailure, { message: e.message || e }); }
+          window.dispatchEvent(new CustomEvent('piperhub:synthesized', { detail: { s: model.slug, t: text, sid: window.__selSid ?? undefined } }));
+        } catch (e) { progress.hide(); status.classList.add('is-error'); status.textContent = message(ui.labels.synthFailure, { message: e.message || e }); }
         finally { go.disabled = false; }
       });
       const cmpGo = document.getElementById('cmp-go');
@@ -613,9 +689,11 @@ function hlJS(src: string): string {
           clearCmp();
           if (cmpCurrent) { cmpCurrent.pause(); cmpCurrent = null; }
           let done = 0;
+          const cmpProgress = makeProgress(document.getElementById('cmp-progress'), { steps: false });
           const { synthesize } = await loadStack();
           for (const sid of sids) {
             cmpStatus.textContent = message(ui.labels.compareStatus, { done: done + 1, total: sids.length, name: cmpNames[sid] || sid });
+            cmpProgress.start();
             try {
               const blob = await synthesize({
                 repo: model.repo, onnx: model.onnx, configs: model.configs,
@@ -623,7 +701,7 @@ function hlJS(src: string): string {
                 sampleRate: model.sampleRate, text, speakerId: Number(sid),
                 lengthScale: parseFloat(document.getElementById('len').value) || undefined,
                 noiseScale: parseFloat(document.getElementById('noise').value) || undefined,
-              });
+              }, (st, info) => cmpProgress.update(info));
               const url = URL.createObjectURL(blob);
               cmpUrls.push(url);
               const row = document.createElement('div');
@@ -650,40 +728,58 @@ function hlJS(src: string): string {
             } catch { /* on garde les autres voix */ }
             done++;
           }
+          cmpProgress.hide();
           cmpStatus.textContent = '';
           cmpGo.disabled = false;
+          window.dispatchEvent(new CustomEvent('piperhub:model-cached'));
         });
       }
       }
     </script>
 <script>
   import { bindFavButtons } from '../../lib/favorites';
+  import { addHistory } from '../../lib/history';
+  import { ProgressTracker, mountProgress } from '../../lib/synth-progress';
+  (window as any).__piperProgress = { ProgressTracker, mountProgress };
   bindFavButtons(document);
-  // Model size and cache state before any download.
+  // Each successful synthesis lands in the library history.
+  window.addEventListener('piperhub:synthesized', (e) => addHistory((e as CustomEvent).detail));
+  // Model size and cache state before any download, as a chip.
   const el = document.getElementById('model-size');
   if (el) {
     const url = `https://huggingface.co/${el.dataset.repo}/resolve/main/${el.dataset.onnx!.split('/').map(encodeURIComponent).join('/')}`;
-    const fmtMb = (n: number) => new Intl.NumberFormat(document.documentElement.lang, { maximumFractionDigits: 0 }).format(n / 1048576);
-    (async () => {
+    const lang = document.documentElement.lang || 'en';
+    const fmtMb = (n: number) => new Intl.NumberFormat(lang, { maximumFractionDigits: 0 }).format(n / 1048576);
+    const ICON_DL = '<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v9.5m0 0 4-4m-4 4-4-4M4 16.5h12"/></svg>';
+    const ICON_OK = '<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 10.5 3.2 3.2L15 7"/></svg>';
+    const show = (cached: boolean, text: string) => {
+      el.innerHTML = `<span class="ms-ico">${cached ? ICON_OK : ICON_DL}</span><span></span>`;
+      el.lastElementChild!.textContent = text;
+      el.classList.toggle('is-cached', cached);
+      el.hidden = false;
+    };
+    const refresh = async () => {
       try {
         const cache = 'caches' in window ? await caches.open('piperhub-voices-v1') : null;
         const hit = cache ? await cache.match(url) : null;
-        if (hit) {
-          el.textContent = el.dataset.tplCached!.replace('{size}', fmtMb(Number(hit.headers.get('x-size') || 0)));
-          el.classList.add('is-cached');
-          el.hidden = false;
-          return;
-        }
+        if (hit) return show(true, el.dataset.tplCached!.replace('{size}', fmtMb(Number(hit.headers.get('x-size') || 0))));
         const head = await fetch(url, { method: 'HEAD' });
         const size = Number(head.headers.get('content-length') || 0);
         if (!size) return;
         // Rough estimate on a typical 2 MB/s home connection.
         const secs = Math.max(5, Math.round(size / (2 * 1048576) / 5) * 5);
-        const time = secs < 60 ? `${secs} s` : `${Math.round(secs / 60)} min`;
-        el.textContent = el.dataset.tplSize!.replace('{size}', fmtMb(size)).replace('{time}', time);
-        el.hidden = false;
+        let time = `${secs} s`;
+        try {
+          time = secs < 60
+            ? new Intl.NumberFormat(lang, { style: 'unit', unit: 'second', unitDisplay: 'short' }).format(secs)
+            : new Intl.NumberFormat(lang, { style: 'unit', unit: 'minute', unitDisplay: 'short' }).format(Math.round(secs / 60));
+        } catch {}
+        show(false, el.dataset.tplSize!.replace('{size}', fmtMb(size)).replace('{time}', time));
       } catch {}
-    })();
+    };
+    refresh();
+    // Cache writes finish slightly after the synthesis: check again a moment later.
+    window.addEventListener('piperhub:model-cached', () => setTimeout(refresh, 800));
   }
 </script>
 </Layout>

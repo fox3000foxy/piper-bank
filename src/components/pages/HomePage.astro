@@ -5,8 +5,9 @@ import ModelAvatar from '../ModelAvatar.astro';
 import Flag from '../Flag.astro';
 import data from '../../data/models.json';
 import datasets from '../../data/datasets.json';
-import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, t, tp, type Locale, type MessageKey } from '../../i18n/ui';
 import { docsNav } from '../../lib/docs-nav';
+import { modelTraits } from '../../lib/traits';
 
 const { locale = 'fr' as Locale } = Astro.props;
 
@@ -37,6 +38,17 @@ const fresh = [...models]
   .filter((m) => m.updated)
   .sort((a, b) => (b.updated || '').localeCompare(a.updated || ''))
   .slice(0, 8);
+// Closing call to action: voice icons bursting up from the button.
+// Hand-placed fan (x from the button centre, y above it, size), big and close
+// at the bottom, small and spread out at the top.
+const burstSpots = [
+  [-118, 14, 36], [-58, 6, 40], [2, 18, 38], [62, 8, 40], [122, 16, 34],
+  [-152, 66, 28], [-90, 76, 30], [-26, 64, 30], [38, 78, 28], [102, 66, 30], [162, 76, 26],
+  [-122, 126, 22], [-44, 120, 22], [32, 130, 20], [112, 122, 22],
+  [-82, 170, 16], [8, 174, 14], [88, 168, 16],
+];
+const iconVoices = [...new Map(models.filter((m) => m.avatar?.icon).map((m) => [m.avatar!.icon, m])).values()];
+const burst = iconVoices.length ? burstSpots.map(([x, y, size], i) => ({ x: Math.round(x * 0.78), y, size, m: iconVoices[i % iconVoices.length] })) : [];
 const provenance = models.find((model) => model.dataset?.slug && model.avatar?.icon);
 const base = import.meta.env.BASE_URL;
 const L = (p: string) => localizedPath(base, locale, p);
@@ -60,17 +72,22 @@ const userLang = locale === 'en' ? 'en' : locale;
             </label>
             <button class="btn btn-primary" type="submit"><span>{t(locale, 'home.searchButton')}</span><Icon name="arrowRight" size={18} /></button>
           </form>
+          <div class="hero-suggest-wrap">
           <div class="hero-suggest">
             <span>{t(locale, 'home.popular')}</span>
-            {langCounts.has(userLang) && <a class="chip chip-plain" href={L(`/voices/?lang=${userLang}`)}>{languageLabel(userLang, langCounts.get(userLang)!.name, locale)}</a>}
-            {userLang !== 'en' && <a class="chip chip-plain" href={L('/voices/?lang=en')}>{languageLabel('en', 'English', locale)}</a>}
-            <a class="chip chip-plain" href={L('/voices/?quality=high')}>{t(locale, 'filter.highQuality')}</a>
-            <a class="chip chip-plain" href={L('/voices/?speakers=multi')}>{t(locale, 'filter.multiVoice')}</a>
-            <a class="chip chip-plain" href={L('/voices/?source=official')}>{t(locale, 'filter.official')}</a>
+            {langCounts.has(userLang) && <a class="chip chip-plain chip-ico" href={L(`/voices/?lang=${userLang}`)}><Flag lang={userLang} />{languageLabel(userLang, langCounts.get(userLang)!.name, locale)}</a>}
+            {userLang !== 'en' && <a class="chip chip-plain chip-ico" href={L('/voices/?lang=en')}><Flag lang="en" />{languageLabel('en', 'English', locale)}</a>}
+            <a class="chip chip-plain chip-ico" href={L('/voices/?quality=high')}><span class="chip-dot" aria-hidden="true"></span>{t(locale, 'filter.highQuality')}</a>
+            <a class="chip chip-plain chip-ico" href={L('/voices/?speakers=multi')}><Icon name="users" size={15} />{t(locale, 'filter.multiVoice')}</a>
+            <a class="chip chip-plain chip-ico" href={L('/voices/?source=official')}><img class="chip-logo" src={`${base}brand/piper-mark.png`} alt="" width="16" height="16" loading="lazy" />{t(locale, 'filter.official')}</a>
+          </div>
+          {/* Mouse helper only: keyboard users reach every chip with Tab, which scrolls it into view. */}
+          <button type="button" class="suggest-next" aria-hidden="true" tabindex="-1"><Icon name="chevronRight" size={16} /></button>
           </div>
         </div>
 
-        {sample && <figure class="sample-card" data-sample-player>
+        {sample && <figure class="sample-card has-award" data-sample-player>
+          <span class="award-tab"><svg class="award-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3.5h8v4.25a4 4 0 0 1-8 0V3.5Z" fill="currentColor"/><path d="M6 5H3.75v1.5A2.75 2.75 0 0 0 6.5 9.25M14 5h2.25v1.5a2.75 2.75 0 0 1-2.75 2.75" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 11.75v2.5M7 16.5h6M8 16.5v-1.25c0-.55.45-1 1-1h2c.55 0 1 .45 1 1v1.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><strong>#1</strong><span>PiperHub Editors' Choice</span></span>
           <div class="sample-topline">
             <span class="label">{t(locale, 'home.sampleIndex')}</span>
             <a class="link-arrow" href={L(`/model/${sample.slug}/`)} aria-label={t(locale, 'home.openSampleModel', { name: sample.name })}>{t(locale, 'home.modelDetails')}<Icon name="arrowRight" size={16} /></a>
@@ -91,10 +108,10 @@ const userLang = locale === 'en' ? 'en' : locale;
 
     <section class="stat-band" aria-label={t(locale, 'home.catalogStats')}>
       <div class="stat-band-grid">
-        <div class="stat"><strong>{formatNumber(locale, models.length)}</strong><span>{t(locale, 'home.modelsInCatalog')}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, totalVoices)}</strong><span>{t(locale, 'home.speakersListed')}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, langCount)}</strong><span>{t(locale, 'home.languagesListed')}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, datasets.length)}</strong><span>{t(locale, 'datasets.count')}</span></div>
+        <div class="stat"><span class="stat-ico"><Icon name="wave" size={18} /></span><strong>{formatNumber(locale, models.length)}</strong><span>{tp(locale, 'home.modelsInCatalog', models.length)}</span></div>
+        <div class="stat"><span class="stat-ico"><Icon name="users" size={18} /></span><strong>{formatNumber(locale, totalVoices)}</strong><span>{tp(locale, 'home.speakersListed', totalVoices)}</span></div>
+        <div class="stat"><span class="stat-ico"><Icon name="globe" size={18} /></span><strong>{formatNumber(locale, langCount)}</strong><span>{tp(locale, 'home.languagesListed', langCount)}</span></div>
+        <div class="stat"><span class="stat-ico"><Icon name="database" size={18} /></span><strong>{formatNumber(locale, datasets.length)}</strong><span>{tp(locale, 'datasets.count', datasets.length)}</span></div>
       </div>
     </section>
 
@@ -120,7 +137,7 @@ const userLang = locale === 'en' ? 'en' : locale;
         {featured.map((m) => <a class="vcard" href={L(`/model/${m.slug}/`)}>
           <div class="vcard-top"><ModelAvatar model={m} locale={locale} /><Icon name="arrowUpRight" size={18} class="go" /></div>
           <div><h3>{shortName(m.name)}</h3><p class="vcard-meta">{m.author}</p></div>
-          <div class="vcard-tags"><span class="badge">{languageLabel(m.lang, m.langName, locale)}</span><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span>{m.voices > 1 && <span class="badge">{t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) })}</span>}</div>
+          <div class="vcard-tags"><span class="badge">{languageLabel(m.lang, m.langName, locale)}</span><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span>{m.voices > 1 && <span class="badge">{tp(locale, 'voices.speakerCount', m.voices, { count: formatNumber(locale, m.voices) })}</span>}{modelTraits(m as any).traits.slice(0, 2).map((x) => <span class="badge">{t(locale, `traitShort.${x}` as MessageKey)}</span>)}</div>
         </a>)}
       </div>
     </section>
@@ -153,7 +170,7 @@ const userLang = locale === 'en' ? 'en' : locale;
           <span class="vrow-title"><strong><span>{shortName(m.name)}</span></strong><small>{m.author} · {m.updated}</small></span>
           <span class="vrow-lang">{languageLabel(m.lang, m.langName, locale)}</span>
           <span class="vrow-q"><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span></span>
-          <span class="vrow-speakers">{m.voices > 1 ? t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
+          <span class="vrow-speakers">{m.voices > 1 ? tp(locale, 'voices.speakerCount', m.voices, { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
           <Icon name="chevronRight" size={18} class="go" />
         </a>)}
       </div>
@@ -177,11 +194,67 @@ const userLang = locale === 'en' ? 'en' : locale;
     <section class="section">
       <div class="cta">
         <div><h2>{t(locale, 'home.findVoice')}</h2><p>{t(locale, 'home.findVoiceCopy')}</p></div>
-        <a href={L('/voices/')} class="btn btn-lg">{t(locale, 'home.openCatalog')}<Icon name="arrowRight" size={18} /></a>
+        <div class="cta-action">
+          {burst.length > 0 && (
+            <div class="cta-burst" aria-hidden="true">
+              {burst.map((b) => (
+                <span class="mavatar burst-item" style={`--x:${b.x}px;--y:${b.y}px;--s:${b.size}px;--h:${b.m.avatar?.hue ?? 220};--d:${Math.round(b.y * 2.2 + Math.abs(b.x) * .6)}ms`}>
+                  <span class="mavatar-face"><img src={`${base}${b.m.avatar!.icon}`} alt="" loading="lazy" decoding="async" /></span>
+                </span>
+              ))}
+            </div>
+          )}
+          <a href={L('/voices/')} class="btn btn-lg">{t(locale, 'home.openCatalog')}<Icon name="arrowRight" size={18} /></a>
+        </div>
       </div>
     </section>
   </main>
   <script>
+    // Popular shortcuts: fade the end of the row only while some of it is hidden.
+    const suggest = document.querySelector<HTMLElement>('.hero-suggest');
+    if (suggest) {
+      const sync = () => {
+        suggest.classList.toggle('is-overflow', suggest.scrollWidth > suggest.clientWidth + 1);
+        suggest.classList.toggle('is-end', suggest.scrollLeft + suggest.clientWidth >= suggest.scrollWidth - 2);
+      };
+      sync();
+      suggest.addEventListener('scroll', sync, { passive: true });
+      window.addEventListener('resize', sync);
+      // A vertical wheel scrolls the row sideways while there is somewhere to go.
+      suggest.addEventListener('wheel', (e) => {
+        if (!suggest.classList.contains('is-overflow') || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+        const max = suggest.scrollWidth - suggest.clientWidth;
+        if ((e.deltaY > 0 && suggest.scrollLeft >= max - 1) || (e.deltaY < 0 && suggest.scrollLeft <= 0)) return;
+        e.preventDefault();
+        suggest.scrollLeft += e.deltaY;
+      }, { passive: false });
+      // Drag with the mouse; a drag does not count as a click on a chip.
+      let startX = 0, startLeft = 0, dragged = false, down = false;
+      suggest.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'mouse' || !suggest.classList.contains('is-overflow')) return;
+        down = true; dragged = false; startX = e.clientX; startLeft = suggest.scrollLeft;
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!down) return;
+        const dx = e.clientX - startX;
+        if (Math.abs(dx) > 5) { dragged = true; suggest.classList.add('is-dragging'); }
+        if (dragged) suggest.scrollLeft = startLeft - dx;
+      });
+      window.addEventListener('pointerup', () => { down = false; suggest.classList.remove('is-dragging'); });
+      suggest.addEventListener('click', (e) => { if (dragged) { e.preventDefault(); dragged = false; } }, true);
+      suggest.addEventListener('dragstart', (e) => e.preventDefault());
+      document.querySelector('.suggest-next')?.addEventListener('click', () => {
+        suggest.scrollBy({ left: suggest.clientWidth * 0.7, behavior: 'smooth' });
+      });
+    }
+    // Play the icon burst once, when the call to action scrolls into view.
+    const cta = document.querySelector('.cta');
+    if (cta && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) { cta.classList.add('is-in'); io.disconnect(); }
+      }, { threshold: 0.45 });
+      io.observe(cta);
+    } else cta?.classList.add('is-in');
     const card = document.querySelector('[data-sample-player]');
     if (card) {
       const audio = card.querySelector('audio') as HTMLAudioElement;

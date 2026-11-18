@@ -20,7 +20,14 @@ for (const file of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
   const loc = file.slice(0, -5);
   const d = JSON.parse(readFileSync(join(dir, file), 'utf8'));
   const errs = [];
-  const keys = Object.keys(d);
+  // "key#one", "key#few"… are plural variants of "key" (see pluralForms in ui.ts).
+  const variants = Object.keys(d).filter((k) => k.includes('#'));
+  for (const k of variants) {
+    const baseKey = k.split('#')[0];
+    if (!(baseKey in ref)) errs.push(`variante sans clé de base: ${k}`);
+    else if (![...tokensOf(d[k])].every((x) => refTokens[baseKey].has(x))) errs.push(`tokens ${k}`);
+  }
+  const keys = Object.keys(d).filter((k) => !k.includes('#'));
   if (keys.length !== refKeys.length || !refKeys.every((k) => k in d)) {
     errs.push(`clés: ${keys.length} vs ${refKeys.length} (fr)`);
   }
