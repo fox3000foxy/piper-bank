@@ -394,5 +394,18 @@
  "library.resetTitle": "Reset",
  "library.resetCopy": "Delete favorites, history and downloaded voices from this browser.",
  "library.resetAll": "Delete everything",
- "library.resetConfirm": "Delete favorites, history and downloaded voices? This cannot be undone."
+ "library.resetConfirm": "Delete favorites, history and downloaded voices? This cannot be undone.",
+ "progress.engine": "Loading the synthesis engine",
+ "progress.download": "Downloading the model",
+ "progress.cached": "Model loaded from this device",
+ "progress.init": "Preparing the voice",
+ "progress.phonemize": "Reading the text",
+ "progress.synth": "Generating the audio",
+ "progress.remaining": "{time} left",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "Model",
+ "progress.stepPrepare": "Preparation",
+ "progress.stepAudio": "Audio",
+ "progress.doneTitle": "Synthesis ready.",
+ "progress.doneCopy": "Press play to listen."
 }

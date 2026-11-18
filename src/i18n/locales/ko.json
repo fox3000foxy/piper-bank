@@ -394,5 +394,18 @@
  "library.resetTitle": "초기화",
  "library.resetCopy": "이 브라우저에서 즐겨찾기, 기록, 다운로드한 음성을 삭제합니다.",
  "library.resetAll": "모두 삭제",
- "library.resetConfirm": "즐겨찾기, 기록, 다운로드한 음성을 삭제하시겠습니까? 되돌릴 수 없습니다."
+ "library.resetConfirm": "즐겨찾기, 기록, 다운로드한 음성을 삭제하시겠습니까? 되돌릴 수 없습니다.",
+ "progress.engine": "합성 엔진 불러오는 중",
+ "progress.download": "모델 다운로드 중",
+ "progress.cached": "이 기기에서 모델을 불러왔습니다",
+ "progress.init": "음성 준비 중",
+ "progress.phonemize": "텍스트 분석 중",
+ "progress.synth": "오디오 생성 중",
+ "progress.remaining": "{time} 남음",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "모델",
+ "progress.stepPrepare": "준비",
+ "progress.stepAudio": "오디오",
+ "progress.doneTitle": "합성이 완료되었습니다.",
+ "progress.doneCopy": "재생 버튼을 눌러 들어 보세요."
 }

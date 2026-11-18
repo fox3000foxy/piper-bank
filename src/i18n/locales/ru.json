@@ -412,5 +412,18 @@
  "library.resetTitle": "Сбросить",
  "library.resetCopy": "Удаляет избранное, историю и загруженные голоса из этого браузера.",
  "library.resetAll": "Удалить всё",
- "library.resetConfirm": "Удалить избранное, историю и загруженные голоса? Это действие необратимо."
+ "library.resetConfirm": "Удалить избранное, историю и загруженные голоса? Это действие необратимо.",
+ "progress.engine": "Загрузка движка синтеза",
+ "progress.download": "Загрузка модели",
+ "progress.cached": "Модель загружена с этого устройства",
+ "progress.init": "Подготовка голоса",
+ "progress.phonemize": "Анализ текста",
+ "progress.synth": "Создание аудио",
+ "progress.remaining": "Осталось {time}",
+ "progress.bytes": "{loaded} / {total} МБ",
+ "progress.stepModel": "Модель",
+ "progress.stepPrepare": "Подготовка",
+ "progress.stepAudio": "Аудио",
+ "progress.doneTitle": "Синтез готов.",
+ "progress.doneCopy": "Нажмите воспроизведение, чтобы прослушать."
 }

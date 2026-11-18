@@ -722,12 +722,12 @@ async function phonemizeLithuanian(text, idMap) {
 
 export async function loadStack(onStatus) {
   if (!ortMod) {
-    onStatus?.('chargement moteur onnx…');
+    onStatus?.('chargement moteur onnx…', { phase: 'engine' });
     ortMod = await import(/* @vite-ignore */ HERE + 'vendor-ort/ort.web.min.mjs');
     try { ortMod.env.wasm.wasmPaths = HERE + 'vendor-ort/'; } catch {}
   }
   if (!phonemizeFactory) {
-    onStatus?.('chargement phonémiseur…');
+    onStatus?.('chargement phonémiseur…', { phase: 'engine' });
     phonemizeFactory = (await import(/* @vite-ignore */ HERE + 'vendor-piper/piper-o91UDS6e.js')).createPiperPhonemize;
   }
   return ortMod;
@@ -816,7 +816,7 @@ async function streamDownload(url, size, onStatus) {
     out.set(value, got);
     got += value.length;
     const pct = Math.floor((got / total) * 100);
-    if (pct !== last) { last = pct; onStatus?.(`téléchargement voix… ${pct} % · ${mb(got)}/${mb(total)} Mo`); }
+    if (pct !== last) { last = pct; onStatus?.(`téléchargement voix… ${pct} % · ${mb(got)}/${mb(total)} Mo`, { phase: 'download', loaded: got, total }); }
   }
   return got === total ? out.buffer : out.slice(0, got).buffer;
 }
@@ -828,7 +828,7 @@ async function rangeDownload(target, size, onStatus) {
   let done = 0, next = 0, last = -1;
   const report = () => {
     const pct = Math.floor((done / size) * 100);
-    if (pct !== last) { last = pct; onStatus?.(`téléchargement voix… ${pct} % · ${mb(done)}/${mb(size)} Mo`); }
+    if (pct !== last) { last = pct; onStatus?.(`téléchargement voix… ${pct} % · ${mb(done)}/${mb(size)} Mo`, { phase: 'download', loaded: done, total: size }); }
   };
   const worker = async () => {
     while (next < parts.length) {
@@ -861,9 +861,10 @@ async function rangeDownload(target, size, onStatus) {
 }
 
 async function downloadVoice(url, onStatus) {
-  onStatus?.('téléchargement voix…');
+  onStatus?.('téléchargement voix…', { phase: 'download', loaded: 0, total: 0 });
   let info = null;
   try { info = await resolveTarget(url); } catch {}
+  if (info?.size) onStatus?.('téléchargement voix…', { phase: 'download', loaded: 0, total: info.size });
   if (info && info.size > 2 * CHUNK) {
     try { return await rangeDownload(info.target, info.size, onStatus); } catch { /* fall back */ }
   }
@@ -879,7 +880,7 @@ export function getVoiceBytes(repo, onnx, onStatus) {
     return p;
   }
   const listeners = new Set(onStatus ? [onStatus] : []);
-  const emit = (s) => listeners.forEach((fn) => { try { fn(s); } catch {} });
+  const emit = (s, info) => listeners.forEach((fn) => { try { fn(s, info); } catch {} });
   const p = (async () => {
     askPersist();
     let hit = await cacheGet(url);
@@ -888,7 +889,7 @@ export function getVoiceBytes(repo, onnx, onStatus) {
       if (legacy?.data) { hit = { data: legacy.data, size: legacy.size, savedAt: legacy.savedAt || 0 }; cachePut(url, legacy.data); }
     }
     if (hit) {
-      emit('voix en cache…');
+      emit('voix en cache…', { phase: 'cached' });
       if (Date.now() - (hit.savedAt || 0) > REVALIDATE_MS) revalidate(url, hit.size);
       else touch(url, hit.data);
       return hit.data;
@@ -930,7 +931,7 @@ export async function getSession(repo, onnx, onStatus) {
   // Engine and voice load in parallel.
   const [ort, data] = await Promise.all([loadStack(onStatus), getVoiceBytes(repo, onnx, onStatus)]);
   const O = ort.InferenceSession ? ort : (ort.default ?? ort);
-  onStatus?.('initialisation de la voix…');
+  onStatus?.('initialisation de la voix…', { phase: 'init' });
   const session = await O.InferenceSession.create(data, { executionProviders: ['wasm'] });
   sessions.set(key, session);
   return session;
@@ -1036,7 +1037,7 @@ export async function synthesize(opts, onStatus) {
   const ort = await loadStack(onStatus);
   const O = ort.InferenceSession ? ort : ort.default;
   const session = await getSession(opts.repo, opts.onnx, onStatus);
-  onStatus?.('phonemisation…');
+  onStatus?.('phonemisation…', { phase: 'phonemize' });
   const idMap = opts.phonemeIdMap;
   const ids = opts.phonemeType === 'text'
     ? phonemizeText(opts.text, idMap)
@@ -1045,7 +1046,7 @@ export async function synthesize(opts, onStatus) {
     : opts.phonemeType === 'hebrew'
     ? await phonemizeHebrew(O, opts.text, idMap)
     : await phonemizeEspeakVoice(opts, idMap);
-  onStatus?.('synthèse…');
+  onStatus?.('synthèse…', { phase: 'synth' });
   const inf = (opts.configs || {}).inference || {};
   const scales = new Float32Array([
     opts.noiseScale ?? inf.noise_scale ?? 0.667,

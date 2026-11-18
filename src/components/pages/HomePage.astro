@@ -92,10 +92,10 @@ const userLang = locale === 'en' ? 'en' : locale;
 
     <section class="stat-band" aria-label={t(locale, 'home.catalogStats')}>
       <div class="stat-band-grid">
-        <div class="stat"><strong>{formatNumber(locale, models.length)}</strong><span>{tp(locale, 'home.modelsInCatalog', models.length)}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, totalVoices)}</strong><span>{tp(locale, 'home.speakersListed', totalVoices)}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, langCount)}</strong><span>{tp(locale, 'home.languagesListed', langCount)}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, datasets.length)}</strong><span>{tp(locale, 'datasets.count', datasets.length)}</span></div>
+        <div class="stat"><span class="stat-ico"><Icon name="wave" size={18} /></span><strong>{formatNumber(locale, models.length)}</strong><span>{tp(locale, 'home.modelsInCatalog', models.length)}</span></div>
+        <div class="stat"><span class="stat-ico"><Icon name="users" size={18} /></span><strong>{formatNumber(locale, totalVoices)}</strong><span>{tp(locale, 'home.speakersListed', totalVoices)}</span></div>
+        <div class="stat"><span class="stat-ico"><Icon name="globe" size={18} /></span><strong>{formatNumber(locale, langCount)}</strong><span>{tp(locale, 'home.languagesListed', langCount)}</span></div>
+        <div class="stat"><span class="stat-ico"><Icon name="database" size={18} /></span><strong>{formatNumber(locale, datasets.length)}</strong><span>{tp(locale, 'datasets.count', datasets.length)}</span></div>
       </div>
     </section>
 

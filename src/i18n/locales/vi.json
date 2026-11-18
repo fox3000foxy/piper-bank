@@ -394,5 +394,18 @@
  "library.resetTitle": "Đặt lại",
  "library.resetCopy": "Xóa mục yêu thích, lịch sử và các giọng đã tải khỏi trình duyệt này.",
  "library.resetAll": "Xóa tất cả",
- "library.resetConfirm": "Xóa mục yêu thích, lịch sử và các giọng đã tải? Thao tác này không thể hoàn tác."
+ "library.resetConfirm": "Xóa mục yêu thích, lịch sử và các giọng đã tải? Thao tác này không thể hoàn tác.",
+ "progress.engine": "Đang tải công cụ tổng hợp",
+ "progress.download": "Đang tải mô hình",
+ "progress.cached": "Đã tải mô hình từ thiết bị này",
+ "progress.init": "Đang chuẩn bị giọng",
+ "progress.phonemize": "Đang phân tích văn bản",
+ "progress.synth": "Đang tạo âm thanh",
+ "progress.remaining": "Còn {time}",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "Mô hình",
+ "progress.stepPrepare": "Chuẩn bị",
+ "progress.stepAudio": "Âm thanh",
+ "progress.doneTitle": "Đã tổng hợp xong.",
+ "progress.doneCopy": "Nhấn phát để nghe."
 }

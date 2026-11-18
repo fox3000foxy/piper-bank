@@ -137,7 +137,7 @@ function hlJS(src: string): string {
       <div class="model-hero-actions">
         <button type="button" class="btn fav-toggle" data-fav={m.slug} aria-pressed="false" aria-label={t(locale, 'fav.toggle', { name: m.name })}>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg>
-          <span class="fav-off">{t(locale, 'fav.add')}</span><span class="fav-on">{t(locale, 'fav.added')}</span>
+          <span class="fav-label"><span class="fav-off">{t(locale, 'fav.add')}</span><span class="fav-on" aria-hidden="true">{t(locale, 'fav.added')}</span></span>
         </button>
         {m.usable && <a class="btn" href={localizedPath(base, locale, `/compare/?v=${m.slug}`)}><Icon name="layers" size={16} />{t(locale, 'compare.withOthers')}</a>}
       </div>
@@ -169,6 +169,21 @@ function hlJS(src: string): string {
       <p class="model-size" id="model-size" hidden data-repo={m.repo} data-onnx={m.onnx}
         data-tpl-size={t(locale, 'size.model')} data-tpl-cached={t(locale, 'size.cached')}></p>
       <div class="editor-submit"><span id="status" class="dim" aria-live="polite"></span><span class="editor-actions"><button id="share" class="btn btn-subtle" type="button" title={t(locale, 'detail.shareHint')}><Icon name="share" size={16} />{t(locale, 'detail.share')}</button><button id="go">{t(locale, 'detail.generateAudio')} <span aria-hidden="true">→</span></button></span></div>
+      <div class="synth-progress" id="synth-progress" hidden>
+        <div class="sp-top">
+          <span class="sp-spinner" aria-hidden="true"></span>
+          <strong class="sp-phase" id="sp-phase" aria-live="polite"></strong>
+          <span class="sp-pct" id="sp-pct"></span>
+        </div>
+        <div class="sp-bar is-indeterminate" id="sp-bar" role="progressbar" aria-labelledby="sp-phase" aria-valuemin="0" aria-valuemax="100"><span id="sp-fill"></span></div>
+        <div class="sp-meta"><span id="sp-bytes"></span><span id="sp-speed"></span><span id="sp-eta"></span></div>
+        <ol class="sp-steps">
+          <li data-step="model"><span class="sp-dot" aria-hidden="true"></span>{t(locale, 'progress.stepModel')}</li>
+          <li data-step="prepare"><span class="sp-dot" aria-hidden="true"></span>{t(locale, 'progress.stepPrepare')}</li>
+          <li data-step="audio"><span class="sp-dot" aria-hidden="true"></span>{t(locale, 'progress.stepAudio')}</li>
+        </ol>
+      </div>
+      <div class="synth-done" id="synth-done" role="status" hidden><span class="synth-done-ico" aria-hidden="true"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10.5 3.2 3.2L15 7"/></svg></span><span><strong>{t(locale, 'progress.doneTitle')}</strong> {t(locale, 'progress.doneCopy')}</span></div>
       <div id="synthesis-player" class="synthesis-player" style={`--synth-hue:${avatar.hue ?? 260}`} hidden>
         <button id="synthesis-toggle" class="sample-play" type="button" aria-label={t(locale, 'detail.playSynthesis')} data-play-label={t(locale, 'detail.playSynthesis')} data-pause-label={t(locale, 'detail.pauseSynthesis')}>
           <svg class="play-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4.8 8 5.2-8 5.2z"/></svg>
@@ -321,7 +336,7 @@ function hlJS(src: string): string {
   </main>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
-    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus'), shareCopied: t(locale, 'detail.shareCopied'), shareTitle: t(locale, 'detail.shareTitle', { name: m.name }) } })} />
+    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus'), shareCopied: t(locale, 'detail.shareCopied'), shareTitle: t(locale, 'detail.shareTitle', { name: m.name }), progress: { engine: t(locale, 'progress.engine'), download: t(locale, 'progress.download'), cached: t(locale, 'progress.cached'), init: t(locale, 'progress.init'), phonemize: t(locale, 'progress.phonemize'), synth: t(locale, 'progress.synth'), remaining: t(locale, 'progress.remaining'), bytes: t(locale, 'progress.bytes') } } })} />
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
     <script type="module">
       const model = JSON.parse(document.getElementById('model-data').textContent);
@@ -574,6 +589,87 @@ function hlJS(src: string): string {
           paintSynthesis();
         }
       });
+      // Loading component: phase, determinate bar while the model downloads
+      // (bytes, smoothed speed, time left), indeterminate bar otherwise.
+      const progress = (() => {
+        const box = document.getElementById('synth-progress');
+        const doneEl = document.getElementById('synth-done');
+        const $p = (id) => document.getElementById(id);
+        const lang = document.documentElement.lang || 'en';
+        const nfMb = new Intl.NumberFormat(lang, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+        const nfMb0 = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
+        let speedFmt, secFmt, minFmt;
+        try { speedFmt = new Intl.NumberFormat(lang, { style: 'unit', unit: 'megabyte-per-second', unitDisplay: 'short', maximumFractionDigits: 1 }); } catch { speedFmt = { format: (v) => v.toFixed(1) + ' MB/s' }; }
+        try { secFmt = new Intl.NumberFormat(lang, { style: 'unit', unit: 'second', unitDisplay: 'short' }); minFmt = new Intl.NumberFormat(lang, { style: 'unit', unit: 'minute', unitDisplay: 'short' }); } catch { secFmt = { format: (v) => v + ' s' }; minFmt = { format: (v) => v + ' min' }; }
+        const dur = (sec) => sec < 60 ? secFmt.format(Math.max(1, Math.ceil(sec))) : minFmt.format(Math.floor(sec / 60)) + ' ' + secFmt.format(Math.round(sec % 60));
+        const STEP = { download: 'model', cached: 'model', engine: 'prepare', init: 'prepare', phonemize: 'audio', synth: 'audio' };
+        const ORDER = ['model', 'prepare', 'audio'];
+        let phase = '', speed = 0, lastT = 0, lastLoaded = 0, doneTimer = 0, modelDone = false, statusEl = null;
+        const steps = (current) => {
+          const i = ORDER.indexOf(current);
+          box.querySelectorAll('[data-step]').forEach((li) => {
+            const k = ORDER.indexOf(li.dataset.step);
+            li.classList.toggle('is-done', k < i || (li.dataset.step === 'model' && modelDone && current !== 'model'));
+            li.classList.toggle('is-active', k === i);
+          });
+        };
+        const indeterminate = () => {
+          $p('sp-bar').classList.add('is-indeterminate');
+          $p('sp-bar').removeAttribute('aria-valuenow');
+          $p('sp-pct').textContent = '';
+          $p('sp-bytes').textContent = ''; $p('sp-speed').textContent = ''; $p('sp-eta').textContent = '';
+        };
+        return {
+          start(st) {
+            statusEl = st;
+            clearTimeout(doneTimer);
+            doneEl.hidden = true; doneEl.classList.remove('is-leaving');
+            if (statusEl) { statusEl.textContent = ''; statusEl.classList.remove('is-error'); }
+            phase = ''; speed = 0; lastT = 0; lastLoaded = 0;
+            modelDone = !!document.getElementById('model-size')?.classList.contains('is-cached');
+            box.hidden = false;
+            this.update({ phase: 'init' });
+          },
+          update(info) {
+            const p = info && info.phase;
+            if (!p) return;
+            // The engine loads in parallel with the download: keep showing the download.
+            if (p === 'engine' && phase === 'download') return;
+            if (p === 'init' && phase === 'download') modelDone = true;
+            if (p === 'cached' || (phase === 'download' && p !== 'download')) modelDone = true;
+            phase = p;
+            $p('sp-phase').textContent = ui.labels.progress[p] || '';
+            steps(STEP[p] || 'prepare');
+            if (p !== 'download' || !info.total) { indeterminate(); return; }
+            const now = performance.now();
+            if (!lastT) { lastT = now; lastLoaded = info.loaded; }
+            else if (now - lastT > 200) {
+              const inst = (info.loaded - lastLoaded) / ((now - lastT) / 1000);
+              speed = speed ? speed * 0.75 + inst * 0.25 : inst;
+              lastT = now; lastLoaded = info.loaded;
+            }
+            const pct = Math.min(100, Math.floor((info.loaded / info.total) * 100));
+            $p('sp-bar').classList.remove('is-indeterminate');
+            $p('sp-bar').setAttribute('aria-valuenow', String(pct));
+            $p('sp-fill').style.width = pct + '%';
+            $p('sp-pct').textContent = pct + ' %';
+            $p('sp-bytes').textContent = message(ui.labels.progress.bytes, { loaded: nfMb.format(info.loaded / 1048576), total: nfMb0.format(info.total / 1048576) });
+            $p('sp-speed').textContent = speed > 0 ? speedFmt.format(speed / 1048576) : '';
+            $p('sp-eta').textContent = speed > 0 ? message(ui.labels.progress.remaining, { time: dur((info.total - info.loaded) / speed) }) : '';
+          },
+          hide() { box.hidden = true; },
+          done() {
+            box.hidden = true;
+            if (statusEl) statusEl.textContent = '';
+            doneEl.hidden = false;
+            doneEl.classList.remove('is-leaving');
+            clearTimeout(doneTimer);
+            doneTimer = setTimeout(() => { doneEl.classList.add('is-leaving'); doneTimer = setTimeout(() => { doneEl.hidden = true; }, 400); }, 4500);
+            // The model is now on this device: refresh the size line.
+            window.dispatchEvent(new CustomEvent('piperhub:model-cached'));
+          },
+        };
+      })();
       go.addEventListener('click', async () => {
         const text = document.getElementById('text').value.trim();
         const status = document.getElementById('status');
@@ -591,6 +687,7 @@ function hlJS(src: string): string {
         if (synthesisUrl) URL.revokeObjectURL(synthesisUrl);
         synthesisUrl = '';
         go.disabled = true;
+        progress.start(status);
         try {
           const { synthesize } = await loadStack();
           const blob = await synthesize({
@@ -600,7 +697,7 @@ function hlJS(src: string): string {
             speakerId: window.__selSid ?? null,
             lengthScale: parseFloat(document.getElementById('len').value) || undefined,
             noiseScale: parseFloat(document.getElementById('noise').value) || undefined,
-          }, (s) => { status.textContent = message(ui.labels.synthProgress, { progress: s }); });
+          }, (s, info) => progress.update(info));
           synthesisUrl = URL.createObjectURL(blob);
           synthesisAudio.src = synthesisUrl;
           synthesisDownload.href = synthesisUrl;
@@ -610,10 +707,10 @@ function hlJS(src: string): string {
           synthesisControl.hidden = false;
           synthesisAudio.load();
           paintSynthesis();
-          status.textContent = ui.labels.audioReady;
+          progress.done();
           synthesisAudio.play().catch(() => {});
           window.dispatchEvent(new CustomEvent('piperhub:synthesized', { detail: { s: model.slug, t: text, sid: window.__selSid ?? undefined } }));
-        } catch (e) { status.textContent = message(ui.labels.synthFailure, { message: e.message || e }); }
+        } catch (e) { progress.hide(); status.classList.add('is-error'); status.textContent = message(ui.labels.synthFailure, { message: e.message || e }); }
         finally { go.disabled = false; }
       });
       const cmpGo = document.getElementById('cmp-go');
@@ -689,31 +786,42 @@ function hlJS(src: string): string {
   bindFavButtons(document);
   // Each successful synthesis lands in the library history.
   window.addEventListener('piperhub:synthesized', (e) => addHistory((e as CustomEvent).detail));
-  // Model size and cache state before any download.
+  // Model size and cache state before any download, as a chip.
   const el = document.getElementById('model-size');
   if (el) {
     const url = `https://huggingface.co/${el.dataset.repo}/resolve/main/${el.dataset.onnx!.split('/').map(encodeURIComponent).join('/')}`;
-    const fmtMb = (n: number) => new Intl.NumberFormat(document.documentElement.lang, { maximumFractionDigits: 0 }).format(n / 1048576);
-    (async () => {
+    const lang = document.documentElement.lang || 'en';
+    const fmtMb = (n: number) => new Intl.NumberFormat(lang, { maximumFractionDigits: 0 }).format(n / 1048576);
+    const ICON_DL = '<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v9.5m0 0 4-4m-4 4-4-4M4 16.5h12"/></svg>';
+    const ICON_OK = '<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 10.5 3.2 3.2L15 7"/></svg>';
+    const show = (cached: boolean, text: string) => {
+      el.innerHTML = `<span class="ms-ico">${cached ? ICON_OK : ICON_DL}</span><span></span>`;
+      el.lastElementChild!.textContent = text;
+      el.classList.toggle('is-cached', cached);
+      el.hidden = false;
+    };
+    const refresh = async () => {
       try {
         const cache = 'caches' in window ? await caches.open('piperhub-voices-v1') : null;
         const hit = cache ? await cache.match(url) : null;
-        if (hit) {
-          el.textContent = el.dataset.tplCached!.replace('{size}', fmtMb(Number(hit.headers.get('x-size') || 0)));
-          el.classList.add('is-cached');
-          el.hidden = false;
-          return;
-        }
+        if (hit) return show(true, el.dataset.tplCached!.replace('{size}', fmtMb(Number(hit.headers.get('x-size') || 0))));
         const head = await fetch(url, { method: 'HEAD' });
         const size = Number(head.headers.get('content-length') || 0);
         if (!size) return;
         // Rough estimate on a typical 2 MB/s home connection.
         const secs = Math.max(5, Math.round(size / (2 * 1048576) / 5) * 5);
-        const time = secs < 60 ? `${secs} s` : `${Math.round(secs / 60)} min`;
-        el.textContent = el.dataset.tplSize!.replace('{size}', fmtMb(size)).replace('{time}', time);
-        el.hidden = false;
+        let time = `${secs} s`;
+        try {
+          time = secs < 60
+            ? new Intl.NumberFormat(lang, { style: 'unit', unit: 'second', unitDisplay: 'short' }).format(secs)
+            : new Intl.NumberFormat(lang, { style: 'unit', unit: 'minute', unitDisplay: 'short' }).format(Math.round(secs / 60));
+        } catch {}
+        show(false, el.dataset.tplSize!.replace('{size}', fmtMb(size)).replace('{time}', time));
       } catch {}
-    })();
+    };
+    refresh();
+    // Cache writes finish slightly after the synthesis: check again a moment later.
+    window.addEventListener('piperhub:model-cached', () => setTimeout(refresh, 800));
   }
 </script>
 </Layout>

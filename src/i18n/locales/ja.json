@@ -394,5 +394,18 @@
  "library.resetTitle": "リセット",
  "library.resetCopy": "このブラウザからお気に入り、履歴、ダウンロードした音声を削除します。",
  "library.resetAll": "すべて削除",
- "library.resetConfirm": "お気に入り、履歴、ダウンロードした音声を削除しますか？この操作は元に戻せません。"
+ "library.resetConfirm": "お気に入り、履歴、ダウンロードした音声を削除しますか？この操作は元に戻せません。",
+ "progress.engine": "合成エンジンを読み込み中",
+ "progress.download": "モデルをダウンロード中",
+ "progress.cached": "このデバイスからモデルを読み込みました",
+ "progress.init": "音声を準備中",
+ "progress.phonemize": "テキストを解析中",
+ "progress.synth": "音声を生成中",
+ "progress.remaining": "残り {time}",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "モデル",
+ "progress.stepPrepare": "準備",
+ "progress.stepAudio": "音声",
+ "progress.doneTitle": "合成が完了しました。",
+ "progress.doneCopy": "再生して聴いてください。"
 }

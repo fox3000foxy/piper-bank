@@ -394,5 +394,18 @@
  "library.resetTitle": "Réinitialiser",
  "library.resetCopy": "Supprime les favoris, l'historique et les voix téléchargées de ce navigateur.",
  "library.resetAll": "Tout effacer",
- "library.resetConfirm": "Supprimer les favoris, l'historique et les voix téléchargées ? Cette action est définitive."
+ "library.resetConfirm": "Supprimer les favoris, l'historique et les voix téléchargées ? Cette action est définitive.",
+ "progress.engine": "Chargement du moteur de synthèse",
+ "progress.download": "Téléchargement du modèle",
+ "progress.cached": "Modèle chargé depuis cet appareil",
+ "progress.init": "Préparation de la voix",
+ "progress.phonemize": "Analyse du texte",
+ "progress.synth": "Génération de l'audio",
+ "progress.remaining": "Reste {time}",
+ "progress.bytes": "{loaded} / {total} Mo",
+ "progress.stepModel": "Modèle",
+ "progress.stepPrepare": "Préparation",
+ "progress.stepAudio": "Audio",
+ "progress.doneTitle": "Synthèse prête.",
+ "progress.doneCopy": "Lancez la lecture pour l'écouter."
 }

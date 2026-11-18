@@ -394,5 +394,18 @@
  "library.resetTitle": "Sıfırla",
  "library.resetCopy": "Bu tarayıcıdan favorileri, geçmişi ve indirilen sesleri siler.",
  "library.resetAll": "Hepsini sil",
- "library.resetConfirm": "Favoriler, geçmiş ve indirilen sesler silinsin mi? Bu işlem geri alınamaz."
+ "library.resetConfirm": "Favoriler, geçmiş ve indirilen sesler silinsin mi? Bu işlem geri alınamaz.",
+ "progress.engine": "Sentez motoru yükleniyor",
+ "progress.download": "Model indiriliyor",
+ "progress.cached": "Model bu cihazdan yüklendi",
+ "progress.init": "Ses hazırlanıyor",
+ "progress.phonemize": "Metin çözümleniyor",
+ "progress.synth": "Ses oluşturuluyor",
+ "progress.remaining": "{time} kaldı",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "Model",
+ "progress.stepPrepare": "Hazırlık",
+ "progress.stepAudio": "Ses",
+ "progress.doneTitle": "Sentez hazır.",
+ "progress.doneCopy": "Dinlemek için oynatın."
 }

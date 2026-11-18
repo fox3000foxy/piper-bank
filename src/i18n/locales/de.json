@@ -394,5 +394,18 @@
  "library.resetTitle": "Zurücksetzen",
  "library.resetCopy": "Löscht Favoriten, Verlauf und heruntergeladene Stimmen aus diesem Browser.",
  "library.resetAll": "Alles löschen",
- "library.resetConfirm": "Favoriten, Verlauf und heruntergeladene Stimmen löschen? Dies kann nicht rückgängig gemacht werden."
+ "library.resetConfirm": "Favoriten, Verlauf und heruntergeladene Stimmen löschen? Dies kann nicht rückgängig gemacht werden.",
+ "progress.engine": "Synthese-Engine wird geladen",
+ "progress.download": "Modell wird heruntergeladen",
+ "progress.cached": "Modell von diesem Gerät geladen",
+ "progress.init": "Stimme wird vorbereitet",
+ "progress.phonemize": "Text wird analysiert",
+ "progress.synth": "Audio wird erzeugt",
+ "progress.remaining": "Noch {time}",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "Modell",
+ "progress.stepPrepare": "Vorbereitung",
+ "progress.stepAudio": "Audio",
+ "progress.doneTitle": "Synthese fertig.",
+ "progress.doneCopy": "Starten Sie die Wiedergabe, um sie anzuhören."
 }

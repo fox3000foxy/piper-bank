@@ -418,5 +418,18 @@
  "library.resetTitle": "إعادة الضبط",
  "library.resetCopy": "يحذف المفضلة والسجل والأصوات المنزّلة من هذا المتصفح.",
  "library.resetAll": "حذف الكل",
- "library.resetConfirm": "هل تريد حذف المفضلة والسجل والأصوات المنزّلة؟ لا يمكن التراجع عن ذلك."
+ "library.resetConfirm": "هل تريد حذف المفضلة والسجل والأصوات المنزّلة؟ لا يمكن التراجع عن ذلك.",
+ "progress.engine": "جارٍ تحميل محرك التركيب",
+ "progress.download": "جارٍ تنزيل النموذج",
+ "progress.cached": "حُمّل النموذج من هذا الجهاز",
+ "progress.init": "جارٍ تجهيز الصوت",
+ "progress.phonemize": "جارٍ تحليل النص",
+ "progress.synth": "جارٍ إنشاء الصوت",
+ "progress.remaining": "المتبقي {time}",
+ "progress.bytes": "{loaded} / {total} م.ب",
+ "progress.stepModel": "النموذج",
+ "progress.stepPrepare": "التجهيز",
+ "progress.stepAudio": "الصوت",
+ "progress.doneTitle": "التركيب جاهز.",
+ "progress.doneCopy": "اضغط تشغيل للاستماع."
 }

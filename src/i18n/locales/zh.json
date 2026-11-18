@@ -394,5 +394,18 @@
  "library.resetTitle": "重置",
  "library.resetCopy": "从此浏览器中删除收藏、历史记录和已下载的语音。",
  "library.resetAll": "全部删除",
- "library.resetConfirm": "要删除收藏、历史记录和已下载的语音吗？此操作无法撤销。"
+ "library.resetConfirm": "要删除收藏、历史记录和已下载的语音吗？此操作无法撤销。",
+ "progress.engine": "正在加载合成引擎",
+ "progress.download": "正在下载模型",
+ "progress.cached": "已从此设备加载模型",
+ "progress.init": "正在准备语音",
+ "progress.phonemize": "正在分析文本",
+ "progress.synth": "正在生成音频",
+ "progress.remaining": "剩余 {time}",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "模型",
+ "progress.stepPrepare": "准备",
+ "progress.stepAudio": "音频",
+ "progress.doneTitle": "合成完成。",
+ "progress.doneCopy": "点击播放即可收听。"
 }

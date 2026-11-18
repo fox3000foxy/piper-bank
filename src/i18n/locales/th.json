@@ -394,5 +394,18 @@
  "library.resetTitle": "รีเซ็ต",
  "library.resetCopy": "ลบรายการโปรด ประวัติ และเสียงที่ดาวน์โหลดออกจากเบราว์เซอร์นี้",
  "library.resetAll": "ลบทั้งหมด",
- "library.resetConfirm": "ลบรายการโปรด ประวัติ และเสียงที่ดาวน์โหลดใช่ไหม การดำเนินการนี้ย้อนกลับไม่ได้"
+ "library.resetConfirm": "ลบรายการโปรด ประวัติ และเสียงที่ดาวน์โหลดใช่ไหม การดำเนินการนี้ย้อนกลับไม่ได้",
+ "progress.engine": "กำลังโหลดเอนจินสังเคราะห์",
+ "progress.download": "กำลังดาวน์โหลดโมเดล",
+ "progress.cached": "โหลดโมเดลจากอุปกรณ์นี้แล้ว",
+ "progress.init": "กำลังเตรียมเสียง",
+ "progress.phonemize": "กำลังวิเคราะห์ข้อความ",
+ "progress.synth": "กำลังสร้างเสียง",
+ "progress.remaining": "เหลือ {time}",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "โมเดล",
+ "progress.stepPrepare": "เตรียมการ",
+ "progress.stepAudio": "เสียง",
+ "progress.doneTitle": "สังเคราะห์เสร็จแล้ว",
+ "progress.doneCopy": "กดเล่นเพื่อฟัง"
 }

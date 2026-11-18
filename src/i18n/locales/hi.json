@@ -394,5 +394,18 @@
  "library.resetTitle": "रीसेट करें",
  "library.resetCopy": "इस ब्राउज़र से पसंदीदा, इतिहास और डाउनलोड की गई आवाज़ें हटाता है।",
  "library.resetAll": "सब मिटाएँ",
- "library.resetConfirm": "पसंदीदा, इतिहास और डाउनलोड की गई आवाज़ें हटाएँ? यह कार्रवाई वापस नहीं ली जा सकती।"
+ "library.resetConfirm": "पसंदीदा, इतिहास और डाउनलोड की गई आवाज़ें हटाएँ? यह कार्रवाई वापस नहीं ली जा सकती।",
+ "progress.engine": "संश्लेषण इंजन लोड हो रहा है",
+ "progress.download": "मॉडल डाउनलोड हो रहा है",
+ "progress.cached": "मॉडल इस डिवाइस से लोड हुआ",
+ "progress.init": "आवाज़ तैयार हो रही है",
+ "progress.phonemize": "टेक्स्ट का विश्लेषण हो रहा है",
+ "progress.synth": "ऑडियो बन रहा है",
+ "progress.remaining": "{time} शेष",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "मॉडल",
+ "progress.stepPrepare": "तैयारी",
+ "progress.stepAudio": "ऑडियो",
+ "progress.doneTitle": "संश्लेषण तैयार है।",
+ "progress.doneCopy": "सुनने के लिए प्ले करें।"
 }

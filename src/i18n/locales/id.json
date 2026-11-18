@@ -394,5 +394,18 @@
  "library.resetTitle": "Atur ulang",
  "library.resetCopy": "Menghapus favorit, riwayat, dan suara yang diunduh dari peramban ini.",
  "library.resetAll": "Hapus semua",
- "library.resetConfirm": "Hapus favorit, riwayat, dan suara yang diunduh? Tindakan ini tidak dapat dibatalkan."
+ "library.resetConfirm": "Hapus favorit, riwayat, dan suara yang diunduh? Tindakan ini tidak dapat dibatalkan.",
+ "progress.engine": "Memuat mesin sintesis",
+ "progress.download": "Mengunduh model",
+ "progress.cached": "Model dimuat dari perangkat ini",
+ "progress.init": "Menyiapkan suara",
+ "progress.phonemize": "Menganalisis teks",
+ "progress.synth": "Membuat audio",
+ "progress.remaining": "Sisa {time}",
+ "progress.bytes": "{loaded} / {total} MB",
+ "progress.stepModel": "Model",
+ "progress.stepPrepare": "Persiapan",
+ "progress.stepAudio": "Audio",
+ "progress.doneTitle": "Sintesis siap.",
+ "progress.doneCopy": "Putar untuk mendengarkannya."
 }
