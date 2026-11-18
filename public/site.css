@@ -721,6 +721,23 @@ a.mega-more:hover { background: var(--control-hover); }
 .cta .btn:hover { background: color-mix(in srgb, var(--on-accent) 85%, var(--accent)); }
 .cta .btn:focus-visible { outline-color: var(--on-accent); }
 @media (max-width: 640px) { .cta { padding: 36px 24px; } }
+/* Icon burst above the catalogue button */
+.cta-action { position: relative; flex: 0 0 auto; }
+.cta-burst { position: absolute; bottom: calc(100% + 14px); left: 50%; width: 0; height: 0; pointer-events: none; }
+.burst-item {
+  position: absolute; left: calc(var(--x) - var(--s) / 2); bottom: var(--y);
+  opacity: 0; transform: translate(calc(-1 * var(--x)), calc(var(--y) + 30px)) scale(.2);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .25));
+}
+.burst-item .mavatar-face { box-shadow: 0 0 0 2px var(--accent); }
+.cta.is-in .burst-item {
+  animation: burst-in 720ms cubic-bezier(.2, .9, .25, 1.15) var(--d) both, burst-float 3.6s ease-in-out calc(var(--d) + 720ms) infinite alternate;
+}
+@keyframes burst-in { to { opacity: 1; transform: none; } }
+@keyframes burst-float { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(-5px); } }
+@media (min-width: 901px) { .cta:has(.cta-burst) { min-height: 380px; } }
+@media (max-width: 900px) { .cta-burst { display: none; } }
+@media (prefers-reduced-motion: reduce) { .burst-item, .cta.is-in .burst-item { opacity: 1; transform: none; animation: none; } }
 
 /* ---------- Catalog (voices, datasets) ---------- */
 .catalog { display: grid; grid-template-columns: 256px minmax(0, 1fr); gap: 48px; max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }

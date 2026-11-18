@@ -38,6 +38,17 @@ const fresh = [...models]
   .filter((m) => m.updated)
   .sort((a, b) => (b.updated || '').localeCompare(a.updated || ''))
   .slice(0, 8);
+// Closing call to action: voice icons bursting up from the button.
+// Hand-placed fan (x from the button centre, y above it, size), big and close
+// at the bottom, small and spread out at the top.
+const burstSpots = [
+  [-118, 14, 36], [-58, 6, 40], [2, 18, 38], [62, 8, 40], [122, 16, 34],
+  [-152, 66, 28], [-90, 76, 30], [-26, 64, 30], [38, 78, 28], [102, 66, 30], [162, 76, 26],
+  [-122, 126, 22], [-44, 120, 22], [32, 130, 20], [112, 122, 22],
+  [-82, 170, 16], [8, 174, 14], [88, 168, 16],
+];
+const iconVoices = [...new Map(models.filter((m) => m.avatar?.icon).map((m) => [m.avatar!.icon, m])).values()];
+const burst = iconVoices.length ? burstSpots.map(([x, y, size], i) => ({ x: Math.round(x * 0.78), y, size, m: iconVoices[i % iconVoices.length] })) : [];
 const provenance = models.find((model) => model.dataset?.slug && model.avatar?.icon);
 const base = import.meta.env.BASE_URL;
 const L = (p: string) => localizedPath(base, locale, p);
@@ -178,11 +189,30 @@ const userLang = locale === 'en' ? 'en' : locale;
     <section class="section">
       <div class="cta">
         <div><h2>{t(locale, 'home.findVoice')}</h2><p>{t(locale, 'home.findVoiceCopy')}</p></div>
-        <a href={L('/voices/')} class="btn btn-lg">{t(locale, 'home.openCatalog')}<Icon name="arrowRight" size={18} /></a>
+        <div class="cta-action">
+          {burst.length > 0 && (
+            <div class="cta-burst" aria-hidden="true">
+              {burst.map((b) => (
+                <span class="mavatar burst-item" style={`--x:${b.x}px;--y:${b.y}px;--s:${b.size}px;--h:${b.m.avatar?.hue ?? 220};--d:${Math.round(b.y * 2.2 + Math.abs(b.x) * .6)}ms`}>
+                  <span class="mavatar-face"><img src={`${base}${b.m.avatar!.icon}`} alt="" loading="lazy" decoding="async" /></span>
+                </span>
+              ))}
+            </div>
+          )}
+          <a href={L('/voices/')} class="btn btn-lg">{t(locale, 'home.openCatalog')}<Icon name="arrowRight" size={18} /></a>
+        </div>
       </div>
     </section>
   </main>
   <script>
+    // Play the icon burst once, when the call to action scrolls into view.
+    const cta = document.querySelector('.cta');
+    if (cta && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) { cta.classList.add('is-in'); io.disconnect(); }
+      }, { threshold: 0.45 });
+      io.observe(cta);
+    } else cta?.classList.add('is-in');
     const card = document.querySelector('[data-sample-player]');
     if (card) {
       const audio = card.querySelector('audio') as HTMLAudioElement;
