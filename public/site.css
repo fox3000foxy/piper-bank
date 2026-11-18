@@ -632,6 +632,19 @@ a.mega-more:hover { background: var(--control-hover); }
 /* Sample card */
 .sample-card { margin: 0; padding: 24px; border: 1px solid var(--stroke-2); border-radius: var(--r-xl); background: var(--bg-raised); }
 :root[data-theme="light"] .sample-card { background: #fff; box-shadow: var(--shadow-8); }
+/* "#1 PiperHub Voice Choice" tab attached to the top edge of the featured card */
+.sample-card.has-award { position: relative; margin-top: 36px; border-top-left-radius: 0; }
+.award-tab {
+  position: absolute; bottom: 100%; left: -1px;
+  display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px 0 11px;
+  border: 1px solid var(--stroke-2); border-bottom: 0; border-radius: var(--r-md) var(--r-md) 0 0;
+  background: inherit; color: var(--text-2); font-size: 12.5px; font-weight: 500; white-space: nowrap;
+}
+/* Covers the card's top border under the tab so both read as one piece. */
+.award-tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: inherit; }
+.award-tab strong { color: var(--text); font-size: 13px; font-weight: 700; letter-spacing: .01em; }
+.award-ico { width: 17px; height: 17px; color: #f5c542; filter: drop-shadow(0 0 6px rgba(245, 197, 66, .35)); }
+:root[data-theme="light"] .award-ico { color: #d49b00; filter: none; }
 .sample-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px solid var(--divider); }
 .sample-voice { display: flex; align-items: center; gap: 16px; }
 .sample-voice strong { display: block; font: 600 18px/1.25 var(--font-display); letter-spacing: -.015em; }
