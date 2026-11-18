@@ -330,11 +330,12 @@ select option { background: var(--layer-2); color: var(--text); }
 
 /* Brand lockup: the P mark with the name in live type, sized to read from a distance */
 .brand { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; border-radius: var(--r-sm); color: var(--text); }
-.brand-mark { flex: 0 0 auto; width: auto; height: 48px; }
+/* The crown sits above the letter: lift the mark so the P, not the whole image, centres on the cap height */
+.brand-mark { flex: 0 0 auto; width: auto; height: 44px; transform: translateY(-15%); }
 .brand-name { font: 700 26px/1 var(--font-display); letter-spacing: -.035em; white-space: nowrap; }
 .brand-name b { color: inherit; font-weight: inherit; }
 .brand-lg { gap: 12px; }
-.brand-lg .brand-mark { height: 64px; }
+.brand-lg .brand-mark { height: 58px; }
 .brand-lg .brand-name { font-size: 34px; }
 
 .appnav { display: flex; align-items: center; gap: 4px; height: 100%; }
@@ -429,11 +430,11 @@ select option { background: var(--layer-2); color: var(--text); }
   .search-trigger { flex: 0 0 auto; width: 38px; padding: 0; justify-content: center; border-color: transparent; background: transparent; }
   .search-trigger-label, .search-trigger .kbd, .hide-sm, .lang-code { display: none; }
   .brand { gap: 8px; }
-  .brand-mark { height: 42px; }
+  .brand-mark { height: 40px; }
   .brand-name { font-size: 23px; }
   .icon-btn { min-width: 36px; padding: 0 8px; }
 }
-@media (max-width: 380px) { .brand-name { font-size: 21px; } .brand-mark { height: 38px; } }
+@media (max-width: 380px) { .brand-name { font-size: 21px; } .brand-mark { height: 36px; } }
 
 /* ---------- Footer ---------- */
 .site-footer { margin-top: 128px; border-top: 1px solid var(--divider); }
@@ -449,7 +450,7 @@ select option { background: var(--layer-2); color: var(--text); }
 .footer-base { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: var(--max); margin: 0 auto; padding: 24px var(--gutter) 32px; border-top: 1px solid var(--divider); color: var(--text-3); font-size: 13px; }
 .footer-local { display: inline-flex; align-items: center; gap: 8px; }
 @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; padding-top: 56px; } .footer-brand { grid-column: 1 / -1; } }
-@media (max-width: 560px) { .site-footer { margin-top: 88px; } .brand-lg .brand-mark { height: 54px; } .brand-lg .brand-name { font-size: 29px; } }
+@media (max-width: 560px) { .site-footer { margin-top: 88px; } .brand-lg .brand-mark { height: 50px; } .brand-lg .brand-name { font-size: 29px; } }
 
 /* ---------- Search palette ---------- */
 .palette { width: min(680px, calc(100vw - 24px)); max-height: min(640px, calc(100vh - 80px)); margin: 10vh auto auto; padding: 0; border: 0; background: transparent; color: var(--text); overflow: visible; }
