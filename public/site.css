@@ -302,6 +302,12 @@ select option { background: var(--layer-2); color: var(--text); }
 .chip-ico .icon { flex: 0 0 auto; color: var(--text-2); }
 .chip-dot { flex: 0 0 auto; width: 8px; height: 8px; margin: 0 2px; border-radius: 50%; background: var(--q-high); box-shadow: 0 0 0 3px color-mix(in srgb, var(--q-high) 22%, transparent); }
 .chip-logo { flex: 0 0 auto; width: 16px; height: 16px; object-fit: contain; }
+/* Piper's mark is black: white on the dark theme */
+:root:not([data-theme="light"]) .chip-logo { filter: invert(1); }
+/* Popular shortcuts: compact enough to stay on one line next to the label */
+.hero-suggest .chip.chip-ico { gap: 6px; height: 28px; padding: 0 10px 0 8px; font-size: 13px; }
+.hero-suggest .chip-ico .flag { width: 16px; height: 12px; }
+.hero-suggest .chip-ico .icon { width: 14px; height: 14px; }
 
 /* Model avatar */
 .mavatar { position: relative; display: inline-grid; flex: 0 0 auto; --s: 40px; width: var(--s); height: var(--s); }
@@ -599,7 +605,12 @@ a.mega-more:hover { background: var(--control-hover); }
 .hero-search .textbox { flex: 1; height: 52px; padding: 0 16px; border-color: var(--stroke-strong); background: var(--layer); }
 .hero-search .textbox input { font-size: 16px; }
 .hero-search .btn { height: 52px; padding: 0 24px; font-size: 15px; }
-.hero-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; color: var(--text-3); font-size: 13.5px; }
+.hero-suggest { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; margin-top: 18px; padding: 2px 0; overflow-x: auto; scrollbar-width: none; color: var(--text-3); font-size: 13.5px; }
+.hero-suggest::-webkit-scrollbar { display: none; }
+.hero-suggest > * { flex: 0 0 auto; }
+/* One line: when it does not fit, the end fades out and the row scrolls sideways. */
+.hero-suggest.is-overflow { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+.hero-suggest.is-overflow.is-end { -webkit-mask-image: none; mask-image: none; }
 .hero-suggest > span { margin-right: 4px; }
 .hero-suggest .chip { height: 30px; }
 @media (max-width: 960px) { .home-hero-grid { grid-template-columns: 1fr; gap: 48px; padding-top: 56px; padding-bottom: 64px; } }

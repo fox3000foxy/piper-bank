@@ -78,7 +78,7 @@ const userLang = locale === 'en' ? 'en' : locale;
             {userLang !== 'en' && <a class="chip chip-plain chip-ico" href={L('/voices/?lang=en')}><Flag lang="en" />{languageLabel('en', 'English', locale)}</a>}
             <a class="chip chip-plain chip-ico" href={L('/voices/?quality=high')}><span class="chip-dot" aria-hidden="true"></span>{t(locale, 'filter.highQuality')}</a>
             <a class="chip chip-plain chip-ico" href={L('/voices/?speakers=multi')}><Icon name="users" size={15} />{t(locale, 'filter.multiVoice')}</a>
-            <a class="chip chip-plain chip-ico" href={L('/voices/?source=official')}><img class="chip-logo" src={`${base}brand/logo.png`} alt="" width="16" height="16" loading="lazy" />{t(locale, 'filter.official')}</a>
+            <a class="chip chip-plain chip-ico" href={L('/voices/?source=official')}><img class="chip-logo" src={`${base}brand/piper-mark.png`} alt="" width="16" height="16" loading="lazy" />{t(locale, 'filter.official')}</a>
           </div>
         </div>
 
@@ -205,6 +205,17 @@ const userLang = locale === 'en' ? 'en' : locale;
     </section>
   </main>
   <script>
+    // Popular shortcuts: fade the end of the row only while some of it is hidden.
+    const suggest = document.querySelector<HTMLElement>('.hero-suggest');
+    if (suggest) {
+      const sync = () => {
+        suggest.classList.toggle('is-overflow', suggest.scrollWidth > suggest.clientWidth + 1);
+        suggest.classList.toggle('is-end', suggest.scrollLeft + suggest.clientWidth >= suggest.scrollWidth - 2);
+      };
+      sync();
+      suggest.addEventListener('scroll', sync, { passive: true });
+      window.addEventListener('resize', sync);
+    }
     // Play the icon burst once, when the call to action scrolls into view.
     const cta = document.querySelector('.cta');
     if (cta && 'IntersectionObserver' in window) {
