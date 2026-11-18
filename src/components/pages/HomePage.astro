@@ -5,7 +5,7 @@ import ModelAvatar from '../ModelAvatar.astro';
 import Flag from '../Flag.astro';
 import data from '../../data/models.json';
 import datasets from '../../data/datasets.json';
-import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, t, tp, type Locale } from '../../i18n/ui';
 import { docsNav } from '../../lib/docs-nav';
 
 const { locale = 'fr' as Locale } = Astro.props;
@@ -91,10 +91,10 @@ const userLang = locale === 'en' ? 'en' : locale;
 
     <section class="stat-band" aria-label={t(locale, 'home.catalogStats')}>
       <div class="stat-band-grid">
-        <div class="stat"><strong>{formatNumber(locale, models.length)}</strong><span>{t(locale, 'home.modelsInCatalog')}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, totalVoices)}</strong><span>{t(locale, 'home.speakersListed')}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, langCount)}</strong><span>{t(locale, 'home.languagesListed')}</span></div>
-        <div class="stat"><strong>{formatNumber(locale, datasets.length)}</strong><span>{t(locale, 'datasets.count')}</span></div>
+        <div class="stat"><strong>{formatNumber(locale, models.length)}</strong><span>{tp(locale, 'home.modelsInCatalog', models.length)}</span></div>
+        <div class="stat"><strong>{formatNumber(locale, totalVoices)}</strong><span>{tp(locale, 'home.speakersListed', totalVoices)}</span></div>
+        <div class="stat"><strong>{formatNumber(locale, langCount)}</strong><span>{tp(locale, 'home.languagesListed', langCount)}</span></div>
+        <div class="stat"><strong>{formatNumber(locale, datasets.length)}</strong><span>{tp(locale, 'datasets.count', datasets.length)}</span></div>
       </div>
     </section>
 
@@ -120,7 +120,7 @@ const userLang = locale === 'en' ? 'en' : locale;
         {featured.map((m) => <a class="vcard" href={L(`/model/${m.slug}/`)}>
           <div class="vcard-top"><ModelAvatar model={m} locale={locale} /><Icon name="arrowUpRight" size={18} class="go" /></div>
           <div><h3>{shortName(m.name)}</h3><p class="vcard-meta">{m.author}</p></div>
-          <div class="vcard-tags"><span class="badge">{languageLabel(m.lang, m.langName, locale)}</span><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span>{m.voices > 1 && <span class="badge">{t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) })}</span>}</div>
+          <div class="vcard-tags"><span class="badge">{languageLabel(m.lang, m.langName, locale)}</span><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span>{m.voices > 1 && <span class="badge">{tp(locale, 'voices.speakerCount', m.voices, { count: formatNumber(locale, m.voices) })}</span>}</div>
         </a>)}
       </div>
     </section>
@@ -153,7 +153,7 @@ const userLang = locale === 'en' ? 'en' : locale;
           <span class="vrow-title"><strong><span>{shortName(m.name)}</span></strong><small>{m.author} · {m.updated}</small></span>
           <span class="vrow-lang">{languageLabel(m.lang, m.langName, locale)}</span>
           <span class="vrow-q"><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span></span>
-          <span class="vrow-speakers">{m.voices > 1 ? t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
+          <span class="vrow-speakers">{m.voices > 1 ? tp(locale, 'voices.speakerCount', m.voices, { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
           <Icon name="chevronRight" size={18} class="go" />
         </a>)}
       </div>

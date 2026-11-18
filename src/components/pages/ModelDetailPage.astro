@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Icon from '../Icon.astro';
 import Flag from '../Flag.astro';
 import ModelAvatar from '../ModelAvatar.astro';
-import { formatNumber, languageLabel, localizedPath, t, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, t, tp, type Locale } from '../../i18n/ui';
 
 const { locale = 'fr' as Locale } = Astro.props;
 const { model: m } = Astro.props;
@@ -307,7 +307,7 @@ function hlJS(src: string): string {
           </div>
           );
         })}
-        {voicePairs.length > 120 && <p class="dim">{t(locale, 'detail.moreSpeakers', { count: formatNumber(locale, voicePairs.length - 120) })}</p>}
+        {voicePairs.length > 120 && <p class="dim">{tp(locale, 'detail.moreSpeakers', voicePairs.length - 120, { count: formatNumber(locale, voicePairs.length - 120) })}</p>}
       </div>
     </section>
       </aside>

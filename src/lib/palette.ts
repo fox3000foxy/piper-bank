@@ -34,6 +34,7 @@ export function initPalette() {
   const home: string = ui.home;
   const link = (p: string) => home.replace(/\/$/, '') + p;
   const fmt = new Intl.NumberFormat(ui.tag);
+  const plural = new Intl.PluralRules(ui.tag);
   let langName: (c: string) => string = (c) => c;
   try { const dn = new Intl.DisplayNames([ui.tag], { type: 'language' }); langName = (c) => { try { const n = dn.of(c) || c; return n.charAt(0).toLocaleUpperCase(ui.tag) + n.slice(1); } catch { return c; } }; } catch {}
 
@@ -80,7 +81,7 @@ export function initPalette() {
         const sc = scoreItem(modelHay[i], fold(m.n), toks);
         if (sc > 0) ms.push({
           group: ui.voices, title: m.n, url: link(`/model/${m.s}/`), hue: m.h, img: m.i ? ui.base.replace(/\/?$/, '/') + m.i : '',
-          sub: `${langName(m.l)} · ${m.a} · ${m.v > 1 ? ui.speakers.replace('{count}', fmt.format(m.v)) : ui.one}`,
+          sub: `${langName(m.l)} · ${m.a} · ${m.v > 1 ? (ui.speakers[plural.select(m.v)] ?? ui.speakers.other).replace('{count}', fmt.format(m.v)) : ui.one}`,
           badge: ui.q[m.q] || '', score: sc + (m.c ? 0.5 : 0),
         });
       });

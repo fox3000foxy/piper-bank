@@ -1,5 +1,5 @@
 ---
-import { LOCALES, localeMeta, localizedPath, ogLocale, t, type Locale } from '../i18n/ui';
+import { LOCALES, localeMeta, localizedPath, ogLocale, pluralForms, t, type Locale } from '../i18n/ui';
 import Icon from '../components/Icon.astro';
 import { docsNav } from '../lib/docs-nav';
 
@@ -26,7 +26,7 @@ const paletteUi = {
   home, base, locale, tag: localeMeta(locale).tag,
   voices: t(locale, 'nav.voices'), datasets: t(locale, 'nav.datasets'), languages: t(locale, 'search.languages'),
   pages: t(locale, 'search.pages'), empty: t(locale, 'search.noResults'), all: t(locale, 'search.seeAll'),
-  speakers: t(locale, 'voices.speakerCount'), one: t(locale, 'common.oneSpeaker'), models: t(locale, 'voices.models'),
+  speakers: pluralForms(locale, 'voices.speakerCount'), one: t(locale, 'common.oneSpeaker'), models: t(locale, 'voices.models'),
   q: { high: t(locale, 'quality.high'), medium: t(locale, 'quality.medium'), low: t(locale, 'quality.low'), unknown: t(locale, 'quality.unknown') },
 };
 const jsonLd: Record<string, unknown>[] = [];

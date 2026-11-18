@@ -4,7 +4,7 @@ import Icon from '../Icon.astro';
 import ModelAvatar from '../ModelAvatar.astro';
 import Flag from '../Flag.astro';
 import data from '../../data/models.json';
-import { formatNumber, languageLabel, localizedPath, localeMeta, t, type Locale, type MessageKey } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, localeMeta, t, tp, type Locale, type MessageKey } from '../../i18n/ui';
 import { fold } from '../../lib/search';
 import { sampleUrl, voiceTraits } from '../../lib/voices';
 
@@ -204,7 +204,7 @@ const ui = {
             <span class="vrow-tags">
               <span class="vrow-lang"><Flag lang={m.lang} />{langLabel(m)}</span>
               <span class="vrow-q"><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span></span>
-              <span class="vrow-speakers">{m.voices > 1 ? t(locale, 'voices.speakerCount', { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
+              <span class="vrow-speakers">{m.voices > 1 ? tp(locale, 'voices.speakerCount', m.voices, { count: formatNumber(locale, m.voices) }) : t(locale, 'common.oneSpeaker')}</span>
             </span>
             <button type="button" class="vrow-fav" data-fav={m.slug} aria-pressed="false" aria-label={t(locale, 'fav.toggle', { name: shortName(m.name) })} title={t(locale, 'fav.add')}>
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg>

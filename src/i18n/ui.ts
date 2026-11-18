@@ -88,6 +88,26 @@ export function t(locale: Locale, key: MessageKey, values: Record<string, string
   );
 }
 
+// Plural variants live next to the base key as "key#one", "key#few", "key#many"…
+// (Intl.PluralRules categories). The base key is the "other" form and the fallback.
+export function pluralForms(locale: Locale, key: MessageKey): Record<string, string> {
+  const own = messages[locale] as Record<string, string | undefined>;
+  const forms: Record<string, string> = { other: own[key] ?? en[key] ?? key };
+  for (const cat of ['zero', 'one', 'two', 'few', 'many'] as const) {
+    const v = own[`${key}#${cat}`];
+    if (v) forms[cat] = v;
+  }
+  return forms;
+}
+
+export function tp(locale: Locale, key: MessageKey, count: number, values: Record<string, string | number> = {}): string {
+  const forms = pluralForms(locale, key);
+  const text = forms[new Intl.PluralRules(localeMeta(locale).tag).select(count)] ?? forms.other;
+  return text.replace(/\{(\w+)\}/g, (match, name: string) =>
+    Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : match,
+  );
+}
+
 export function formatNumber(locale: Locale, value: number): string {
   return new Intl.NumberFormat(localeMeta(locale).tag).format(value);
 }
