@@ -344,5 +344,9 @@
  "trait.narration": "Erzählung (Hörbücher)",
  "detail.genderSource.name": "Geschlecht laut Sprechernamen.",
  "detail.genderSource.card": "Geschlecht laut Hugging-Face-Modellkarte.",
- "detail.genderSource.pitch": "Geschlecht geschätzt anhand der Tonhöhe der Hörproben."
+ "detail.genderSource.pitch": "Geschlecht geschätzt anhand der Tonhöhe der Hörproben.",
+ "detail.share": "Teilen",
+ "detail.shareHint": "Link zu dieser Stimme mit Ihrem Text kopieren",
+ "detail.shareCopied": "Link kopiert: Er öffnet diese Stimme mit Ihrem Text.",
+ "detail.shareTitle": "{name} auf PiperHub"
 }

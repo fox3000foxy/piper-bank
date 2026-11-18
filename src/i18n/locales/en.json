@@ -344,5 +344,9 @@
  "trait.narration": "Narration (audiobooks)",
  "detail.genderSource.name": "Gender taken from the speaker names.",
  "detail.genderSource.card": "Gender taken from the Hugging Face model card.",
- "detail.genderSource.pitch": "Gender estimated from the pitch of the samples."
+ "detail.genderSource.pitch": "Gender estimated from the pitch of the samples.",
+ "detail.share": "Share",
+ "detail.shareHint": "Copy a link to this voice with your text",
+ "detail.shareCopied": "Link copied: it opens this voice with your text.",
+ "detail.shareTitle": "{name} on PiperHub"
 }

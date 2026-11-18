@@ -344,5 +344,9 @@
  "trait.narration": "내레이션(오디오북)",
  "detail.genderSource.name": "성별은 화자 이름을 기준으로 합니다.",
  "detail.genderSource.card": "성별은 Hugging Face 모델 카드를 기준으로 합니다.",
- "detail.genderSource.pitch": "성별은 샘플의 음높이로 추정했습니다."
+ "detail.genderSource.pitch": "성별은 샘플의 음높이로 추정했습니다.",
+ "detail.share": "공유",
+ "detail.shareHint": "입력한 텍스트와 함께 이 음성 링크 복사",
+ "detail.shareCopied": "링크를 복사했습니다. 입력한 텍스트와 함께 이 음성이 열립니다.",
+ "detail.shareTitle": "PiperHub의 {name}"
 }

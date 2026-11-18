@@ -344,5 +344,9 @@
  "trait.narration": "旁白（有声书）",
  "detail.genderSource.name": "性别取自说话人名称。",
  "detail.genderSource.card": "性别取自 Hugging Face 模型卡。",
- "detail.genderSource.pitch": "性别根据样本的音高估算。"
+ "detail.genderSource.pitch": "性别根据样本的音高估算。",
+ "detail.share": "分享",
+ "detail.shareHint": "复制带有您文本的此语音链接",
+ "detail.shareCopied": "链接已复制：打开后会显示此语音和您的文本。",
+ "detail.shareTitle": "PiperHub 上的 {name}"
 }

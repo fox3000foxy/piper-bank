@@ -344,5 +344,9 @@
  "trait.narration": "การบรรยาย (หนังสือเสียง)",
  "detail.genderSource.name": "เพศอ้างอิงจากชื่อผู้พูด",
  "detail.genderSource.card": "เพศอ้างอิงจากการ์ดโมเดลบน Hugging Face",
- "detail.genderSource.pitch": "เพศประเมินจากระดับเสียงของตัวอย่าง"
+ "detail.genderSource.pitch": "เพศประเมินจากระดับเสียงของตัวอย่าง",
+ "detail.share": "แชร์",
+ "detail.shareHint": "คัดลอกลิงก์ไปยังเสียงนี้พร้อมข้อความของคุณ",
+ "detail.shareCopied": "คัดลอกลิงก์แล้ว: ลิงก์จะเปิดเสียงนี้พร้อมข้อความของคุณ",
+ "detail.shareTitle": "{name} บน PiperHub"
 }

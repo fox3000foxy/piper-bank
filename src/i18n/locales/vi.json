@@ -344,5 +344,9 @@
  "trait.narration": "Kể chuyện (sách nói)",
  "detail.genderSource.name": "Giới tính lấy từ tên người nói.",
  "detail.genderSource.card": "Giới tính lấy từ thẻ mô hình trên Hugging Face.",
- "detail.genderSource.pitch": "Giới tính được ước tính từ cao độ giọng trong các mẫu."
+ "detail.genderSource.pitch": "Giới tính được ước tính từ cao độ giọng trong các mẫu.",
+ "detail.share": "Chia sẻ",
+ "detail.shareHint": "Sao chép liên kết đến giọng này kèm văn bản của bạn",
+ "detail.shareCopied": "Đã sao chép liên kết: liên kết mở giọng này kèm văn bản của bạn.",
+ "detail.shareTitle": "{name} trên PiperHub"
 }

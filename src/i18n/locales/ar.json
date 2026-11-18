@@ -368,5 +368,9 @@
  "trait.narration": "سرد (كتب صوتية)",
  "detail.genderSource.name": "الجنس مأخوذ من أسماء المتحدثين.",
  "detail.genderSource.card": "الجنس مأخوذ من بطاقة النموذج على Hugging Face.",
- "detail.genderSource.pitch": "الجنس مُقدَّر من طبقة الصوت في المقاطع."
+ "detail.genderSource.pitch": "الجنس مُقدَّر من طبقة الصوت في المقاطع.",
+ "detail.share": "مشاركة",
+ "detail.shareHint": "انسخ رابطًا إلى هذا الصوت مع نصّك",
+ "detail.shareCopied": "تم نسخ الرابط: يفتح هذا الصوت مع نصّك.",
+ "detail.shareTitle": "{name} على PiperHub"
 }

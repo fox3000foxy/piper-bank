@@ -344,5 +344,9 @@
  "trait.narration": "Anlatım (sesli kitaplar)",
  "detail.genderSource.name": "Cinsiyet konuşmacı adlarından alınmıştır.",
  "detail.genderSource.card": "Cinsiyet Hugging Face model kartından alınmıştır.",
- "detail.genderSource.pitch": "Cinsiyet, örneklerdeki ses perdesinden tahmin edilmiştir."
+ "detail.genderSource.pitch": "Cinsiyet, örneklerdeki ses perdesinden tahmin edilmiştir.",
+ "detail.share": "Paylaş",
+ "detail.shareHint": "Bu sese metninizle birlikte bağlantı kopyalayın",
+ "detail.shareCopied": "Bağlantı kopyalandı: bu sesi metninizle açar.",
+ "detail.shareTitle": "PiperHub'da {name}"
 }

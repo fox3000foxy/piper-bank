@@ -344,5 +344,9 @@
  "trait.narration": "वर्णन (ऑडियोबुक)",
  "detail.genderSource.name": "लिंग वक्ताओं के नाम से लिया गया है।",
  "detail.genderSource.card": "लिंग Hugging Face मॉडल कार्ड से लिया गया है।",
- "detail.genderSource.pitch": "लिंग का अनुमान नमूनों की आवाज़ की पिच से लगाया गया है।"
+ "detail.genderSource.pitch": "लिंग का अनुमान नमूनों की आवाज़ की पिच से लगाया गया है।",
+ "detail.share": "साझा करें",
+ "detail.shareHint": "अपने टेक्स्ट के साथ इस आवाज़ का लिंक कॉपी करें",
+ "detail.shareCopied": "लिंक कॉपी हो गया: यह आपके टेक्स्ट के साथ यह आवाज़ खोलता है।",
+ "detail.shareTitle": "PiperHub पर {name}"
 }

@@ -168,7 +168,7 @@ function hlJS(src: string): string {
       <textarea id="text" rows="7" placeholder={t(locale, 'detail.enterText')}></textarea>
       <p class="model-size" id="model-size" hidden data-repo={m.repo} data-onnx={m.onnx}
         data-tpl-size={t(locale, 'size.model')} data-tpl-cached={t(locale, 'size.cached')}></p>
-      <div class="editor-submit"><span id="status" class="dim" aria-live="polite"></span><button id="go">{t(locale, 'detail.generateAudio')} <span aria-hidden="true">→</span></button></div>
+      <div class="editor-submit"><span id="status" class="dim" aria-live="polite"></span><span class="editor-actions"><button id="share" class="btn btn-subtle" type="button" title={t(locale, 'detail.shareHint')}><Icon name="share" size={16} />{t(locale, 'detail.share')}</button><button id="go">{t(locale, 'detail.generateAudio')} <span aria-hidden="true">→</span></button></span></div>
       <div id="synthesis-player" class="synthesis-player" style={`--synth-hue:${avatar.hue ?? 260}`} hidden>
         <button id="synthesis-toggle" class="sample-play" type="button" aria-label={t(locale, 'detail.playSynthesis')} data-play-label={t(locale, 'detail.playSynthesis')} data-pause-label={t(locale, 'detail.pauseSynthesis')}>
           <svg class="play-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4.8 8 5.2-8 5.2z"/></svg>
@@ -321,7 +321,7 @@ function hlJS(src: string): string {
   </main>
 
     <script type="application/json" id="model-data" set:html={JSON.stringify(m)} />
-    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus') } })} />
+    <script type="application/json" id="ui-messages" set:html={JSON.stringify({ locale, labels: { enterText: t(locale, 'detail.enterTextStatus'), audioReady: t(locale, 'detail.audioReady'), sampleUnavailable: t(locale, 'detail.sampleUnavailable'), listenVoice: t(locale, 'detail.listenVoice'), pauseVoice: t(locale, 'detail.pauseVoice'), durationPair: t(locale, 'detail.durationPair'), synthProgress: t(locale, 'detail.synthProgress'), synthFailure: t(locale, 'detail.synthFailure'), downloadSample: t(locale, 'detail.downloadSample'), compareStatus: t(locale, 'detail.compareStatus'), shareCopied: t(locale, 'detail.shareCopied'), shareTitle: t(locale, 'detail.shareTitle', { name: m.name }) } })} />
     <script define:vars={{ siteBase: base }}>window.__BASE__ = siteBase;</script>
     <script type="module">
       const model = JSON.parse(document.getElementById('model-data').textContent);
@@ -496,6 +496,26 @@ function hlJS(src: string): string {
         }).catch(() => { warmed = false; });
       };
       const textBox = document.getElementById('text');
+      // Share link: this page with the current text and speaker, ready to synthesize.
+      document.getElementById('share')?.addEventListener('click', async () => {
+        const params = new URLSearchParams();
+        const value = textBox?.value.trim();
+        if (value) params.set('text', value);
+        if (window.__selSid !== null && window.__selSid !== undefined && window.__selSid !== 0) params.set('sid', String(window.__selSid));
+        const url = `${location.origin}${location.pathname}${params.toString() ? `?${params}` : ''}`;
+        const status = document.getElementById('status');
+        if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+          try { await navigator.share({ title: ui.labels.shareTitle, text: value || undefined, url }); return; } catch (e) { if (e?.name === 'AbortError') return; }
+        }
+        try { await navigator.clipboard.writeText(url); }
+        catch {
+          const ta = document.createElement('textarea');
+          ta.value = url; document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); } catch {}
+          ta.remove();
+        }
+        if (status) status.textContent = ui.labels.shareCopied;
+      });
       textBox?.addEventListener('focus', warm, { once: true });
       textBox?.addEventListener('input', warm, { once: true });
       go?.addEventListener('pointerenter', warm, { once: true });

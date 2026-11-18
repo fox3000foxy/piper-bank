@@ -344,5 +344,9 @@
  "trait.narration": "Narração (audiolivros)",
  "detail.genderSource.name": "Género indicado pelos nomes dos locutores.",
  "detail.genderSource.card": "Género indicado pela ficha do Hugging Face.",
- "detail.genderSource.pitch": "Género estimado a partir da altura da voz nos excertos."
+ "detail.genderSource.pitch": "Género estimado a partir da altura da voz nos excertos.",
+ "detail.share": "Partilhar",
+ "detail.shareHint": "Copiar uma ligação para esta voz com o seu texto",
+ "detail.shareCopied": "Ligação copiada: abre esta voz com o seu texto.",
+ "detail.shareTitle": "{name} no PiperHub"
 }

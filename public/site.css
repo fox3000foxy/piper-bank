@@ -873,6 +873,7 @@ a.tag:hover { border-color: var(--stroke-strong); color: var(--text); }
 .model-side .sec { padding: 22px; border: 1px solid var(--stroke); border-radius: var(--r-lg); background: var(--card); }
 .model-side .sec h2 { margin-bottom: 14px; font-size: 16px; letter-spacing: -.01em; }
 .editor-submit { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px; }
+.editor-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
 .editor-submit .dim { font-size: 13px; }
 .editor-submit .is-error { color: var(--danger); }
 .editor-submit button, .contact-form button[type="submit"] {

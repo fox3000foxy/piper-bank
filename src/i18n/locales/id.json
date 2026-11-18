@@ -344,5 +344,9 @@
  "trait.narration": "Narasi (buku audio)",
  "detail.genderSource.name": "Gender diambil dari nama penutur.",
  "detail.genderSource.card": "Gender diambil dari kartu model Hugging Face.",
- "detail.genderSource.pitch": "Gender diperkirakan dari tinggi nada sampel."
+ "detail.genderSource.pitch": "Gender diperkirakan dari tinggi nada sampel.",
+ "detail.share": "Bagikan",
+ "detail.shareHint": "Salin tautan ke suara ini beserta teks Anda",
+ "detail.shareCopied": "Tautan disalin: tautan ini membuka suara ini beserta teks Anda.",
+ "detail.shareTitle": "{name} di PiperHub"
 }

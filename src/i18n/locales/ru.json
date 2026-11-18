@@ -362,5 +362,9 @@
  "trait.narration": "Повествование (аудиокниги)",
  "detail.genderSource.name": "Пол указан в именах дикторов.",
  "detail.genderSource.card": "Пол указан в карточке модели на Hugging Face.",
- "detail.genderSource.pitch": "Пол оценён по высоте голоса в образцах."
+ "detail.genderSource.pitch": "Пол оценён по высоте голоса в образцах.",
+ "detail.share": "Поделиться",
+ "detail.shareHint": "Скопировать ссылку на этот голос с вашим текстом",
+ "detail.shareCopied": "Ссылка скопирована: она открывает этот голос с вашим текстом.",
+ "detail.shareTitle": "{name} на PiperHub"
 }
