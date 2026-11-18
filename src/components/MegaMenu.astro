@@ -1,0 +1,110 @@
+---
+// Header mega menus: full-width panels that drop under the app bar (desktop only).
+// Each nav entry stays a plain link; the caret button next to it, or hovering the
+// entry, opens its panel.
+import Icon from './Icon.astro';
+import Flag from './Flag.astro';
+import ModelAvatar from './ModelAvatar.astro';
+import { formatNumber, languageLabel, localizedPath, t, tp, type Locale, type MessageKey } from '../i18n/ui';
+import { docsNav } from '../lib/docs-nav';
+import { navStats as s } from '../lib/nav-stats';
+
+const { locale, part, active } = Astro.props as { locale: Locale; part: 'nav' | 'panels'; active?: string };
+const base = import.meta.env.BASE_URL;
+const L = (p: string) => localizedPath(base, locale, p);
+const n = (v: number) => formatNumber(locale, v);
+const docs = docsNav(locale);
+const createGroup = docs[1];
+const shortName = (name: string) => name.replace(/\s+(?:x[_\s]?)?(?:high|medium|low|unknown)$/i, '');
+
+const items = [
+  { id: 'voices', label: t(locale, 'nav.voices'), href: L('/voices/') },
+  { id: 'datasets', label: t(locale, 'nav.datasets'), href: L('/datasets/') },
+  { id: 'guides', label: t(locale, 'nav.docs'), href: L('/guides/') },
+];
+---
+{part === 'nav' && items.map((it) => (
+  <div class="appnav-item" data-mega-item={it.id}>
+    <a aria-current={active === it.id ? 'page' : undefined} href={it.href}>{it.label}</a>
+    <button type="button" class="appnav-caret" aria-expanded="false" aria-controls={`mega-${it.id}`} aria-label={t(locale, 'mega.open', { name: it.label })} data-mega-toggle={it.id}><Icon name="chevronDown" size={14} /></button>
+  </div>
+))}
+
+{part === 'panels' && (
+  <>
+    <div class="mega" id="mega-voices" data-mega="voices" inert>
+      <div class="mega-inner">
+        <div class="mega-col">
+          <p class="mega-label">{t(locale, 'mega.browse')}</p>
+          <a class="mega-link" href={L('/voices/')}><span class="mega-ico"><Icon name="wave" size={18} /></span><span><strong>{t(locale, 'mega.catalog')}</strong><small>{n(s.models)} {tp(locale, 'home.modelsInCatalog', s.models)} · {n(s.languages)} {tp(locale, 'home.languagesListed', s.languages)}</small></span></a>
+          <a class="mega-link" href={L('/compare/')}><span class="mega-ico"><Icon name="layers" size={18} /></span><span><strong>{t(locale, 'compare.title')}</strong><small>{t(locale, 'mega.compareDesc')}</small></span></a>
+          <a class="mega-link" href={L('/library/')}><span class="mega-ico"><Icon name="heart" size={18} /></span><span><strong>{t(locale, 'library.title')}</strong><small>{t(locale, 'mega.libraryDesc')}</small></span></a>
+          {s.recent > 0 && <a class="mega-link" href={L('/voices/?recent=1')}><span class="mega-ico"><Icon name="sparkle" size={18} /></span><span><strong>{t(locale, 'mega.recent')}</strong><small>{t(locale, 'mega.recentDesc')}</small></span></a>}
+        </div>
+        <div class="mega-col">
+          <p class="mega-label">{t(locale, 'mega.byLanguage')}</p>
+          <ul class="mega-list">
+            {s.topLanguages.map((l) => <li><a href={L(`/voices/language/${l.code}/`)}><Flag lang={l.code} /><span>{languageLabel(l.code, l.name, locale)}</span><small>{n(l.n)}</small></a></li>)}
+          </ul>
+          <a class="mega-more" href={L('/voices/')}>{t(locale, 'mega.allLanguages', { count: n(s.languages) })}<Icon name="arrowRight" size={14} /></a>
+        </div>
+        <div class="mega-col">
+          <p class="mega-label">{t(locale, 'filter.traits')}</p>
+          <ul class="mega-list">
+            {s.traits.map((tr) => <li><a href={L(`/voices/?traits=${tr.id}`)}><span>{t(locale, `trait.${tr.id}` as MessageKey)}</span><small>{n(tr.n)}</small></a></li>)}
+          </ul>
+        </div>
+        <a class="mega-card" href={L(`/model/${s.featured.slug}/`)}>
+          <span class="mega-label">{t(locale, 'mega.featured')}</span>
+          <span class="mega-card-head"><ModelAvatar model={s.featured} locale={locale} /><span><strong>{shortName(s.featured.name)}</strong><small>{languageLabel(s.featured.lang, s.featured.langName, locale)} · {s.featured.author}</small></span></span>
+          <span class="mega-card-copy">{t(locale, 'mega.featuredCopy')}</span>
+          <span class="mega-more">{t(locale, 'mega.tryVoice')}<Icon name="arrowRight" size={14} /></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="mega" id="mega-datasets" data-mega="datasets" inert>
+      <div class="mega-inner">
+        <div class="mega-col">
+          <p class="mega-label">{t(locale, 'mega.browse')}</p>
+          <a class="mega-link" href={L('/datasets/')}><span class="mega-ico"><Icon name="database" size={18} /></span><span><strong>{t(locale, 'mega.allDatasets')}</strong><small>{n(s.datasets)} {tp(locale, 'datasets.count', s.datasets)}</small></span></a>
+          <a class="mega-link" href={L('/datasets/?state=with')}><span class="mega-ico"><Icon name="check" size={18} /></span><span><strong>{t(locale, 'datasets.withModel')}</strong><small>{t(locale, 'mega.withModelDesc', { count: n(s.datasetsWithModel) })}</small></span></a>
+          <a class="mega-link" href={L('/datasets/?state=without')}><span class="mega-ico"><Icon name="gauge" size={18} /></span><span><strong>{t(locale, 'datasets.toTrain')}</strong><small>{t(locale, 'mega.toTrainDesc', { count: n(s.datasets - s.datasetsWithModel) })}</small></span></a>
+        </div>
+        <div class="mega-col">
+          <p class="mega-label">{t(locale, 'mega.byLanguage')}</p>
+          <ul class="mega-list">
+            {s.datasetLanguages.map((l) => <li><a href={L(`/datasets/?lang=${l.code}`)}><Flag lang={l.code} /><span>{languageLabel(l.code, l.name, locale)}</span><small>{n(l.n)}</small></a></li>)}
+          </ul>
+        </div>
+        <div class="mega-col">
+          <p class="mega-label">{createGroup.label}</p>
+          {createGroup.items.map((it) => <a class="mega-link" href={L(it.path)}><span class="mega-ico"><Icon name={it.icon} size={18} /></span><span><strong>{it.title}</strong><small>{it.summary}</small></span></a>)}
+        </div>
+        <a class="mega-card" href={L('/contact/')}>
+          <span class="mega-label">{t(locale, 'mega.help')}</span>
+          <span class="mega-card-head"><span class="mega-ico mega-ico-lg"><Icon name="discord" size={22} /></span><strong>{t(locale, 'mega.helpTitle')}</strong></span>
+          <span class="mega-card-copy">{t(locale, 'mega.helpCopy')}</span>
+          <span class="mega-more">{t(locale, 'footer.contact')}<Icon name="arrowRight" size={14} /></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="mega" id="mega-guides" data-mega="guides" inert>
+      <div class="mega-inner">
+        {docs.map((g) => (
+          <div class="mega-col">
+            <p class="mega-label">{g.label}</p>
+            {g.items.map((it) => <a class="mega-link" href={L(it.path)}><span class="mega-ico"><Icon name={it.icon} size={18} /></span><span><strong>{it.title}</strong><small>{it.summary}</small></span></a>)}
+          </div>
+        ))}
+        <a class="mega-card" href={L('/contact/')}>
+          <span class="mega-label">{t(locale, 'mega.help')}</span>
+          <span class="mega-card-head"><span class="mega-ico mega-ico-lg"><Icon name="discord" size={22} /></span><strong>{t(locale, 'mega.helpTitle')}</strong></span>
+          <span class="mega-card-copy">{t(locale, 'mega.helpCopy')}</span>
+          <span class="mega-more">{t(locale, 'footer.contact')}<Icon name="arrowRight" size={14} /></span>
+        </a>
+      </div>
+    </div>
+  </>
+)}

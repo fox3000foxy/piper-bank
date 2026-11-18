@@ -1,6 +1,7 @@
 ---
 import { LOCALES, localeMeta, localizedPath, ogLocale, pluralForms, t, type Locale } from '../i18n/ui';
 import Icon from '../components/Icon.astro';
+import MegaMenu from '../components/MegaMenu.astro';
 import { docsNav } from '../lib/docs-nav';
 
 const { title, rawTitle, active, description, pageUrl, image, locale = 'fr' as Locale, noindex = false, breadcrumbs = [], jsonLdExtra = [] as Record<string, unknown>[] } = Astro.props;
@@ -145,9 +146,7 @@ if (breadcrumbs.length) {
           <span class="brand-name" aria-hidden="true">Piper<b>Hub</b></span>
         </a>
         <nav class="appnav" aria-label={t(locale, 'nav.main')}>
-          <a aria-current={active === 'voices' ? 'page' : undefined} href={L('/voices/')}>{t(locale, 'nav.voices')}</a>
-          <a aria-current={active === 'datasets' ? 'page' : undefined} href={L('/datasets/')}>{t(locale, 'nav.datasets')}</a>
-          <a aria-current={active === 'guides' ? 'page' : undefined} href={L('/guides/')}>{t(locale, 'nav.docs')}</a>
+          <MegaMenu part="nav" locale={locale} active={active} />
         </nav>
         <button class="search-trigger" type="button" data-palette-open aria-label={t(locale, 'search.open')}>
           <Icon name="search" size={16} />
@@ -181,7 +180,9 @@ if (breadcrumbs.length) {
           </details>
         </div>
       </div>
+      <MegaMenu part="panels" locale={locale} />
     </header>
+    <div class="mega-scrim" data-mega-scrim></div>
     <div class="menu-scrim" id="menu-scrim"></div>
     <nav class="flyout menu-flyout" id="menu-drawer" aria-label={t(locale, 'nav.main')}>
         <div class="flyout-head"><span>{t(locale, 'nav.main')}</span><button class="icon-btn" type="button" id="menu-close" aria-label={t(locale, 'search.hintClose')}><Icon name="close" size={18} /></button></div>
@@ -295,7 +296,9 @@ if (breadcrumbs.length) {
     <script>
       import { initPalette } from '../lib/palette';
       import { getFavorites, onFavoritesChange } from '../lib/favorites';
+      import { initMegaMenu } from '../lib/mega-menu';
       initPalette();
+      initMegaMenu();
       const syncFavCount = () => { const n = getFavorites().length; document.querySelectorAll<HTMLElement>('[data-fav-count]').forEach((el) => { el.textContent = String(n); el.hidden = n === 0; }); };
       onFavoritesChange(syncFavCount);
       syncFavCount();
