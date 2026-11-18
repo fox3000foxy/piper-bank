@@ -407,5 +407,7 @@
  "progress.stepPrepare": "準備",
  "progress.stepAudio": "音声",
  "progress.doneTitle": "合成が完了しました。",
- "progress.doneCopy": "再生して聴いてください。"
+ "progress.doneCopy": "再生して聴いてください。",
+ "compare.parallel": "モデルを同時にダウンロード",
+ "compare.parallelHint": "複数の音声を比較するときに速くなりますが、通信量が増えます。このブラウザのセッション中は保存されます。"
 }

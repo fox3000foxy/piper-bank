@@ -407,5 +407,7 @@
  "progress.stepPrepare": "Persiapan",
  "progress.stepAudio": "Audio",
  "progress.doneTitle": "Sintesis siap.",
- "progress.doneCopy": "Putar untuk mendengarkannya."
+ "progress.doneCopy": "Putar untuk mendengarkannya.",
+ "compare.parallel": "Unduh model secara bersamaan",
+ "compare.parallelHint": "Lebih cepat saat membandingkan beberapa suara, tetapi memakai lebih banyak bandwidth. Disimpan untuk sesi peramban ini."
 }

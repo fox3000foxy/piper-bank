@@ -407,5 +407,7 @@
  "progress.stepPrepare": "Vorbereitung",
  "progress.stepAudio": "Audio",
  "progress.doneTitle": "Synthese fertig.",
- "progress.doneCopy": "Starten Sie die Wiedergabe, um sie anzuhören."
+ "progress.doneCopy": "Starten Sie die Wiedergabe, um sie anzuhören.",
+ "compare.parallel": "Modelle gleichzeitig herunterladen",
+ "compare.parallelHint": "Schneller beim Vergleich mehrerer Stimmen, beansprucht aber mehr Bandbreite. Für diese Browsersitzung gespeichert."
 }

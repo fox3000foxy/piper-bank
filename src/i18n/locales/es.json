@@ -407,5 +407,7 @@
  "progress.stepPrepare": "Preparación",
  "progress.stepAudio": "Audio",
  "progress.doneTitle": "Síntesis lista.",
- "progress.doneCopy": "Pulse reproducir para escucharla."
+ "progress.doneCopy": "Pulse reproducir para escucharla.",
+ "compare.parallel": "Descargar los modelos a la vez",
+ "compare.parallelHint": "Más rápido al comparar varias voces, pero usa más ancho de banda. Se guarda para esta sesión del navegador."
 }

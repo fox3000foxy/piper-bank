@@ -407,5 +407,7 @@
  "progress.stepPrepare": "Hazırlık",
  "progress.stepAudio": "Ses",
  "progress.doneTitle": "Sentez hazır.",
- "progress.doneCopy": "Dinlemek için oynatın."
+ "progress.doneCopy": "Dinlemek için oynatın.",
+ "compare.parallel": "Modelleri aynı anda indir",
+ "compare.parallelHint": "Birden fazla sesi karşılaştırırken daha hızlıdır ancak daha fazla bant genişliği kullanır. Bu tarayıcı oturumu için kaydedilir."
 }

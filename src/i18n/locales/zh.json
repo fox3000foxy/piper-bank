@@ -407,5 +407,7 @@
  "progress.stepPrepare": "准备",
  "progress.stepAudio": "音频",
  "progress.doneTitle": "合成完成。",
- "progress.doneCopy": "点击播放即可收听。"
+ "progress.doneCopy": "点击播放即可收听。",
+ "compare.parallel": "同时下载模型",
+ "compare.parallelHint": "比较多个语音时更快，但会占用更多带宽。在本次浏览器会话中保留。"
 }

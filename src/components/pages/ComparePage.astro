@@ -22,6 +22,12 @@ const ui = {
   pause: t(locale, 'detail.pauseSynthesis'),
   download: t(locale, 'detail.downloadAudio'),
   plusOnly: t(locale, 'compare.plusOnly'),
+  progress: {
+    engine: t(locale, 'progress.engine'), download: t(locale, 'progress.download'), cached: t(locale, 'progress.cached'),
+    init: t(locale, 'progress.init'), phonemize: t(locale, 'progress.phonemize'), synth: t(locale, 'progress.synth'),
+    remaining: t(locale, 'progress.remaining'), bytes: t(locale, 'progress.bytes'),
+    stepModel: t(locale, 'progress.stepModel'), stepPrepare: t(locale, 'progress.stepPrepare'), stepAudio: t(locale, 'progress.stepAudio'),
+  },
   q: { high: t(locale, 'quality.high'), medium: t(locale, 'quality.medium'), low: t(locale, 'quality.low'), unknown: t(locale, 'quality.unknown') },
 };
 ---
@@ -40,6 +46,7 @@ const ui = {
       <label for="cmp-text" class="label">{t(locale, 'compare.textLabel')}</label>
       <textarea id="cmp-text" rows="3" placeholder={t(locale, 'detail.enterText')}></textarea>
       <div class="editor-submit"><span id="cmp-global" class="dim" aria-live="polite"></span><button id="cmp-run" type="button">{t(locale, 'compare.run')} <span aria-hidden="true">→</span></button></div>
+      <label class="switch cmp-parallel"><span><strong>{t(locale, 'compare.parallel')}</strong><small>{t(locale, 'compare.parallelHint')}</small></span><input type="checkbox" id="cmp-parallel" /></label>
     </section>
     <section class="cmp-slots" id="slots" aria-label={t(locale, 'compare.title')}></section>
   </main>
@@ -47,8 +54,9 @@ const ui = {
 
   <script>
     import { fold, scoreItem, tokens } from '../../lib/search';
+    import { ProgressTracker, mountProgress, getParallelDownloads, setParallelDownloads } from '../../lib/synth-progress';
     type M = { s: string; n: string; r: string; o: string; fl: string; l: string; q: string; a: string; v: number; h: number; i: string; p: number };
-    type Slot = { m: M; sid: number; names?: string[]; ids?: number[]; status: string; url?: string; err?: boolean };
+    type Slot = { m: M; sid: number; names?: string[]; ids?: number[]; status: string; url?: string; err?: boolean; tracker?: ProgressTracker };
     const ui = JSON.parse(document.getElementById('compare-ui')!.textContent || '{}');
     const B = ui.base.replace(/\/?$/, '/');
     const MAX = 4;
@@ -63,6 +71,12 @@ const ui = {
     let index: M[] = [];
     let hay: string[] = [];
     const dataCache = new Map<string, any>();
+    const views = new Map<Slot, ReturnType<typeof mountProgress>>();
+    const report = (s: Slot, info?: { phase?: string }) => { if (s.tracker?.update(info)) views.get(s)?.apply(s.tracker); };
+    const parallel = document.getElementById('cmp-parallel') as HTMLInputElement;
+    parallel.checked = getParallelDownloads();
+    parallel.addEventListener('change', () => setParallelDownloads(parallel.checked));
+    window.addEventListener('piperhub:parallel', (e) => { parallel.checked = (e as CustomEvent).detail; });
     const getData = async (slug: string) => {
       if (!dataCache.has(slug)) dataCache.set(slug, fetch(`${B}model-data/${slug}.json`).then((r) => r.json()));
       return dataCache.get(slug);
@@ -106,7 +120,7 @@ const ui = {
               <span class="cmp-bar"><span data-bar="${i}"></span></span>
               <a class="synthesis-dl" href="${s.url}" download="${esc(s.m.s)}.wav" aria-label="${esc(ui.download)}" title="${esc(ui.download)}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0 4-4m-4 4-4-4M4 17h12"/></svg></a>
               <audio src="${s.url}" data-audio="${i}" preload="auto"></audio>`
-              : `<span class="cmp-status dim">${esc(s.status || ui.waiting)}</span>`}
+              : s.tracker ? `<div class="synth-progress is-compact" data-progress="${i}"></div>` : `<span class="cmp-status dim${s.err ? ' is-error' : ''}">${esc(s.status || ui.waiting)}</span>`}
           </div>
         </article>`).join('');
       const adder = slots.length < MAX ? `
@@ -120,6 +134,11 @@ const ui = {
       const query = prev?.value || '';
       const focused = !!prev && document.activeElement === prev;
       box.innerHTML = cards + adder;
+      // Re-attach each running slot's loader to its fresh DOM.
+      slots.forEach((s, i) => {
+        const el = box.querySelector<HTMLElement>(`[data-progress="${i}"]`);
+        if (el && s.tracker) { const v = mountProgress(el, ui.progress, ui.tag, { steps: false }); views.set(s, v); v.apply(s.tracker); }
+      });
       const inp = document.getElementById('cmp-search') as HTMLInputElement | null;
       if (inp) {
         inp.addEventListener('input', () => suggest(inp.value));
@@ -175,23 +194,31 @@ const ui = {
       const lib = await import(/* @vite-ignore */ `${B}piper-infer.js`);
       const btn = document.getElementById('cmp-run') as HTMLButtonElement;
       btn.disabled = true;
-      // Download every voice in parallel, then synthesize one after the other.
-      slots.forEach((s) => lib.prefetchVoice?.(s.m.r, s.m.o));
+      // Every card gets its own loader. With parallel downloads on, all models
+      // download at once (each card shows its own progress); synthesis then runs
+      // one voice after the other.
+      const startTracker = (s: Slot) => { s.tracker = new ProgressTracker(false); s.tracker.update({ phase: 'init' }); };
       for (const s of slots) {
-        s.err = false;
+        s.err = false; s.status = '';
+        if (s.url) { URL.revokeObjectURL(s.url); s.url = undefined; }
+        // One at a time: the other cards wait ("Waiting…") until their turn.
+        s.tracker = undefined;
+        if (parallel.checked) startTracker(s);
+      }
+      render();
+      if (parallel.checked) slots.forEach((s) => lib.prefetchVoice?.(s.m.r, s.m.o, (_: string, info: any) => report(s, info)));
+      for (const s of slots) {
+        if (!s.tracker) { startTracker(s); render(); }
         try {
           const d = await getData(s.m.s);
-          const blob = await lib.synthesize({ ...d, text: value, speakerId: d.voices > 1 ? s.sid : undefined }, (st: string) => {
-            s.status = st;
-            const el = box.querySelector(`[data-i="${slots.indexOf(s)}"] .cmp-status`);
-            if (el) el.textContent = st;
-          });
-          if (s.url) URL.revokeObjectURL(s.url);
+          const blob = await lib.synthesize({ ...d, text: value, speakerId: d.voices > 1 ? s.sid : undefined }, (_: string, info: any) => report(s, info));
           s.url = URL.createObjectURL(blob);
         } catch (e) {
           s.err = true;
           s.status = ui.failed.replace('{message}', (e as Error).message || String(e));
         }
+        s.tracker = undefined;
+        views.delete(s);
         render();
       }
       btn.disabled = false;

@@ -431,5 +431,7 @@
  "progress.stepPrepare": "التجهيز",
  "progress.stepAudio": "الصوت",
  "progress.doneTitle": "التركيب جاهز.",
- "progress.doneCopy": "اضغط تشغيل للاستماع."
+ "progress.doneCopy": "اضغط تشغيل للاستماع.",
+ "compare.parallel": "تنزيل النماذج في الوقت نفسه",
+ "compare.parallelHint": "أسرع عند مقارنة عدة أصوات لكنه يستهلك نطاقًا تردديًا أكبر. يُحفظ طوال جلسة المتصفح هذه."
 }

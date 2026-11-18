@@ -407,5 +407,7 @@
  "progress.stepPrepare": "तैयारी",
  "progress.stepAudio": "ऑडियो",
  "progress.doneTitle": "संश्लेषण तैयार है।",
- "progress.doneCopy": "सुनने के लिए प्ले करें।"
+ "progress.doneCopy": "सुनने के लिए प्ले करें।",
+ "compare.parallel": "मॉडल एक साथ डाउनलोड करें",
+ "compare.parallelHint": "कई आवाज़ों की तुलना करते समय तेज़, लेकिन ज़्यादा बैंडविड्थ लेता है। इस ब्राउज़र सत्र के लिए सहेजा जाता है।"
 }

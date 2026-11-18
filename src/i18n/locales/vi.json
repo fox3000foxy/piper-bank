@@ -407,5 +407,7 @@
  "progress.stepPrepare": "Chuẩn bị",
  "progress.stepAudio": "Âm thanh",
  "progress.doneTitle": "Đã tổng hợp xong.",
- "progress.doneCopy": "Nhấn phát để nghe."
+ "progress.doneCopy": "Nhấn phát để nghe.",
+ "compare.parallel": "Tải các mô hình cùng lúc",
+ "compare.parallelHint": "Nhanh hơn khi so sánh nhiều giọng nhưng tốn nhiều băng thông hơn. Được lưu trong phiên trình duyệt này."
 }

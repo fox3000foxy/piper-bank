@@ -407,5 +407,7 @@
  "progress.stepPrepare": "Préparation",
  "progress.stepAudio": "Audio",
  "progress.doneTitle": "Synthèse prête.",
- "progress.doneCopy": "Lancez la lecture pour l'écouter."
+ "progress.doneCopy": "Lancez la lecture pour l'écouter.",
+ "compare.parallel": "Télécharger les modèles en même temps",
+ "compare.parallelHint": "Plus rapide pour comparer plusieurs voix, mais sollicite davantage la connexion. Enregistré pour cette session du navigateur."
 }

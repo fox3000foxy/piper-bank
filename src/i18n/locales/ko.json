@@ -407,5 +407,7 @@
  "progress.stepPrepare": "준비",
  "progress.stepAudio": "오디오",
  "progress.doneTitle": "합성이 완료되었습니다.",
- "progress.doneCopy": "재생 버튼을 눌러 들어 보세요."
+ "progress.doneCopy": "재생 버튼을 눌러 들어 보세요.",
+ "compare.parallel": "모델을 동시에 다운로드",
+ "compare.parallelHint": "여러 음성을 비교할 때 더 빠르지만 대역폭을 더 사용합니다. 이 브라우저 세션 동안 저장됩니다."
 }

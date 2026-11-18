@@ -407,5 +407,7 @@
  "progress.stepPrepare": "เตรียมการ",
  "progress.stepAudio": "เสียง",
  "progress.doneTitle": "สังเคราะห์เสร็จแล้ว",
- "progress.doneCopy": "กดเล่นเพื่อฟัง"
+ "progress.doneCopy": "กดเล่นเพื่อฟัง",
+ "compare.parallel": "ดาวน์โหลดโมเดลพร้อมกัน",
+ "compare.parallelHint": "เร็วขึ้นเมื่อเปรียบเทียบหลายเสียง แต่ใช้แบนด์วิดท์มากขึ้น บันทึกไว้สำหรับเซสชันเบราว์เซอร์นี้"
 }

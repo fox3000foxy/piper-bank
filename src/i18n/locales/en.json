@@ -407,5 +407,7 @@
  "progress.stepPrepare": "Preparation",
  "progress.stepAudio": "Audio",
  "progress.doneTitle": "Synthesis ready.",
- "progress.doneCopy": "Press play to listen."
+ "progress.doneCopy": "Press play to listen.",
+ "compare.parallel": "Download models at the same time",
+ "compare.parallelHint": "Faster when comparing several voices, but uses more bandwidth. Saved for this browser session."
 }
