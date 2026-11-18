@@ -333,5 +333,16 @@
  "compare.ready": "Selesai. Putar setiap suara untuk membandingkan.",
  "compare.failed": "Pembuatan gagal: {message}",
  "compare.needVoices": "Tambahkan setidaknya satu suara untuk dibandingkan.",
- "compare.plusOnly": "Suara Piper Plus tidak dapat dibuat di browser."
+ "compare.plusOnly": "Suara Piper Plus tidak dapat dibuat di browser.",
+ "traitShort.female": "Perempuan",
+ "traitShort.male": "Laki-laki",
+ "traitShort.child": "Anak",
+ "traitShort.narration": "Narasi",
+ "traitShort.expressive": "Ekspresif",
+ "traitShort.character": "Karakter",
+ "trait.child": "Suara anak",
+ "trait.narration": "Narasi (buku audio)",
+ "detail.genderSource.name": "Gender diambil dari nama penutur.",
+ "detail.genderSource.card": "Gender diambil dari kartu model Hugging Face.",
+ "detail.genderSource.pitch": "Gender diperkirakan dari tinggi nada sampel."
 }

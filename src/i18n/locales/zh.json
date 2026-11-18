@@ -333,5 +333,16 @@
  "compare.ready": "已完成。播放每种语音进行比较。",
  "compare.failed": "生成失败：{message}",
  "compare.needVoices": "请至少添加一种语音进行比较。",
- "compare.plusOnly": "Piper Plus 语音无法在浏览器中生成。"
+ "compare.plusOnly": "Piper Plus 语音无法在浏览器中生成。",
+ "traitShort.female": "女声",
+ "traitShort.male": "男声",
+ "traitShort.child": "童声",
+ "traitShort.narration": "旁白",
+ "traitShort.expressive": "富有表现力",
+ "traitShort.character": "角色",
+ "trait.child": "童声",
+ "trait.narration": "旁白（有声书）",
+ "detail.genderSource.name": "性别取自说话人名称。",
+ "detail.genderSource.card": "性别取自 Hugging Face 模型卡。",
+ "detail.genderSource.pitch": "性别根据样本的音高估算。"
 }

@@ -333,5 +333,16 @@
  "compare.ready": "Fertig. Spielen Sie jede Stimme zum Vergleich ab.",
  "compare.failed": "Generierung fehlgeschlagen: {message}",
  "compare.needVoices": "Fügen Sie mindestens eine Stimme zum Vergleichen hinzu.",
- "compare.plusOnly": "Piper-Plus-Stimmen können nicht im Browser generiert werden."
+ "compare.plusOnly": "Piper-Plus-Stimmen können nicht im Browser generiert werden.",
+ "traitShort.female": "Weiblich",
+ "traitShort.male": "Männlich",
+ "traitShort.child": "Kind",
+ "traitShort.narration": "Erzählung",
+ "traitShort.expressive": "Ausdrucksstark",
+ "traitShort.character": "Figur",
+ "trait.child": "Kinderstimme",
+ "trait.narration": "Erzählung (Hörbücher)",
+ "detail.genderSource.name": "Geschlecht laut Sprechernamen.",
+ "detail.genderSource.card": "Geschlecht laut Hugging-Face-Modellkarte.",
+ "detail.genderSource.pitch": "Geschlecht geschätzt anhand der Tonhöhe der Hörproben."
 }

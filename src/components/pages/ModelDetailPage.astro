@@ -3,7 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import Icon from '../Icon.astro';
 import Flag from '../Flag.astro';
 import ModelAvatar from '../ModelAvatar.astro';
-import { formatNumber, languageLabel, localizedPath, t, tp, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, t, tp, type Locale, type MessageKey } from '../../i18n/ui';
+import { modelTraits, speakerGender } from '../../lib/traits';
 
 const { locale = 'fr' as Locale } = Astro.props;
 const { model: m } = Astro.props;
@@ -12,6 +13,8 @@ const avatar = m.avatar || { emoji: '?', hue: 260, icon: null };
 const voicePairs: { name: string; sid: number }[] = (m.voiceNames || []).map((vn: string, i: number) => ({
   name: vn, sid: (m.voiceIds || [])[i] ?? i,
 }));
+const { traits: mTraits, genderSource } = modelTraits(m);
+const traitLabel = (x: string) => t(locale, `traitShort.${x}` as MessageKey);
 const updatedDate = m.updated ? new Date(m.updated + 'T00:00:00Z') : null;
 const isFresh = !!updatedDate && (Date.now() - updatedDate.getTime()) < 14 * 864e5;
 const updatedLabel = updatedDate ? updatedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
@@ -144,6 +147,7 @@ function hlJS(src: string): string {
       <span class="tag lang"><Flag lang={m.lang} />{languageLabel(m.lang, m.langName, locale)}</span>
       <span class={`tag tag-quality q-${m.quality}`}>{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</span>
       {m.piperPlus && <span class="plus-pill" title="piper-plus">Piper+</span>}
+      {mTraits.map((x) => <span class="tag">{traitLabel(x)}</span>)}
       {m.voices > 1
         ? <span class="tag voices">{formatNumber(locale, m.voices)} {t(locale, 'common.voicesUnit')}</span>
         : <span class="tag">{t(locale, 'common.oneSpeaker')}</span>}
@@ -215,6 +219,7 @@ function hlJS(src: string): string {
         <div><dt>{t(locale, 'detail.language')}</dt><dd>{languageLabel(m.lang, m.langName, locale)}</dd></div>
         <div><dt>{t(locale, 'detail.quality')}</dt><dd class="cap">{t(locale, m.quality === 'high' ? 'quality.high' : m.quality === 'medium' ? 'quality.medium' : m.quality === 'low' ? 'quality.low' : 'quality.unknown')}</dd></div>
         <div><dt>{t(locale, 'detail.speakers')}</dt><dd>{formatNumber(locale, m.voices)}</dd></div>
+        {mTraits.length > 0 && <div><dt>{t(locale, 'filter.traits')}</dt><dd>{mTraits.map(traitLabel).join(', ')}{genderSource && <small class="trait-source">{t(locale, `detail.genderSource.${genderSource}` as MessageKey)}</small>}</dd></div>}
         <div><dt>{t(locale, 'detail.phonemes')}</dt><dd>{m.phonemeType === 'text' ? t(locale, 'detail.textPhoneme') : (((m.configs || {}).espeak || {}).voice || 'espeak')}</dd></div>
         <div><dt>{t(locale, 'detail.sampleRate')}</dt><dd>{formatNumber(locale, m.sampleRate)} Hz</dd></div>
         <div><dt>{t(locale, 'detail.license')}</dt><dd>{m.license || t(locale, 'detail.noLicense')}</dd></div>
@@ -286,6 +291,7 @@ function hlJS(src: string): string {
             <div class="pbody">
               <div class="prow">
                 <button class="pname" title={v.name}>{v.name}</button>
+                {m.voices > 1 && speakerGender(m.slug, v.sid) && <span class="ptrait">{traitLabel(speakerGender(m.slug, v.sid)!)}</span>}
                 <span class="ex-sw">
                   <button class="ex on" data-n="0" title={t(locale, 'detail.sampleN', { number: 1 })}>1</button><button class="ex" data-n="1" title={t(locale, 'detail.sampleN', { number: 2 })}>2</button>
                 </span>

@@ -333,5 +333,16 @@
  "compare.ready": "पूरा हुआ। तुलना करने के लिए हर आवाज़ चलाएँ।",
  "compare.failed": "जनरेशन विफल रहा: {message}",
  "compare.needVoices": "तुलना के लिए कम से कम एक आवाज़ जोड़ें।",
- "compare.plusOnly": "Piper Plus आवाज़ें ब्राउज़र में जनरेट नहीं की जा सकतीं।"
+ "compare.plusOnly": "Piper Plus आवाज़ें ब्राउज़र में जनरेट नहीं की जा सकतीं।",
+ "traitShort.female": "महिला",
+ "traitShort.male": "पुरुष",
+ "traitShort.child": "बच्चा",
+ "traitShort.narration": "वर्णन",
+ "traitShort.expressive": "भावपूर्ण",
+ "traitShort.character": "किरदार",
+ "trait.child": "बच्चे की आवाज़",
+ "trait.narration": "वर्णन (ऑडियोबुक)",
+ "detail.genderSource.name": "लिंग वक्ताओं के नाम से लिया गया है।",
+ "detail.genderSource.card": "लिंग Hugging Face मॉडल कार्ड से लिया गया है।",
+ "detail.genderSource.pitch": "लिंग का अनुमान नमूनों की आवाज़ की पिच से लगाया गया है।"
 }

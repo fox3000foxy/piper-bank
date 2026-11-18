@@ -333,5 +333,16 @@
  "compare.ready": "Tamamlandı. Karşılaştırmak için her sesi oynatın.",
  "compare.failed": "Oluşturma başarısız oldu: {message}",
  "compare.needVoices": "Karşılaştırmak için en az bir ses ekleyin.",
- "compare.plusOnly": "Piper Plus sesleri tarayıcıda oluşturulamaz."
+ "compare.plusOnly": "Piper Plus sesleri tarayıcıda oluşturulamaz.",
+ "traitShort.female": "Kadın",
+ "traitShort.male": "Erkek",
+ "traitShort.child": "Çocuk",
+ "traitShort.narration": "Anlatım",
+ "traitShort.expressive": "Duygusal",
+ "traitShort.character": "Karakter",
+ "trait.child": "Çocuk sesi",
+ "trait.narration": "Anlatım (sesli kitaplar)",
+ "detail.genderSource.name": "Cinsiyet konuşmacı adlarından alınmıştır.",
+ "detail.genderSource.card": "Cinsiyet Hugging Face model kartından alınmıştır.",
+ "detail.genderSource.pitch": "Cinsiyet, örneklerdeki ses perdesinden tahmin edilmiştir."
 }

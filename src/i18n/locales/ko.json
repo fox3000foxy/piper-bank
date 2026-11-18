@@ -333,5 +333,16 @@
  "compare.ready": "완료되었습니다. 각 음성을 재생해 비교해 보세요.",
  "compare.failed": "생성 실패: {message}",
  "compare.needVoices": "비교할 음성을 하나 이상 추가하세요.",
- "compare.plusOnly": "Piper Plus 음성은 브라우저에서 생성할 수 없습니다."
+ "compare.plusOnly": "Piper Plus 음성은 브라우저에서 생성할 수 없습니다.",
+ "traitShort.female": "여성",
+ "traitShort.male": "남성",
+ "traitShort.child": "어린이",
+ "traitShort.narration": "내레이션",
+ "traitShort.expressive": "감정 표현",
+ "traitShort.character": "캐릭터",
+ "trait.child": "어린이 목소리",
+ "trait.narration": "내레이션(오디오북)",
+ "detail.genderSource.name": "성별은 화자 이름을 기준으로 합니다.",
+ "detail.genderSource.card": "성별은 Hugging Face 모델 카드를 기준으로 합니다.",
+ "detail.genderSource.pitch": "성별은 샘플의 음높이로 추정했습니다."
 }

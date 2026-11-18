@@ -333,5 +333,16 @@
  "compare.ready": "Concluído. Reproduza cada voz para comparar.",
  "compare.failed": "Falha na geração: {message}",
  "compare.needVoices": "Adicione pelo menos uma voz para comparar.",
- "compare.plusOnly": "As vozes Piper Plus não podem ser geradas no navegador."
+ "compare.plusOnly": "As vozes Piper Plus não podem ser geradas no navegador.",
+ "traitShort.female": "Feminina",
+ "traitShort.male": "Masculina",
+ "traitShort.child": "Infantil",
+ "traitShort.narration": "Narração",
+ "traitShort.expressive": "Expressiva",
+ "traitShort.character": "Personagem",
+ "trait.child": "Voz infantil",
+ "trait.narration": "Narração (audiolivros)",
+ "detail.genderSource.name": "Género indicado pelos nomes dos locutores.",
+ "detail.genderSource.card": "Género indicado pela ficha do Hugging Face.",
+ "detail.genderSource.pitch": "Género estimado a partir da altura da voz nos excertos."
 }

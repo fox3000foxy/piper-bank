@@ -357,5 +357,16 @@
  "compare.ready": "تم. شغّل كل صوت للمقارنة.",
  "compare.failed": "فشل التوليد: {message}",
  "compare.needVoices": "أضف صوتًا واحدًا على الأقل للمقارنة.",
- "compare.plusOnly": "لا يمكن توليد أصوات Piper Plus في المتصفح."
+ "compare.plusOnly": "لا يمكن توليد أصوات Piper Plus في المتصفح.",
+ "traitShort.female": "أنثوي",
+ "traitShort.male": "ذكوري",
+ "traitShort.child": "طفل",
+ "traitShort.narration": "سرد",
+ "traitShort.expressive": "معبّر",
+ "traitShort.character": "شخصية",
+ "trait.child": "صوت طفل",
+ "trait.narration": "سرد (كتب صوتية)",
+ "detail.genderSource.name": "الجنس مأخوذ من أسماء المتحدثين.",
+ "detail.genderSource.card": "الجنس مأخوذ من بطاقة النموذج على Hugging Face.",
+ "detail.genderSource.pitch": "الجنس مُقدَّر من طبقة الصوت في المقاطع."
 }

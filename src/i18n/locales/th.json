@@ -333,5 +333,16 @@
  "compare.ready": "เสร็จสิ้น เล่นแต่ละเสียงเพื่อเปรียบเทียบ",
  "compare.failed": "สร้างเสียงไม่สำเร็จ: {message}",
  "compare.needVoices": "เพิ่มอย่างน้อยหนึ่งเสียงเพื่อเปรียบเทียบ",
- "compare.plusOnly": "ไม่สามารถสร้างเสียง Piper Plus ในเบราว์เซอร์ได้"
+ "compare.plusOnly": "ไม่สามารถสร้างเสียง Piper Plus ในเบราว์เซอร์ได้",
+ "traitShort.female": "หญิง",
+ "traitShort.male": "ชาย",
+ "traitShort.child": "เด็ก",
+ "traitShort.narration": "การบรรยาย",
+ "traitShort.expressive": "แสดงอารมณ์",
+ "traitShort.character": "ตัวละคร",
+ "trait.child": "เสียงเด็ก",
+ "trait.narration": "การบรรยาย (หนังสือเสียง)",
+ "detail.genderSource.name": "เพศอ้างอิงจากชื่อผู้พูด",
+ "detail.genderSource.card": "เพศอ้างอิงจากการ์ดโมเดลบน Hugging Face",
+ "detail.genderSource.pitch": "เพศประเมินจากระดับเสียงของตัวอย่าง"
 }

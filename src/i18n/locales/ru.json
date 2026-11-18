@@ -351,5 +351,16 @@
  "compare.ready": "Готово. Прослушайте каждый голос, чтобы сравнить.",
  "compare.failed": "Ошибка генерации: {message}",
  "compare.needVoices": "Добавьте хотя бы один голос для сравнения.",
- "compare.plusOnly": "Голоса Piper Plus нельзя сгенерировать в браузере."
+ "compare.plusOnly": "Голоса Piper Plus нельзя сгенерировать в браузере.",
+ "traitShort.female": "Женский",
+ "traitShort.male": "Мужской",
+ "traitShort.child": "Детский",
+ "traitShort.narration": "Повествование",
+ "traitShort.expressive": "Экспрессивный",
+ "traitShort.character": "Персонаж",
+ "trait.child": "Детский голос",
+ "trait.narration": "Повествование (аудиокниги)",
+ "detail.genderSource.name": "Пол указан в именах дикторов.",
+ "detail.genderSource.card": "Пол указан в карточке модели на Hugging Face.",
+ "detail.genderSource.pitch": "Пол оценён по высоте голоса в образцах."
 }

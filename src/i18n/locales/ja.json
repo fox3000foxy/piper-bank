@@ -333,5 +333,16 @@
  "compare.ready": "完了しました。各音声を再生して比較してください。",
  "compare.failed": "生成に失敗しました: {message}",
  "compare.needVoices": "比較する音声を 1 つ以上追加してください。",
- "compare.plusOnly": "Piper Plus の音声はブラウザでは生成できません。"
+ "compare.plusOnly": "Piper Plus の音声はブラウザでは生成できません。",
+ "traitShort.female": "女性",
+ "traitShort.male": "男性",
+ "traitShort.child": "子ども",
+ "traitShort.narration": "ナレーション",
+ "traitShort.expressive": "感情表現",
+ "traitShort.character": "キャラクター",
+ "trait.child": "子どもの声",
+ "trait.narration": "ナレーション（オーディオブック）",
+ "detail.genderSource.name": "性別は話者名に基づきます。",
+ "detail.genderSource.card": "性別は Hugging Face のモデルカードに基づきます。",
+ "detail.genderSource.pitch": "性別はサンプルの声の高さから推定しています。"
 }

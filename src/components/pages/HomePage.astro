@@ -5,8 +5,9 @@ import ModelAvatar from '../ModelAvatar.astro';
 import Flag from '../Flag.astro';
 import data from '../../data/models.json';
 import datasets from '../../data/datasets.json';
-import { formatNumber, languageLabel, localizedPath, t, tp, type Locale } from '../../i18n/ui';
+import { formatNumber, languageLabel, localizedPath, t, tp, type Locale, type MessageKey } from '../../i18n/ui';
 import { docsNav } from '../../lib/docs-nav';
+import { modelTraits } from '../../lib/traits';
 
 const { locale = 'fr' as Locale } = Astro.props;
 
@@ -120,7 +121,7 @@ const userLang = locale === 'en' ? 'en' : locale;
         {featured.map((m) => <a class="vcard" href={L(`/model/${m.slug}/`)}>
           <div class="vcard-top"><ModelAvatar model={m} locale={locale} /><Icon name="arrowUpRight" size={18} class="go" /></div>
           <div><h3>{shortName(m.name)}</h3><p class="vcard-meta">{m.author}</p></div>
-          <div class="vcard-tags"><span class="badge">{languageLabel(m.lang, m.langName, locale)}</span><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span>{m.voices > 1 && <span class="badge">{tp(locale, 'voices.speakerCount', m.voices, { count: formatNumber(locale, m.voices) })}</span>}</div>
+          <div class="vcard-tags"><span class="badge">{languageLabel(m.lang, m.langName, locale)}</span><span class={`badge badge-q-${m.quality}`}>{t(locale, qKey(m.quality))}</span>{m.voices > 1 && <span class="badge">{tp(locale, 'voices.speakerCount', m.voices, { count: formatNumber(locale, m.voices) })}</span>}{modelTraits(m as any).traits.slice(0, 2).map((x) => <span class="badge">{t(locale, `traitShort.${x}` as MessageKey)}</span>)}</div>
         </a>)}
       </div>
     </section>

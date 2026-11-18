@@ -333,5 +333,16 @@
  "compare.ready": "Hoàn tất. Phát từng giọng đọc để so sánh.",
  "compare.failed": "Tạo không thành công: {message}",
  "compare.needVoices": "Hãy thêm ít nhất một giọng đọc để so sánh.",
- "compare.plusOnly": "Không thể tạo giọng đọc Piper Plus trên trình duyệt."
+ "compare.plusOnly": "Không thể tạo giọng đọc Piper Plus trên trình duyệt.",
+ "traitShort.female": "Nữ",
+ "traitShort.male": "Nam",
+ "traitShort.child": "Trẻ em",
+ "traitShort.narration": "Kể chuyện",
+ "traitShort.expressive": "Biểu cảm",
+ "traitShort.character": "Nhân vật",
+ "trait.child": "Giọng trẻ em",
+ "trait.narration": "Kể chuyện (sách nói)",
+ "detail.genderSource.name": "Giới tính lấy từ tên người nói.",
+ "detail.genderSource.card": "Giới tính lấy từ thẻ mô hình trên Hugging Face.",
+ "detail.genderSource.pitch": "Giới tính được ước tính từ cao độ giọng trong các mẫu."
 }
