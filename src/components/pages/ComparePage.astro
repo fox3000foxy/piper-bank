@@ -115,9 +115,17 @@ const ui = {
           <div class="cmp-suggest" id="cmp-suggest" role="listbox"></div>
           ${slots.length === 0 ? `<p class="dim">${esc(ui.needVoices)}</p>` : ''}
         </div>` : '';
+      // Keep what is being typed in the search box across re-renders (e.g. a synthesis ending).
+      const prev = document.getElementById('cmp-search') as HTMLInputElement | null;
+      const query = prev?.value || '';
+      const focused = !!prev && document.activeElement === prev;
       box.innerHTML = cards + adder;
       const inp = document.getElementById('cmp-search') as HTMLInputElement | null;
-      if (inp) inp.addEventListener('input', () => suggest(inp.value));
+      if (inp) {
+        inp.addEventListener('input', () => suggest(inp.value));
+        if (query) { inp.value = query; suggest(query); }
+        if (focused) inp.focus();
+      }
     }
 
     function suggest(q: string) {
@@ -131,7 +139,7 @@ const ui = {
     box.addEventListener('click', (e) => {
       const el = e.target as Element;
       const add = el.closest<HTMLElement>('[data-add]');
-      if (add) { addSlot(add.dataset.add!).then(() => (document.getElementById('cmp-search') as HTMLInputElement | null)?.focus()); return; }
+      if (add) { const q = document.getElementById('cmp-search') as HTMLInputElement | null; if (q) q.value = ''; addSlot(add.dataset.add!).then(() => (document.getElementById('cmp-search') as HTMLInputElement | null)?.focus()); return; }
       const rm = el.closest<HTMLElement>('[data-remove]');
       if (rm) { const s = slots.splice(Number(rm.dataset.remove), 1)[0]; if (s?.url) URL.revokeObjectURL(s.url); render(); syncUrl(); return; }
       const tg = el.closest<HTMLElement>('[data-toggle]');
@@ -189,6 +197,9 @@ const ui = {
       btn.disabled = false;
       global.textContent = ui.ready;
     });
+    // The text lives in the URL too, so a reload or a shared link keeps it.
+    let urlTimer = 0;
+    text.addEventListener('input', () => { clearTimeout(urlTimer); urlTimer = window.setTimeout(syncUrl, 400); });
     text.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); document.getElementById('cmp-run')!.click(); } });
 
     (async () => {
