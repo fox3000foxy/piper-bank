@@ -331,9 +331,6 @@ select option { background: var(--layer-2); color: var(--text); }
 /* Brand lockup: the P mark with the name in live type, sized to read from a distance */
 .brand { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; border-radius: var(--r-sm); color: var(--text); }
 .brand-mark { flex: 0 0 auto; width: auto; height: 48px; }
-.brand-mark-light { display: none; }
-:root[data-theme="light"] .brand-mark-light { display: block; }
-:root[data-theme="light"] .brand-mark-dark { display: none; }
 .brand-name { font: 700 26px/1 var(--font-display); letter-spacing: -.035em; white-space: nowrap; }
 .brand-name b { color: inherit; font-weight: inherit; }
 .brand-lg { gap: 12px; }
