@@ -72,6 +72,7 @@ const userLang = locale === 'en' ? 'en' : locale;
             </label>
             <button class="btn btn-primary" type="submit"><span>{t(locale, 'home.searchButton')}</span><Icon name="arrowRight" size={18} /></button>
           </form>
+          <div class="hero-suggest-wrap">
           <div class="hero-suggest">
             <span>{t(locale, 'home.popular')}</span>
             {langCounts.has(userLang) && <a class="chip chip-plain chip-ico" href={L(`/voices/?lang=${userLang}`)}><Flag lang={userLang} />{languageLabel(userLang, langCounts.get(userLang)!.name, locale)}</a>}
@@ -79,6 +80,9 @@ const userLang = locale === 'en' ? 'en' : locale;
             <a class="chip chip-plain chip-ico" href={L('/voices/?quality=high')}><span class="chip-dot" aria-hidden="true"></span>{t(locale, 'filter.highQuality')}</a>
             <a class="chip chip-plain chip-ico" href={L('/voices/?speakers=multi')}><Icon name="users" size={15} />{t(locale, 'filter.multiVoice')}</a>
             <a class="chip chip-plain chip-ico" href={L('/voices/?source=official')}><img class="chip-logo" src={`${base}brand/piper-mark.png`} alt="" width="16" height="16" loading="lazy" />{t(locale, 'filter.official')}</a>
+          </div>
+          {/* Mouse helper only: keyboard users reach every chip with Tab, which scrolls it into view. */}
+          <button type="button" class="suggest-next" aria-hidden="true" tabindex="-1"><Icon name="chevronRight" size={16} /></button>
           </div>
         </div>
 
@@ -215,6 +219,32 @@ const userLang = locale === 'en' ? 'en' : locale;
       sync();
       suggest.addEventListener('scroll', sync, { passive: true });
       window.addEventListener('resize', sync);
+      // A vertical wheel scrolls the row sideways while there is somewhere to go.
+      suggest.addEventListener('wheel', (e) => {
+        if (!suggest.classList.contains('is-overflow') || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+        const max = suggest.scrollWidth - suggest.clientWidth;
+        if ((e.deltaY > 0 && suggest.scrollLeft >= max - 1) || (e.deltaY < 0 && suggest.scrollLeft <= 0)) return;
+        e.preventDefault();
+        suggest.scrollLeft += e.deltaY;
+      }, { passive: false });
+      // Drag with the mouse; a drag does not count as a click on a chip.
+      let startX = 0, startLeft = 0, dragged = false, down = false;
+      suggest.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'mouse' || !suggest.classList.contains('is-overflow')) return;
+        down = true; dragged = false; startX = e.clientX; startLeft = suggest.scrollLeft;
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!down) return;
+        const dx = e.clientX - startX;
+        if (Math.abs(dx) > 5) { dragged = true; suggest.classList.add('is-dragging'); }
+        if (dragged) suggest.scrollLeft = startLeft - dx;
+      });
+      window.addEventListener('pointerup', () => { down = false; suggest.classList.remove('is-dragging'); });
+      suggest.addEventListener('click', (e) => { if (dragged) { e.preventDefault(); dragged = false; } }, true);
+      suggest.addEventListener('dragstart', (e) => e.preventDefault());
+      document.querySelector('.suggest-next')?.addEventListener('click', () => {
+        suggest.scrollBy({ left: suggest.clientWidth * 0.7, behavior: 'smooth' });
+      });
     }
     // Play the icon burst once, when the call to action scrolls into view.
     const cta = document.querySelector('.cta');

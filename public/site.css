@@ -611,6 +611,19 @@ a.mega-more:hover { background: var(--control-hover); }
 /* One line: when it does not fit, the end fades out and the row scrolls sideways. */
 .hero-suggest.is-overflow { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
 .hero-suggest.is-overflow.is-end { -webkit-mask-image: none; mask-image: none; }
+.hero-suggest-wrap { position: relative; }
+.hero-suggest.is-overflow { cursor: grab; }
+.hero-suggest.is-dragging { cursor: grabbing; user-select: none; }
+.hero-suggest.is-dragging a { pointer-events: none; }
+.suggest-next {
+  position: absolute; right: 0; top: 50%; display: none; place-items: center;
+  width: 28px; height: 28px; margin-top: 1px; padding: 0; transform: translateY(-50%);
+  border: 1px solid var(--stroke-2); border-radius: 50%; background: var(--layer); color: var(--text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .25); transition: background var(--fast);
+}
+.suggest-next:hover { background: var(--layer-2); }
+.hero-suggest-wrap:has(.hero-suggest.is-overflow:not(.is-end)) .suggest-next { display: grid; }
+@media (hover: none) { .suggest-next { display: none !important; } }
 .hero-suggest > span { margin-right: 4px; }
 .hero-suggest .chip { height: 30px; }
 @media (max-width: 960px) { .home-hero-grid { grid-template-columns: 1fr; gap: 48px; padding-top: 56px; padding-bottom: 64px; } }
