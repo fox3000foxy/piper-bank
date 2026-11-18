@@ -74,11 +74,11 @@ const userLang = locale === 'en' ? 'en' : locale;
           </form>
           <div class="hero-suggest">
             <span>{t(locale, 'home.popular')}</span>
-            {langCounts.has(userLang) && <a class="chip chip-plain" href={L(`/voices/?lang=${userLang}`)}>{languageLabel(userLang, langCounts.get(userLang)!.name, locale)}</a>}
-            {userLang !== 'en' && <a class="chip chip-plain" href={L('/voices/?lang=en')}>{languageLabel('en', 'English', locale)}</a>}
-            <a class="chip chip-plain" href={L('/voices/?quality=high')}>{t(locale, 'filter.highQuality')}</a>
-            <a class="chip chip-plain" href={L('/voices/?speakers=multi')}>{t(locale, 'filter.multiVoice')}</a>
-            <a class="chip chip-plain" href={L('/voices/?source=official')}>{t(locale, 'filter.official')}</a>
+            {langCounts.has(userLang) && <a class="chip chip-plain chip-ico" href={L(`/voices/?lang=${userLang}`)}><Flag lang={userLang} />{languageLabel(userLang, langCounts.get(userLang)!.name, locale)}</a>}
+            {userLang !== 'en' && <a class="chip chip-plain chip-ico" href={L('/voices/?lang=en')}><Flag lang="en" />{languageLabel('en', 'English', locale)}</a>}
+            <a class="chip chip-plain chip-ico" href={L('/voices/?quality=high')}><span class="chip-dot" aria-hidden="true"></span>{t(locale, 'filter.highQuality')}</a>
+            <a class="chip chip-plain chip-ico" href={L('/voices/?speakers=multi')}><Icon name="users" size={15} />{t(locale, 'filter.multiVoice')}</a>
+            <a class="chip chip-plain chip-ico" href={L('/voices/?source=official')}><img class="chip-logo" src={`${base}brand/logo.png`} alt="" width="16" height="16" loading="lazy" />{t(locale, 'filter.official')}</a>
           </div>
         </div>
 
