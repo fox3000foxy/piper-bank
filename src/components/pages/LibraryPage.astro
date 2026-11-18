@@ -14,69 +14,163 @@ const ui = {
   one: t(locale, 'common.oneSpeaker'),
   remove: t(locale, 'library.remove'),
   removeFav: t(locale, 'library.removeFav'),
+  removeEntry: t(locale, 'library.removeEntry'),
+  replay: t(locale, 'library.replay'),
+  speaker: t(locale, 'library.speaker'),
   play: t(locale, 'voices.playSample'),
   pause: t(locale, 'voices.pauseSample'),
   unknownVoice: t(locale, 'library.unknownVoice'),
   storageUsage: t(locale, 'library.storageUsage'),
+  imported: t(locale, 'library.imported'),
+  importFailed: t(locale, 'library.importFailed'),
+  resetConfirm: t(locale, 'library.resetConfirm'),
   q: { high: t(locale, 'quality.high'), medium: t(locale, 'quality.medium'), low: t(locale, 'quality.low'), unknown: t(locale, 'quality.unknown') },
 };
+const tabs = [
+  { id: 'favorites', icon: 'heart', label: t(locale, 'library.tabFavorites') },
+  { id: 'history', icon: 'clock', label: t(locale, 'library.tabHistory') },
+  { id: 'storage', icon: 'database', label: t(locale, 'library.tabStorage') },
+  { id: 'data', icon: 'shield', label: t(locale, 'library.tabData') },
+];
+const trash = '<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6h11M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg>';
 ---
-<Layout title={t(locale, 'library.title')} locale={locale} pageUrl="/library/" noindex
+<Layout title={t(locale, 'library.title')} locale={locale} pageUrl="/library/" noindex active="library"
   breadcrumbs={[{ name: t(locale, 'nav.home'), path: '/' }, { name: t(locale, 'library.title'), path: '/library/' }]}
   description={t(locale, 'library.intro')}>
-  <header class="page-head">
+  <header class="page-head lib-page-head">
     <div class="page-head-grid">
       <div><p class="label">{t(locale, 'library.label')}</p><h1>{t(locale, 'library.title')}</h1></div>
       <div><p class="lead">{t(locale, 'library.intro')}</p></div>
     </div>
   </header>
 
+  <div class="lib-tabs-bar">
+    <div class="lib-tabs" role="tablist" aria-label={t(locale, 'library.title')}>
+      {tabs.map((tab, i) => (
+        <button type="button" role="tab" class="lib-tab" id={`tab-${tab.id}`} aria-controls={`panel-${tab.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-tab={tab.id}>
+          <Icon name={tab.icon} size={16} /><span>{tab.label}</span><span class="lib-tab-n" data-count={tab.id}></span>
+        </button>
+      ))}
+    </div>
+  </div>
+
   <main class="wrap library">
-    <section class="lib-section" aria-labelledby="favs-title">
-      <div class="lib-head">
-        <h2 id="favs-title">{t(locale, 'library.favorites')} <span class="lib-n" id="favs-n"></span></h2>
+    <section class="lib-panel" role="tabpanel" id="panel-favorites" aria-labelledby="tab-favorites" tabindex="0">
+      <div class="lib-toolbar">
+        <p class="dim">{t(locale, 'library.favoritesIntro')}</p>
         <a class="btn" id="compare-favs" href={L('/compare/')} hidden><Icon name="layers" size={16} />{t(locale, 'library.compareFavs')}</a>
       </div>
       <div class="vcards" id="favs"></div>
-      <div class="empty-state" id="favs-empty" hidden>
-        <svg viewBox="0 0 20 20" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true" class="icon"><path d="M10 16.5s-6.25-3.6-6.25-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6.25 2.1c0 4.5-6.25 8.1-6.25 8.1Z"/></svg>
+      <div class="empty-state lib-empty" id="favs-empty" hidden>
+        <span class="lib-empty-ico"><Icon name="heart" size={26} /></span>
         <h2>{t(locale, 'library.noFavs')}</h2>
         <p>{t(locale, 'library.noFavsCopy')}</p>
         <a class="btn" href={L('/voices/')}>{t(locale, 'home.openCatalog')}</a>
       </div>
     </section>
 
-    <section class="lib-section" aria-labelledby="stored-title">
-      <div class="lib-head">
-        <div>
-          <h2 id="stored-title">{t(locale, 'library.stored')} <span class="lib-n" id="stored-n"></span></h2>
-          <p class="dim" id="storage-usage"></p>
-        </div>
-        <button class="btn" type="button" id="clear-all" hidden><Icon name="close" size={16} />{t(locale, 'library.clearAll')}</button>
+    <section class="lib-panel" role="tabpanel" id="panel-history" aria-labelledby="tab-history" tabindex="0" hidden>
+      <div class="lib-toolbar">
+        <p class="dim">{t(locale, 'library.historyIntro')}</p>
+        <button class="btn btn-subtle" type="button" id="clear-history" hidden><Fragment set:html={trash} />{t(locale, 'library.clearHistory')}</button>
       </div>
-      <p class="dim lib-note">{t(locale, 'library.storedCopy')}</p>
+      <ol class="lib-history" id="history"></ol>
+      <div class="empty-state lib-empty" id="history-empty" hidden>
+        <span class="lib-empty-ico"><Icon name="clock" size={26} /></span>
+        <h2>{t(locale, 'library.noHistory')}</h2>
+        <p>{t(locale, 'library.noHistoryCopy')}</p>
+        <a class="btn" href={L('/voices/')}>{t(locale, 'home.openCatalog')}</a>
+      </div>
+    </section>
+
+    <section class="lib-panel" role="tabpanel" id="panel-storage" aria-labelledby="tab-storage" tabindex="0" hidden>
+      <div class="lib-meter" id="storage-meter" hidden>
+        <div class="lib-meter-head"><strong id="storage-total"></strong><span class="dim" id="storage-usage"></span></div>
+        <div class="lib-meter-bar" aria-hidden="true"><span id="storage-bar"></span></div>
+        <p class="dim">{t(locale, 'library.storedCopy')} {t(locale, 'library.storageLimit', { max: 12 })}</p>
+      </div>
+      <div class="lib-toolbar">
+        <h2 class="lib-h2">{t(locale, 'library.stored')}</h2>
+        <button class="btn btn-subtle" type="button" id="clear-all" hidden><Fragment set:html={trash} />{t(locale, 'library.clearAll')}</button>
+      </div>
       <div class="stored-list" id="stored"></div>
-      <p class="dim" id="stored-empty" hidden>{t(locale, 'library.noStored')}</p>
+      <div class="empty-state lib-empty" id="stored-empty" hidden>
+        <span class="lib-empty-ico"><Icon name="database" size={26} /></span>
+        <h2>{t(locale, 'library.noStoredTitle')}</h2>
+        <p>{t(locale, 'library.noStored')}</p>
+      </div>
+    </section>
+
+    <section class="lib-panel" role="tabpanel" id="panel-data" aria-labelledby="tab-data" tabindex="0" hidden>
+      <p class="dim lib-data-intro">{t(locale, 'library.dataIntro')}</p>
+      <div class="lib-data">
+        <div class="lib-data-card">
+          <span class="mega-ico"><Icon name="download" size={18} /></span>
+          <div><h3>{t(locale, 'library.exportTitle')}</h3><p>{t(locale, 'library.exportCopy')}</p></div>
+          <button class="btn" type="button" id="export">{t(locale, 'library.export')}</button>
+        </div>
+        <div class="lib-data-card">
+          <span class="mega-ico"><Icon name="enter" size={18} /></span>
+          <div><h3>{t(locale, 'library.importTitle')}</h3><p>{t(locale, 'library.importCopy')}</p></div>
+          <label class="btn">{t(locale, 'library.import')}<input type="file" id="import" accept="application/json,.json" hidden /></label>
+        </div>
+        <div class="lib-data-card is-danger">
+          <span class="mega-ico"><Icon name="warning" size={18} /></span>
+          <div><h3>{t(locale, 'library.resetTitle')}</h3><p>{t(locale, 'library.resetCopy')}</p></div>
+          <button class="btn" type="button" id="reset-all">{t(locale, 'library.resetAll')}</button>
+        </div>
+      </div>
+      <p class="dim" id="data-status" aria-live="polite"></p>
     </section>
   </main>
   <script is:inline type="application/json" id="library-ui" set:html={JSON.stringify(ui)} />
 
   <script>
-    import { getFavorites, toggleFavorite, onFavoritesChange } from '../../lib/favorites';
+    import { getFavorites, toggleFavorite, onFavoritesChange, mergeFavorites } from '../../lib/favorites';
+    import { getHistory, removeHistory, clearHistory, mergeHistory, onHistoryChange } from '../../lib/history';
     import { bindQuickPlay } from '../../lib/quickplay';
     import { sampleUrl } from '../../lib/voices';
 
     type M = { s: string; n: string; r: string; o: string; fl: string; l: string; ln: string; q: string; a: string; v: number; h: number; i: string };
+    const CACHE = 'piperhub-voices-v1';
     const ui = JSON.parse(document.getElementById('library-ui')!.textContent || '{}');
     const nf = new Intl.NumberFormat(ui.tag, { maximumFractionDigits: 1 });
     const pr = new Intl.PluralRules(ui.tag);
+    const $ = (id: string) => document.getElementById(id)!;
     let langName: (c: string) => string = (c) => c;
     try { const dn = new Intl.DisplayNames([ui.tag], { type: 'language' }); langName = (c) => { const v = dn.of(c) || c; return v.charAt(0).toLocaleUpperCase(ui.tag) + v.slice(1); }; } catch {}
     const esc = (s: string) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
     const link = (p: string) => ui.home.replace(/\/$/, '') + p;
     const short = (n: string) => n.replace(/\s+(?:x[_\s]?)?(?:high|medium|low|unknown)$/i, '');
-    const fr = ui.tag.startsWith('fr');
-    const mb = (b: number) => b >= 1073741824 ? `${nf.format(b / 1073741824)} ${fr ? 'Go' : 'GB'}` : `${nf.format(b / 1048576)} ${fr ? 'Mo' : 'MB'}`;
+    const bytes = new Intl.NumberFormat(ui.tag, { style: 'unit', unit: 'megabyte', unitDisplay: 'short', maximumFractionDigits: 0 });
+    const gbytes = new Intl.NumberFormat(ui.tag, { style: 'unit', unit: 'gigabyte', unitDisplay: 'short', maximumFractionDigits: 1 });
+    const size = (b: number) => (b >= 1073741824 ? gbytes.format(b / 1073741824) : bytes.format(b / 1048576));
+    const setCount = (id: string, n: number) => { const el = document.querySelector(`[data-count="${id}"]`); if (el) el.textContent = n ? nf.format(n) : ''; };
+    const trash = '<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6h11M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg>';
+
+    // ---- Tabs (roving tabindex, arrow keys, state in the URL hash) ----
+    const tabs = [...document.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const select = (id: string, focus = false) => {
+      const tab = tabs.find((t) => t.dataset.tab === id) || tabs[0];
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        $(`panel-${t.dataset.tab}`).hidden = !on;
+      }
+      if (focus) tab.focus();
+      history.replaceState(null, '', tab === tabs[0] ? location.pathname : `#${tab.dataset.tab}`);
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t.dataset.tab!));
+      t.addEventListener('keydown', (e) => {
+        const k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (k) { e.preventDefault(); select(tabs[(i + k + tabs.length) % tabs.length].dataset.tab!, true); }
+        if (e.key === 'Home') { e.preventDefault(); select(tabs[0].dataset.tab!, true); }
+        if (e.key === 'End') { e.preventDefault(); select(tabs[tabs.length - 1].dataset.tab!, true); }
+      });
+    });
+    if (location.hash) select(location.hash.slice(1));
 
     (async () => {
     const index: { m: M[] } = await fetch(ui.base.replace(/\/?$/, '/') + 'search-index.json').then((r) => r.json());
@@ -86,15 +180,15 @@ const ui = {
     const avatar = (m: M) => `<span class="mavatar" style="--h:${m.h}"><span class="mavatar-face" aria-hidden="true">${m.i ? `<img src="${ui.base.replace(/\/?$/, '/')}${esc(m.i)}" alt="">` : '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 8.5v3M7 6v8M10 3.5v13M13 6.5v7M16 8.5v3"/></svg>'}</span></span>`;
     const flag = (m: M) => (m.fl ? `<img class="flag" src="${ui.base.replace(/\/?$/, '/')}flags/${m.fl}.svg" alt="" width="20" height="15">` : '');
 
+    // ---- Favourites ----
     function renderFavs() {
       const favs = getFavorites().map((s) => bySlug.get(s)).filter(Boolean) as M[];
-      const box = document.getElementById('favs')!;
-      document.getElementById('favs-n')!.textContent = favs.length ? String(favs.length) : '';
-      document.getElementById('favs-empty')!.hidden = favs.length > 0;
-      const cmp = document.getElementById('compare-favs') as HTMLAnchorElement;
+      setCount('favorites', favs.length);
+      $('favs-empty').hidden = favs.length > 0;
+      const cmp = $('compare-favs') as HTMLAnchorElement;
       cmp.hidden = favs.length < 2;
       cmp.href = link(`/compare/?v=${favs.slice(0, 4).map((m) => m.s).join(',')}`);
-      box.innerHTML = favs.map((m) => `
+      $('favs').innerHTML = favs.map((m) => `
         <div class="vcard lib-card" data-play-row>
           <div class="vcard-top">
             <span class="vrow-lead">${avatar(m)}<button type="button" class="vrow-play" data-play="${esc(sampleUrl(m.r, m.o, 0, 0))}" data-play-label="${esc(ui.play.replace('{name}', short(m.n)))}" data-pause-label="${esc(ui.pause.replace('{name}', short(m.n)))}" aria-label="${esc(ui.play.replace('{name}', short(m.n)))}"><svg class="i-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 4.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L7.4 4.1a.6.6 0 0 0-.9.5Z"/></svg><svg class="i-pause" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg></button></span>
@@ -105,9 +199,42 @@ const ui = {
         </div>`).join('');
     }
 
+    // ---- History ----
+    const when = (at: number) => {
+      const diff = (Date.now() - at) / 1000;
+      const rtf = new Intl.RelativeTimeFormat(ui.tag, { numeric: 'auto' });
+      if (diff < 3600) return rtf.format(-Math.max(1, Math.round(diff / 60)), 'minute');
+      if (diff < 86400) return rtf.format(-Math.round(diff / 3600), 'hour');
+      if (diff < 86400 * 7) return rtf.format(-Math.round(diff / 86400), 'day');
+      return new Intl.DateTimeFormat(ui.tag, { dateStyle: 'medium' }).format(new Date(at));
+    };
+    function renderHistory() {
+      const list = getHistory();
+      setCount('history', list.length);
+      $('history-empty').hidden = list.length > 0;
+      $('clear-history').hidden = list.length === 0;
+      $('history').innerHTML = list.map((e) => {
+        const m = bySlug.get(e.s);
+        const params = new URLSearchParams({ text: e.t });
+        if (e.sid !== undefined && e.sid !== null) params.set('sid', String(e.sid));
+        const href = link(`/model/${e.s}/?${params}`);
+        return `<li class="lib-hist">
+          ${m ? avatar(m) : '<span class="mavatar"><span class="mavatar-face"></span></span>'}
+          <div class="lib-hist-body">
+            <p class="lib-hist-text">${esc(e.t)}</p>
+            <small>${m ? `<a class="vrow-link" href="${esc(link(`/model/${m.s}/`))}">${esc(short(m.n))}</a>` : esc(ui.unknownVoice)}${e.sid ? ` · ${esc(ui.speaker.replace('{id}', String(e.sid)))}` : ''} · ${esc(when(e.at))}</small>
+          </div>
+          <div class="lib-hist-actions">
+            <a class="btn" href="${esc(href)}"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M6.5 4.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L7.4 4.1a.6.6 0 0 0-.9.5Z" fill="currentColor"/></svg>${esc(ui.replay)}</a>
+            <button type="button" class="icon-btn" data-unhist="${e.at}" aria-label="${esc(ui.removeEntry)}" title="${esc(ui.removeEntry)}">${trash}</button>
+          </div>
+        </li>`;
+      }).join('');
+    }
+
+    // ---- Storage (voices kept by the synthesis engine) ----
     async function renderStored() {
-      const list = document.getElementById('stored')!;
-      const cache = 'caches' in window ? await caches.open('piperhub-voices-v1') : null;
+      const cache = 'caches' in window ? await caches.open(CACHE) : null;
       const keys = cache ? await cache.keys() : [];
       const rows = await Promise.all(keys.map(async (k) => {
         const res = await cache!.match(k);
@@ -115,33 +242,81 @@ const ui = {
       }));
       rows.sort((a, b) => b.saved - a.saved);
       const total = rows.reduce((a, r) => a + r.size, 0);
-      document.getElementById('stored-n')!.textContent = rows.length ? String(rows.length) : '';
-      document.getElementById('stored-empty')!.hidden = rows.length > 0;
-      document.getElementById('clear-all')!.hidden = rows.length === 0;
+      setCount('storage', rows.length);
+      $('stored-empty').hidden = rows.length > 0;
+      $('clear-all').hidden = rows.length === 0;
+      $('storage-meter').hidden = rows.length === 0;
+      $('storage-total').textContent = size(total);
       try {
         const est = await navigator.storage?.estimate?.();
-        document.getElementById('storage-usage')!.textContent = rows.length ? ui.storageUsage.replace('{size}', mb(total)).replace('{free}', est?.quota ? mb(Math.max(0, (est.quota || 0) - (est.usage || 0))) : '—') : '';
+        const free = est?.quota ? Math.max(0, est.quota - (est.usage || 0)) : 0;
+        $('storage-usage').textContent = free ? ui.storageUsage.replace('{size}', size(total)).replace('{free}', size(free)) : '';
+        // Bar: share of the voices in what this site may use (capped visual minimum so it stays visible).
+        const pct = est?.quota ? Math.min(100, Math.max(2, (total / Math.min(est.quota, total + free)) * 100)) : 0;
+        ($('storage-bar') as HTMLElement).style.width = `${pct}%`;
       } catch {}
       const date = new Intl.DateTimeFormat(ui.tag, { dateStyle: 'medium' });
-      list.innerHTML = rows.map((r) => `
+      $('stored').innerHTML = rows.map((r) => `
         <div class="stored-row">
           ${r.m ? avatar(r.m) : '<span class="mavatar"><span class="mavatar-face"></span></span>'}
-          <div class="stored-text">${r.m ? `<a class="vrow-link" href="${esc(link(`/model/${r.m.s}/`))}">${esc(short(r.m.n))}</a>` : `<span>${esc(ui.unknownVoice)}</span>`}<small>${esc(mb(r.size))}${r.saved ? ' · ' + esc(date.format(new Date(r.saved))) : ''}</small></div>
-          <button type="button" class="btn btn-subtle" data-evict="${esc(r.url)}"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4.5 6h11M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg>${esc(ui.remove)}</button>
+          <div class="stored-text">${r.m ? `<a class="vrow-link" href="${esc(link(`/model/${r.m.s}/`))}">${esc(short(r.m.n))}</a>` : `<span>${esc(ui.unknownVoice)}</span>`}<small>${r.m ? `${flag(r.m)}${esc(langName(r.m.l))} · ` : ''}${r.saved ? esc(date.format(new Date(r.saved))) : ''}</small></div>
+          <span class="stored-size">${esc(size(r.size))}</span>
+          <button type="button" class="icon-btn" data-evict="${esc(r.url)}" aria-label="${esc(ui.remove)}" title="${esc(ui.remove)}">${trash}</button>
         </div>`).join('');
     }
+
+    // ---- Data: export / import / reset ----
+    $('export').addEventListener('click', () => {
+      const data = { app: 'piperhub', version: 1, exported: new Date().toISOString(), favorites: getFavorites(), history: getHistory() };
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+      a.download = `piperhub-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    $('import').addEventListener('change', async (e) => {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        if (data?.app !== 'piperhub' || !Array.isArray(data.favorites)) throw new Error('format');
+        const favBefore = getFavorites().length, histBefore = getHistory().length;
+        mergeFavorites(data.favorites);
+        if (Array.isArray(data.history)) mergeHistory(data.history);
+        $('data-status').textContent = ui.imported
+          .replace('{favs}', nf.format(getFavorites().length - favBefore))
+          .replace('{history}', nf.format(getHistory().length - histBefore));
+      } catch {
+        $('data-status').textContent = ui.importFailed;
+      }
+    });
+    $('reset-all').addEventListener('click', async () => {
+      if (!confirm(ui.resetConfirm)) return;
+      try { localStorage.removeItem('piperhub-favorites'); } catch {}
+      clearHistory();
+      if ('caches' in window) await caches.delete(CACHE);
+      window.dispatchEvent(new CustomEvent('piperhub:favorites'));
+      renderStored();
+    });
 
     document.addEventListener('click', async (e) => {
       const el = e.target as Element;
       const un = el.closest<HTMLElement>('[data-unfav]');
       if (un) { toggleFavorite(un.dataset.unfav!); return; }
+      const uh = el.closest<HTMLElement>('[data-unhist]');
+      if (uh) { removeHistory(Number(uh.dataset.unhist)); return; }
+      if (el.closest('#clear-history')) { clearHistory(); return; }
       const ev = el.closest<HTMLElement>('[data-evict]');
-      if (ev) { await (await caches.open('piperhub-voices-v1')).delete(ev.dataset.evict!); renderStored(); return; }
-      if (el.closest('#clear-all')) { await caches.delete('piperhub-voices-v1'); renderStored(); }
+      if (ev) { await (await caches.open(CACHE)).delete(ev.dataset.evict!); renderStored(); return; }
+      if (el.closest('#clear-all')) { await caches.delete(CACHE); renderStored(); }
     });
     onFavoritesChange(renderFavs);
-    bindQuickPlay(document.getElementById('favs')!);
+    onHistoryChange(renderHistory);
+    bindQuickPlay($('favs'));
     renderFavs();
+    renderHistory();
     renderStored();
     })();
   </script>

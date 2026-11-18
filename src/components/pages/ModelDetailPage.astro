@@ -612,6 +612,7 @@ function hlJS(src: string): string {
           paintSynthesis();
           status.textContent = ui.labels.audioReady;
           synthesisAudio.play().catch(() => {});
+          window.dispatchEvent(new CustomEvent('piperhub:synthesized', { detail: { s: model.slug, t: text, sid: window.__selSid ?? undefined } }));
         } catch (e) { status.textContent = message(ui.labels.synthFailure, { message: e.message || e }); }
         finally { go.disabled = false; }
       });
@@ -684,7 +685,10 @@ function hlJS(src: string): string {
     </script>
 <script>
   import { bindFavButtons } from '../../lib/favorites';
+  import { addHistory } from '../../lib/history';
   bindFavButtons(document);
+  // Each successful synthesis lands in the library history.
+  window.addEventListener('piperhub:synthesized', (e) => addHistory((e as CustomEvent).detail));
   // Model size and cache state before any download.
   const el = document.getElementById('model-size');
   if (el) {

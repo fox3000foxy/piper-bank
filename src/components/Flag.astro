@@ -1,9 +1,9 @@
 ---
 import { flagFor } from '../lib/flags';
-const { lang, class: cls = '' } = Astro.props as { lang: string; class?: string };
+const { lang, class: cls = '', eager = false } = Astro.props as { lang: string; class?: string; eager?: boolean };
 const code = flagFor(lang);
 const base = import.meta.env.BASE_URL;
 ---
 {code
-  ? <img class={`flag ${cls}`} src={`${base}flags/${code}.svg`} alt="" width="20" height="15" loading="lazy" decoding="async" />
+  ? <img class={`flag ${cls}`} src={`${base}flags/${code}.svg`} alt="" width="20" height="15" loading={eager ? 'eager' : 'lazy'} decoding="async" />
   : <span class={`flag flag-none ${cls}`} aria-hidden="true"></span>}

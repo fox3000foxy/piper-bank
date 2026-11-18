@@ -38,7 +38,7 @@ const items = [
           <p class="mega-label">{t(locale, 'mega.browse')}</p>
           <a class="mega-link" href={L('/voices/')}><span class="mega-ico"><Icon name="wave" size={18} /></span><span><strong>{t(locale, 'mega.catalog')}</strong><small>{n(s.models)} {tp(locale, 'home.modelsInCatalog', s.models)} · {n(s.languages)} {tp(locale, 'home.languagesListed', s.languages)}</small></span></a>
           <a class="mega-link" href={L('/compare/')}><span class="mega-ico"><Icon name="layers" size={18} /></span><span><strong>{t(locale, 'compare.title')}</strong><small>{t(locale, 'mega.compareDesc')}</small></span></a>
-          <a class="mega-link" href={L('/library/')}><span class="mega-ico"><Icon name="heart" size={18} /></span><span><strong>{t(locale, 'library.title')}</strong><small>{t(locale, 'mega.libraryDesc')}</small></span></a>
+          <a class="mega-link" href={L('/library/')}><span class="mega-ico"><Icon name="library" size={18} /></span><span><strong>{t(locale, 'library.title')}</strong><small>{t(locale, 'mega.libraryDesc')}</small></span></a>
           {s.recent > 0 && <a class="mega-link" href={L('/voices/?recent=1')}><span class="mega-ico"><Icon name="sparkle" size={18} /></span><span><strong>{t(locale, 'mega.recent')}</strong><small>{t(locale, 'mega.recentDesc')}</small></span></a>}
         </div>
         <div class="mega-col">

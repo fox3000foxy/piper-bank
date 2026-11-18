@@ -19,6 +19,14 @@ export function toggleFavorite(slug: string): boolean {
   return i < 0;
 }
 
+/** Add imported favourites after the current ones, without duplicates. */
+export function mergeFavorites(slugs: string[]) {
+  const list = getFavorites();
+  for (const s of slugs) if (typeof s === 'string' && !list.includes(s)) list.push(s);
+  try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {}
+  window.dispatchEvent(new CustomEvent(EVT));
+}
+
 export function onFavoritesChange(fn: () => void) {
   window.addEventListener(EVT, fn);
   window.addEventListener('storage', (e) => { if (e.key === KEY) fn(); });
